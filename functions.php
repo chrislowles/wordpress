@@ -95,27 +95,6 @@ add_action('wp_head', function () {
     echo '<style>.comment-respond, .comments-area, #comments { display: none !important; }</style>';
 });
 
-/**
- * Pulse Indicator for Active Editing & Auto-Redirect
- */
-// Add the Pulse Dot to the Admin Bar
-add_action('admin_bar_menu', function($wp_admin_bar) {
-    if (!is_single() || !is_user_logged_in()) return;
-
-    global $post;
-    $lock_user = wp_check_post_lock($post->ID);
-
-    if ($lock_user) {
-        $user_details = get_userdata($lock_user);
-        $wp_admin_bar->add_node([
-            'id'    => 'post-is-locked',
-            'title' => '<span class="pulse-dot"></span> Active Edit by ' . esc_html($user_details->display_name),
-            'href'  => '#',
-            'meta'  => ['class' => 'locked-pulse-notice']
-        ]);
-    }
-}, 999);
-
 // Comma-seperated parameter for prefilling tags on new posts: /wp-admin/post-new.php?prefill_tags=technology,news
 add_action('save_post', function($post_id, $post, $update) {
     // 1. Check if we are in the admin area and the parameters exist
