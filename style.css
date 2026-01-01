@@ -8,12 +8,18 @@
     BlankSlate is distributed under the terms of the GNU GPL
 */
 
+/* Update your style.css to use system fonts */
 html, body {
+
+}
+
+html, body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantall, "Helvetica Neue", sans-serif;
+    line-height: 1.6;
     margin: 0;
     padding: 0;
     border: 0;
     font-size: 100%;
-    font: inherit;
     vertical-align: baseline;
 }
 
