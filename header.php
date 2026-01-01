@@ -12,6 +12,7 @@
         <header id="header" role="banner">
             <div id="branding">
                 <h1>
+                    <a>SWAG TEST</a>
                     <a href="/" title="<?php echo esc_attr(get_bloginfo('name')); ?>"><?php echo get_bloginfo('name'); ?></a>
                 </h1>
                 <p><?php bloginfo('description'); ?></p>
