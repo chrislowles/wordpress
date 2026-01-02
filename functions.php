@@ -202,7 +202,7 @@ add_action('add_meta_boxes', function() {
                     $type = $item['type'] ?? 'track'; 
                 ?>
                     <div class="track-row <?= $type === 'spacer' ? 'is-spacer' : '' ?>">
-                        <span class="drag-handle" title="Drag to reorder">☰</span>
+                        <span class="drag-handle" title="Drag to reorder">|||</span>
                         <input type="hidden" name="tracklist[<?= $i ?>][type]" value="<?= esc_attr($type) ?>" />
                         <input type="text"
                                name="tracklist[<?= $i ?>][track_title]"
