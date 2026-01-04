@@ -1,2 +1,2 @@
 # wordpress
-the source code to my wordpress blog
+the source code to my wordpress blog (based on blankslate)
