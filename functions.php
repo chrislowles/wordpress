@@ -1,20 +1,20 @@
 <?php
 
 // Disabling Shit (and nuking Hostinger bloat, this is for me mostly)
-require get_template_directory() . '/inc/disable-categories.php';
-require get_template_directory() . '/inc/disable-comments.php';
-require get_template_directory() . '/inc/disable-gutenberg.php';
-require get_template_directory() . '/inc/disable-widgets.php';
-require get_template_directory() . '/inc/nuke-hostinger.php';
+require get_stylesheet_directory() . '/inc/disable-categories.php';
+require get_stylesheet_directory() . '/inc/disable-comments.php';
+require get_stylesheet_directory() . '/inc/disable-gutenberg.php';
+require get_stylesheet_directory() . '/inc/disable-widgets.php';
+require get_stylesheet_directory() . '/inc/nuke-hostinger.php';
 
 // Tag Utils (tag prefill parameters, menu presets)
-require get_template_directory() . '/inc/tag-utils.php';
+require get_stylesheet_directory() . '/inc/tag-utils.php';
 
 // Co-Authors
-require get_template_directory() . '/inc/co-authors.php';
+require get_stylesheet_directory() . '/inc/co-authors.php';
 
 // Tracklist Logic
-require get_template_directory() . '/inc/tracklist.php';
+require get_stylesheet_directory() . '/inc/tracklist.php';
 
 // Enqueue Scripts & Styles (as yet decoupled from this file, will do soon)
 add_action('admin_enqueue_scripts', function($hook) {
