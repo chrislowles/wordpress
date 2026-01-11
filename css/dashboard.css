@@ -1,0 +1,115 @@
+@media (prefers-color-scheme: dark) {
+    /* 1. Define Variables for easy tweaking */
+    :root {
+        --dm-bg-body:       #101517;  /* Main background */
+        --dm-bg-card:       #1d2327;  /* White boxes/cards */
+        --dm-bg-input:      #2c3338;  /* Input fields */
+        --dm-border:        #3c434a;  /* Borders */
+        --dm-text-main:     #f0f0f1;  /* Main text */
+        --dm-text-muted:    #a7aaad;  /* Helper text/labels */
+        --dm-link:          #72aee6;  /* Links */
+        --dm-btn-primary:   #2271b1;  /* Primary buttons */
+        --dm-notice-green:  #003c00;  /* Success notice bg */
+        --dm-notice-red:    #3c0000;  /* Error notice bg */
+    }
+
+    /* 2. Global Resets */
+    body, html, #wpwrap, #wpcontent, #wpbody-content {
+        background-color: var(--dm-bg-body) !important;
+        color: var(--dm-text-main) !important;
+    }
+
+    /* 3. Cards, Widgets, and Containers */
+    .postbox, .card, .welcome-panel, .widefat, 
+    #poststuff .postarea, .wrap .page-title-action,
+    .wp-filter, .tablenav {
+        background-color: var(--dm-bg-card) !important;
+        border-color: var(--dm-border) !important;
+        color: var(--dm-text-main) !important;
+    }
+
+    /* 4. Headings & Loose Text */
+    h1, h2, h3, h4, h5, h6, 
+    label, .label, 
+    .form-table th, .form-table td,
+    .description, .howto {
+        color: var(--dm-text-main) !important;
+    }
+
+    /* Fallback for muted/helper text */
+    .description, .howto, p.help, span.description {
+        color: var(--dm-text-muted) !important;
+    }
+
+    /* 5. Inputs, Textareas, Selects (The "Form" Elements) */
+    input[type=text], input[type=search], input[type=password], 
+    input[type=email], input[type=number], input[type=url], 
+    input[type=tel], input[type=date], 
+    textarea, select {
+        background-color: var(--dm-bg-input) !important;
+        color: var(--dm-text-main) !important;
+        border-color: var(--dm-border) !important;
+    }
+
+    /* Input Focus State */
+    input:focus, textarea:focus, select:focus {
+        border-color: var(--dm-link) !important;
+        box-shadow: 0 0 0 1px var(--dm-link) !important;
+    }
+
+    /* 6. Links and Buttons */
+    a, .wp-list-table th a {
+        color: var(--dm-link) !important;
+    }
+    a:hover {
+        color: #9ec2e6 !important;
+    }
+
+    /* Fix "Edit/Trash" row actions visibility */
+    .row-actions span a, .row-actions .trash a {
+        color: var(--dm-link) !important;
+    }
+
+    /* 7. Tables (The "Striped" Effect) */
+    table.widefat {
+        background-color: var(--dm-bg-card) !important;
+    }
+    .widefat thead th, .widefat tfoot th {
+        background-color: #2c3338 !important; /* Slightly lighter header */
+        border-bottom: 1px solid var(--dm-border) !important;
+        color: var(--dm-text-main) !important;
+    }
+
+    /* Alternating rows */
+    .alternate, .striped > tbody > tr:nth-child(odd) {
+        background-color: #181d20 !important;
+    }
+    .wp-list-table > tbody > tr:hover {
+        background-color: #2c3338 !important; /* Highlight row on hover */
+    }
+
+    /* 8. Notices (Success/Error Messages) */
+    .notice, .updated, .error, .update-nag {
+        background-color: var(--dm-bg-card) !important;
+        border: 1px solid var(--dm-border) !important;
+        color: var(--dm-text-main) !important;
+    }
+
+    /* Keep the colored side-border so you know if it's Good or Bad */
+    .notice-success, .updated { border-left-color: #46b450 !important; }
+    .notice-error, .error { border-left-color: #dc3232 !important; }
+
+    /* 9. Media Modal (The "Add Media" popup) */
+    .media-modal-content {
+        background-color: var(--dm-bg-body) !important;
+    }
+    .attachment-info, .media-frame-title, .media-frame-router, .media-frame-content {
+        background-color: var(--dm-bg-card) !important;
+        color: var(--dm-text-main) !important;
+    }
+
+    /* 10. Admin Menu (Force override) */
+    #adminmenu, #adminmenu .wp-submenu, #adminmenuback, #adminmenuwrap {
+        background-color: var(--dm-bg-body) !important;
+    }
+}
