@@ -39,3 +39,8 @@ add_action('admin_enqueue_scripts', function($hook) {
         }
     }
 });
+
+add_action('admin_head', function() {
+    // setting baseline for light/dark mode in dashboard
+    echo '<meta name="color-scheme" content="light dark" />';
+});
