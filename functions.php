@@ -16,6 +16,9 @@ require get_stylesheet_directory() . '/inc/co-authors.php';
 // Tracklist Logic
 require get_stylesheet_directory() . '/inc/tracklist.php';
 
+// Redirect Manager
+require get_stylesheet_directory() . '/inc/redirects.php';
+
 // Setting baseline for system-set light/dark mode in dashboard
 add_action('admin_head', function() {
 	echo '<meta name="color-scheme" content="light dark" />';
