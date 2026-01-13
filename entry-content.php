@@ -1,10 +1,12 @@
 <!-- entry-content.php -->
 <div class="entry content">
-	<?php if (has_post_thumbnail()): ?>
-		<a class="thumbnail-link" href="<?php the_post_thumbnail_url('full'); ?>" title="<?php $attachment_id = get_post_thumbnail_id($post->ID); the_title_attribute(array('post' => get_post($attachment_id))); ?>">
-			<?php the_post_thumbnail('full', array('itemprop' => 'image')); ?>
-		</a>
-	<?php endif; ?>
+	<div class="thumbnail">
+		<?php if (has_post_thumbnail()): ?>
+			<a class="thumbnail-link" href="<?php the_post_thumbnail_url('full'); ?>" title="<?php $attachment_id = get_post_thumbnail_id($post->ID); the_title_attribute(array('post' => get_post($attachment_id))); ?>">
+				<?php the_post_thumbnail('full', array('itemprop' => 'image')); ?>
+			</a>
+		<?php endif; ?>
+	</div>
 	<?php
 		// 1. Retrieve the tracklist data from the current post
 		$tracklist = get_post_meta(get_the_ID(), 'tracklist', true);
@@ -34,7 +36,9 @@
 			<?php endforeach; ?>
 		</ul>
 	<?php endif; ?>
-	<?php the_content(); ?>
+	<div class="body-content">
+		<?php the_content(); ?>
+	</div>
 	<div class="links"><?php wp_link_pages(); ?></div>
 </div>
 <!-- /entry-content.php -->
