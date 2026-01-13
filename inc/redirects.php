@@ -86,14 +86,13 @@ add_action('save_post', function($post_id) {
 
 // 4. Custom Admin Columns (Viewable Archive)
 add_filter('manage_redirect_link_posts_columns', function($columns) {
-    // Reorder columns
     $new_columns = [
         'cb'              => $columns['cb'],
         'title'           => 'Label',
         'redirect_path'   => 'Reserved Path',
         'redirect_target' => 'Target URL',
         'redirect_desc'   => 'Description',
-        'tags'            => 'Tags', // Use 'tags' key for standard tag column
+        'tags'            => 'Tags', 
     ];
     return $new_columns;
 });
@@ -127,7 +126,6 @@ add_filter('posts_where', function($where, $query) {
     global $wpdb;
     if (is_admin() && $query->is_main_query() && $query->is_search() && $query->get('post_type') === 'redirect_link') {
         $search = esc_sql($query->get('s'));
-        // Replace the standard Title search with a broader Title OR Meta search
         $where = preg_replace(
             "/\(\s*{$wpdb->posts}.post_title\s+LIKE\s*(\'[^\']+\')\s*\)/",
             "({$wpdb->posts}.post_title LIKE $1) OR ({$wpdb->postmeta}.meta_value LIKE '%{$search}%')",
@@ -146,15 +144,12 @@ add_filter('posts_distinct', function($distinct, $query) {
 
 // 6. Execute the Redirect (Frontend)
 add_action('template_redirect', function() {
-    // Parse the current requested URI
     $request_path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 
-    // Safety: Don't hijack the homepage
     if (empty($request_path)) {
         return;
     }
 
-    // Query for a redirect that matches this path
     $args = [
         'post_type'   => 'redirect_link',
         'meta_key'    => '_redirect_path',
@@ -168,7 +163,7 @@ add_action('template_redirect', function() {
     if (!empty($redirects)) {
         $target = get_post_meta($redirects[0], '_redirect_target', true);
         if ($target) {
-            wp_redirect($target, 301); // 301 Permanent Redirect
+            wp_redirect($target, 301);
             exit;
         }
     }
