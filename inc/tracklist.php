@@ -10,7 +10,7 @@ add_action('add_meta_boxes', function() {
 			$tracklist = get_post_meta($post->ID, 'tracklist', true) ?: [];
 			wp_nonce_field('save_tracklist_meta', 'tracklist_meta_nonce');
 			?>
-			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
 				<div style="font-size: 13px; color: #666;">
 					<strong>Total Duration:</strong> <span id="total-duration">0:00</span>
 				</div>
