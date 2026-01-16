@@ -42,6 +42,7 @@ add_action('add_meta_boxes', function() {
 							   value="<?= esc_attr($duration) ?>"
 							   class="track-duration-input"
 							   style="width: 60px; <?= $type === 'spacer' ? 'display:none;' : '' ?>" />
+						<button type="button" class="fetch-duration button" style="<?= $type === 'spacer' ? 'display:none;' : '' ?>">Grab Duration</button>
 						<button type="button" class="remove-track button">Remove</button>
 					</div>
 				<?php endforeach; ?>
