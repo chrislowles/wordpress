@@ -24,7 +24,7 @@
 	border-left: 4px solid #72AEE6;
 }
 .track-row input[type=text] { 
-	flex: 2;
+	flex: 1;
 }
 .track-row input[type=url] { 
 	flex: 1;
