@@ -65,18 +65,18 @@ jQuery(document).ready(function($) {
 		var url = urlInput.val();
 		
 		if (!url) {
-			alert('Please enter a YouTube URL first.');
+			alert('Please enter a valid URL first (YouTube).');
 			return;
 		}
 		
 		var videoId = extractYouTubeID(url);
 		if (!videoId) {
-			alert('Invalid YouTube URL. Please check the URL and try again.');
+			alert('URL not valid for grabbing duration. Please check the URL and try again or grab duration manually.');
 			return;
 		}
 		
 		// Disable button and show loading state
-		button.prop('disabled', true).text('...');
+		button.prop('disabled', true).text('Grabbing Duration');
 		
 		// Use YouTube oEmbed API (no API key required)
 		$.ajax({
