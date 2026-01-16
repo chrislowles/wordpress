@@ -10,11 +10,17 @@ add_action('add_meta_boxes', function() {
 			$tracklist = get_post_meta($post->ID, 'tracklist', true) ?: [];
 			wp_nonce_field('save_tracklist_meta', 'tracklist_meta_nonce');
 			?>
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+				<div style="font-size: 13px; color: #666;">
+					<strong>Total Duration:</strong> <span id="total-duration">0:00</span>
+				</div>
+			</div>
 			<div id="tracklist-container">
 				<?php 
 				// 2. Loop through saved tracks/spacers
 				foreach ($tracklist as $i => $item): 
 					$type = $item['type'] ?? 'track'; 
+					$duration = $item['duration'] ?? '';
 				?>
 					<div class="track-row <?= $type === 'spacer' ? 'is-spacer' : '' ?>">
 						<span class="drag-handle" title="Drag to reorder">|||</span>
@@ -23,7 +29,13 @@ add_action('add_meta_boxes', function() {
 							   name="tracklist[<?= $i ?>][track_title]"
 							   placeholder="<?= $type === 'spacer' ? '[In The Cinema/The Pin Drop/Walking On Thin Ice/One Up]' : 'Artist/Group - Track Title' ?>"
 							   value="<?= esc_attr($item['track_title']) ?>"
-							   class="widefat" />
+							   class="track-title-input" />
+						<input type="text"
+							   name="tracklist[<?= $i ?>][duration]"
+							   placeholder="3:45"
+							   value="<?= esc_attr($duration) ?>"
+							   class="track-duration-input"
+							   style="width: 60px; <?= $type === 'spacer' ? 'display:none;' : '' ?>" />
 						<input type="url"
 							   name="tracklist[<?= $i ?>][track_url]"
 							   placeholder="https://..."
@@ -62,6 +74,7 @@ add_action('save_post_post', function($post_id) {
 			$sanitized[] = [
 				'type' => sanitize_text_field($track['type'] ?? 'track'),
 				'track_title' => sanitize_text_field($track['track_title']),
+				'duration' => sanitize_text_field($track['duration'] ?? ''),
 				'track_url' => esc_url_raw($track['track_url'] ?? ''),
 			];
 		}
