@@ -63,8 +63,8 @@ jQuery(document).ready(function($) {
 				<span class="drag-handle" title="Drag to reorder">|||</span>
 				<input type="hidden" name="tracklist[${index}][type]" value="${type}" />
 				<input type="text" name="tracklist[${index}][track_title]" placeholder="${titlePlaceholder}" class="track-title-input" />
-				<input type="text" name="tracklist[${index}][duration]" placeholder="3:45" class="track-duration-input" style="width: 60px; ${hiddenStyle}" />
 				<input type="url" name="tracklist[${index}][track_url]" placeholder="https://..." class="track-url-input" style="${hiddenStyle}" />
+				<input type="text" name="tracklist[${index}][duration]" placeholder="3:45" class="track-duration-input" style="width: 60px; ${hiddenStyle}" />
 				<button type="button" class="remove-track button">Remove</button>
 			</div>
 		`;

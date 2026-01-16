@@ -30,18 +30,18 @@ add_action('add_meta_boxes', function() {
 							   placeholder="<?= $type === 'spacer' ? '[In The Cinema/The Pin Drop/Walking On Thin Ice/One Up]' : 'Artist/Group - Track Title' ?>"
 							   value="<?= esc_attr($item['track_title']) ?>"
 							   class="track-title-input" />
-						<input type="text"
-							   name="tracklist[<?= $i ?>][duration]"
-							   placeholder="3:45"
-							   value="<?= esc_attr($duration) ?>"
-							   class="track-duration-input"
-							   style="width: 60px; <?= $type === 'spacer' ? 'display:none;' : '' ?>" />
 						<input type="url"
 							   name="tracklist[<?= $i ?>][track_url]"
 							   placeholder="https://..."
 							   value="<?= esc_url($item['track_url'] ?? '') ?>"
 							   class="track-url-input"
 							   style="<?= $type === 'spacer' ? 'display:none;' : '' ?>" />
+						<input type="text"
+							   name="tracklist[<?= $i ?>][duration]"
+							   placeholder="3:45"
+							   value="<?= esc_attr($duration) ?>"
+							   class="track-duration-input"
+							   style="width: 60px; <?= $type === 'spacer' ? 'display:none;' : '' ?>" />
 						<button type="button" class="remove-track button">Remove</button>
 					</div>
 				<?php endforeach; ?>
