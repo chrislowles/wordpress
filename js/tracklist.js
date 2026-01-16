@@ -47,7 +47,78 @@ jQuery(document).ready(function($) {
 		$('#total-duration').text(formatDuration(total));
 	}
 
-	// 5. Function to add a new row
+	// 5. Function to extract YouTube video ID from URL
+	function extractYouTubeID(url) {
+		if (!url) return null;
+		
+		// Handle various YouTube URL formats
+		var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+		var match = url.match(regExp);
+		return (match && match[7].length == 11) ? match[7] : null;
+	}
+
+	// 6. Function to fetch duration from YouTube
+	function fetchYouTubeDuration(button) {
+		var row = button.closest('.track-row');
+		var urlInput = row.find('.track-url-input');
+		var durationInput = row.find('.track-duration-input');
+		var url = urlInput.val();
+		
+		if (!url) {
+			alert('Please enter a YouTube URL first.');
+			return;
+		}
+		
+		var videoId = extractYouTubeID(url);
+		if (!videoId) {
+			alert('Invalid YouTube URL. Please check the URL and try again.');
+			return;
+		}
+		
+		// Disable button and show loading state
+		button.prop('disabled', true).text('...');
+		
+		// Use YouTube oEmbed API (no API key required)
+		$.ajax({
+			url: 'https://www.youtube.com/oembed',
+			data: {
+				url: 'https://www.youtube.com/watch?v=' + videoId,
+				format: 'json'
+			},
+			dataType: 'json',
+			success: function(data) {
+				// oEmbed doesn't provide duration, so we need to scrape it differently
+				// Let's use the noembed.com service which provides more data
+				$.ajax({
+					url: 'https://noembed.com/embed',
+					data: {
+						url: 'https://www.youtube.com/watch?v=' + videoId
+					},
+					dataType: 'json',
+					success: function(embedData) {
+						if (embedData.duration) {
+							durationInput.val(formatDuration(embedData.duration));
+							calculateTotalDuration();
+							button.prop('disabled', false).text('Grab Duration');
+						} else {
+							alert('Sorry, couldn\'t grab duration. Please get the duration manually.');
+							button.prop('disabled', false).text('Grab Duration');
+						}
+					},
+					error: function() {
+						alert('Sorry, couldn\'t grab duration. Please get the duration manually.');
+						button.prop('disabled', false).text('Grab Duration');
+					}
+				});
+			},
+			error: function() {
+				alert('Sorry, couldn\'t grab duration. Please get the duration manually.');
+				button.prop('disabled', false).text('Grab Duration');
+			}
+		});
+	}
+
+	// 7. Function to add a new row
 	function addRow(type) {
 		var index = container.find('.track-row').length;
 		
@@ -65,6 +136,7 @@ jQuery(document).ready(function($) {
 				<input type="text" name="tracklist[${index}][track_title]" placeholder="${titlePlaceholder}" class="track-title-input" />
 				<input type="url" name="tracklist[${index}][track_url]" placeholder="https://..." class="track-url-input" style="${hiddenStyle}" />
 				<input type="text" name="tracklist[${index}][duration]" placeholder="3:45" class="track-duration-input" style="width: 60px; ${hiddenStyle}" />
+				<button type="button" class="fetch-duration button" style="${hiddenStyle}">Grab Duration</button>
 				<button type="button" class="remove-track button">Remove</button>
 			</div>
 		`;
@@ -72,21 +144,26 @@ jQuery(document).ready(function($) {
 		calculateTotalDuration();
 	}
 
-	// 6. Button Click Events
+	// 8. Button Click Events
 	$('.add-track').on('click', function() { addRow('track'); });
 	$('.add-spacer').on('click', function() { addRow('spacer'); });
 
-	// 7. Remove Button Event (Delegated for dynamically added items)
+	// 9. Remove Button Event (Delegated for dynamically added items)
 	container.on('click', '.remove-track', function() {
 		$(this).closest('.track-row').remove();
 		calculateTotalDuration();
 	});
 
-	// 8. Update total when duration changes
+	// 10. Fetch Duration Button Event (Delegated for dynamically added items)
+	container.on('click', '.fetch-duration', function() {
+		fetchYouTubeDuration($(this));
+	});
+
+	// 11. Update total when duration changes
 	container.on('input', '.track-duration-input', function() {
 		calculateTotalDuration();
 	});
 
-	// 9. Calculate initial total on page load
+	// 12. Calculate initial total on page load
 	calculateTotalDuration();
 });
