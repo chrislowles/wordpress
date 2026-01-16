@@ -23,10 +23,18 @@
 	background: #F0F0F1;
 	border-left: 4px solid #72AEE6;
 }
-.track-row input[type=text] { 
+
+.track-row .track-title-input { 
 	flex: 1;
 }
-.track-row input[type=url] { 
+
+.track-row .track-duration-input {
+	width: 60px;
+	text-align: center;
+	font-family: monospace;
+}
+
+.track-row .track-url-input { 
 	flex: 1;
 }
 
@@ -47,4 +55,12 @@
 	height: 45px;
 	margin-bottom: 8px;
 	background: #F9F9F9;
+}
+
+/* Total duration display styling */
+#total-duration {
+	font-size: 16px;
+	font-weight: 600;
+	color: #2271B1;
+	font-family: monospace;
 }
