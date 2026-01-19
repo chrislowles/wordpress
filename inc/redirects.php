@@ -35,12 +35,12 @@ function register_redirects_post_type() {
 	// Configuration for the post type
 	$args = array(
 		'labels'             => $labels,
-		'public'             => true,              // Show in admin
-		'publicly_queryable' => true,              // Allow queries
+		'public'             => false,             // Changed to false - redirects shouldn't be public
+		'publicly_queryable' => false,             // Changed to false - we handle queries ourselves
 		'show_ui'            => true,              // Show admin interface
 		'show_in_menu'       => true,              // Show in admin menu
-		'menu_icon'          => 'dashicons-admin-links',  // Icon for menu
-		'query_var'          => true,              // Allow query var
+		'menu_icon'          => 'dashicons-admin-links',
+		'query_var'          => false,             // Changed to false - no query var needed
 		'rewrite'            => false,             // We handle URLs ourselves
 		'capability_type'    => 'post',            // Use post permissions
 		'has_archive'        => false,             // No archive page needed
@@ -64,12 +64,12 @@ add_action('init', 'register_redirects_post_type');
  */
 function add_redirect_meta_boxes() {
 	add_meta_box(
-		'redirect_details',           // Unique ID for this meta box
-		'Redirect Details',           // Title shown at top of box
-		'render_redirect_meta_box',   // Function that renders the content
-		'redirect',                   // Post type to add it to
-		'normal',                     // Where to show it (normal, side, advanced)
-		'high'                        // Priority (high, low, default)
+		'redirect_details',
+		'Redirect Details',
+		'render_redirect_meta_box',
+		'redirect',
+		'normal',
+		'high'
 	);
 }
 add_action('add_meta_boxes', 'add_redirect_meta_boxes');
@@ -200,7 +200,7 @@ add_action('save_post_redirect', 'save_redirect_meta');
  */
 function redirect_custom_columns($columns) {
 	$new_columns = array(
-		'cb'                    => $columns['cb'],  // Checkbox for bulk actions
+		'cb'                    => $columns['cb'],
 		'title'                 => 'Title',
 		'redirect_path'         => 'Path',
 		'redirect_url'          => 'Destination URL',
@@ -223,7 +223,7 @@ function redirect_custom_column_content($column, $post_id) {
 			if ($path) {
 				echo '<code>/' . esc_html($path) . '</code>';
 			} else {
-				echo '—';  // Em dash for empty
+				echo '—';
 			}
 			break;
 
@@ -239,7 +239,6 @@ function redirect_custom_column_content($column, $post_id) {
 		case 'redirect_description':
 			$description = get_post_meta($post_id, '_redirect_description', true);
 			if ($description) {
-				// Show truncated version with full text in title attribute (hover to see)
 				echo '<span title="' . esc_attr($description) . '">' . esc_html(wp_trim_words($description, 10)) . '</span>';
 			} else {
 				echo '—';
@@ -265,20 +264,17 @@ add_filter('manage_edit-redirect_sortable_columns', 'redirect_sortable_columns')
  * Handle the actual sorting when columns are clicked
  */
 function redirect_orderby($query) {
-	// Only run in admin on main query
 	if (!is_admin() || !$query->is_main_query()) {
 		return;
 	}
 
 	$orderby = $query->get('orderby');
 
-	// Sort by path
 	if ('redirect_path' === $orderby) {
 		$query->set('meta_key', '_redirect_path');
 		$query->set('orderby', 'meta_value');
 	}
 
-	// Sort by URL
 	if ('redirect_url' === $orderby) {
 		$query->set('meta_key', '_redirect_url');
 		$query->set('orderby', 'meta_value');
@@ -297,7 +293,6 @@ add_action('pre_get_posts', 'redirect_orderby');
 function redirect_search_join($join) {
 	global $wpdb, $pagenow;
 
-	// Only on redirect edit screen when searching
 	if (is_admin() && 
 	    'edit.php' === $pagenow && 
 	    isset($_GET['post_type']) && 
@@ -318,7 +313,6 @@ add_filter('posts_join', 'redirect_search_join');
 function redirect_search_where($where) {
 	global $wpdb, $pagenow;
 
-	// Only on redirect edit screen when searching
 	if (is_admin() && 
 	    'edit.php' === $pagenow && 
 	    isset($_GET['post_type']) && 
@@ -328,7 +322,6 @@ function redirect_search_where($where) {
 		
 		$search = esc_sql($wpdb->esc_like($_GET['s']));
 		
-		// Expand the search to include path, URL, and description
 		$where = preg_replace(
 			"/\(\s*{$wpdb->posts}.post_title\s+LIKE\s*(\'[^\']+\')\s*\)/",
 			"({$wpdb->posts}.post_title LIKE $1) " .
@@ -370,6 +363,7 @@ add_filter('posts_distinct', 'redirect_search_distinct');
 
 /**
  * Check if the current URL matches a redirect and perform it
+ * This runs EARLY to catch requests before WordPress processes them
  */
 function handle_custom_redirects() {
 	// Don't run in admin area
@@ -378,7 +372,8 @@ function handle_custom_redirects() {
 	}
 
 	// Get the path they're trying to access
-	$request_path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+	$request_uri = $_SERVER['REQUEST_URI'];
+	$request_path = trim(parse_url($request_uri, PHP_URL_PATH), '/');
 	
 	// If they're on the homepage, do nothing
 	if (empty($request_path)) {
@@ -388,6 +383,7 @@ function handle_custom_redirects() {
 	// Look for a redirect with this exact path
 	$args = array(
 		'post_type'      => 'redirect',
+		'post_status'    => 'publish',
 		'posts_per_page' => 1,
 		'meta_query'     => array(
 			array(
@@ -395,7 +391,10 @@ function handle_custom_redirects() {
 				'value'   => $request_path,
 				'compare' => '='
 			)
-		)
+		),
+		'no_found_rows'  => true,
+		'update_post_meta_cache' => false,
+		'update_post_term_cache' => false,
 	);
 
 	$redirect_query = new WP_Query($args);
@@ -406,15 +405,17 @@ function handle_custom_redirects() {
 		$redirect_url = get_post_meta(get_the_ID(), '_redirect_url', true);
 		
 		if ($redirect_url) {
+			wp_reset_postdata();
 			// 301 = permanent redirect (good for SEO)
 			wp_redirect($redirect_url, 301);
-			exit;  // Stop all further processing
+			exit;
 		}
 	}
 
 	wp_reset_postdata();
 }
-add_action('template_redirect', 'handle_custom_redirects');
+// Use priority 1 to run very early in the template_redirect process
+add_action('template_redirect', 'handle_custom_redirects', 1);
 
 
 // =============================================================================
@@ -423,7 +424,6 @@ add_action('template_redirect', 'handle_custom_redirects');
 
 /**
  * Flush rewrite rules when the theme is activated
- * This ensures WordPress knows about our custom post type
  */
 function redirects_flush_rewrites() {
 	register_redirects_post_type();
