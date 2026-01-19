@@ -380,6 +380,10 @@ function handle_custom_redirects() {
 		return;
 	}
 
+	// DEBUG: Temporarily log what we're looking for
+	// Remove this after testing
+	error_log('Redirect Debug - Looking for path: ' . $request_path);
+
 	// Look for a redirect with this exact path
 	$args = array(
 		'post_type'      => 'redirect',
@@ -399,12 +403,18 @@ function handle_custom_redirects() {
 
 	$redirect_query = new WP_Query($args);
 
+	// DEBUG: Log if we found anything
+	error_log('Redirect Debug - Found posts: ' . ($redirect_query->have_posts() ? 'YES' : 'NO'));
+
 	// If we found a matching redirect, perform it
 	if ($redirect_query->have_posts()) {
 		$redirect_query->the_post();
 		$redirect_url = get_post_meta(get_the_ID(), '_redirect_url', true);
 		
-		if ($redirect_url) {
+		// DEBUG: Log the URL we found
+		error_log('Redirect Debug - Redirect URL: ' . ($redirect_url ?: 'EMPTY'));
+		
+		if ($redirect_url && !empty($redirect_url)) {
 			wp_reset_postdata();
 			// 301 = permanent redirect (good for SEO)
 			wp_redirect($redirect_url, 301);
