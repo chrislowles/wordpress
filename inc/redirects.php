@@ -97,7 +97,7 @@ function render_redirect_meta_box($post) {
 					id="redirect_path" 
 					name="redirect_path" 
 					value="<?php echo esc_attr($path); ?>" 
-					class="regular-text" 
+					class="widefat" 
 					placeholder="example-path" 
 				/>
 				<p class="description">
@@ -115,8 +115,8 @@ function render_redirect_meta_box($post) {
 					id="redirect_url" 
 					name="redirect_url" 
 					value="<?php echo esc_attr($url); ?>" 
-					class="regular-text" 
-					placeholder="https://example.com" 
+					class="widefat" 
+					placeholder="https://youtu.be/dQw4w9WgXcQ" 
 					required 
 				/>
 				<p class="description">Full URL (internal or external) to redirect to</p>
