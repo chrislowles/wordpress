@@ -131,7 +131,7 @@ function render_redirect_meta_box($post) {
 					id="redirect_description" 
 					name="redirect_description" 
 					rows="3" 
-					class="large-text"
+					class="widefat"
 				><?php echo esc_textarea($description); ?></textarea>
 				<p class="description">Internal notes about this redirect (not visible to visitors)</p>
 			</td>
