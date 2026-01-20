@@ -49,11 +49,9 @@ function register_redirects_post_type() {
 		'supports'           => array('title'),    // Only support title field
 		'taxonomies'         => array('post_tag'), // Enable tags
 	);
-
 	register_post_type('redirect', $args);
 }
 add_action('init', 'register_redirects_post_type');
-
 
 // =============================================================================
 // CREATE THE EDIT FORM (META BOXES)
@@ -92,13 +90,13 @@ function render_redirect_meta_box($post) {
 		<tr>
 			<th><label for="redirect_path">Path (without leading slash)</label></th>
 			<td>
-				<input 
-					type="text" 
-					id="redirect_path" 
-					name="redirect_path" 
-					value="<?php echo esc_attr($path); ?>" 
-					class="widefat" 
-					placeholder="example-path" 
+				<input
+					type="text"
+					id="redirect_path"
+					name="redirect_path"
+					value="<?php echo esc_attr($path); ?>"
+					class="widefat"
+					placeholder="example-path"
 				/>
 				<p class="description">
 					Will redirect from: <?php echo esc_url(home_url('/')); ?><strong id="path-preview"><?php echo esc_html($path ?: 'example-path'); ?></strong>
@@ -110,14 +108,14 @@ function render_redirect_meta_box($post) {
 		<tr>
 			<th><label for="redirect_url">Destination URL</label></th>
 			<td>
-				<input 
-					type="url" 
-					id="redirect_url" 
-					name="redirect_url" 
-					value="<?php echo esc_attr($url); ?>" 
-					class="widefat" 
-					placeholder="https://youtu.be/dQw4w9WgXcQ" 
-					required 
+				<input
+					type="url"
+					id="redirect_url"
+					name="redirect_url"
+					value="<?php echo esc_attr($url); ?>"
+					class="widefat"
+					placeholder="https://youtu.be/dQw4w9WgXcQ"
+					required
 				/>
 				<p class="description">Full URL (internal or external) to redirect to</p>
 			</td>
@@ -127,10 +125,10 @@ function render_redirect_meta_box($post) {
 		<tr>
 			<th><label for="redirect_description">Internal Description</label></th>
 			<td>
-				<textarea 
-					id="redirect_description" 
-					name="redirect_description" 
-					rows="3" 
+				<textarea
+					id="redirect_description"
+					name="redirect_description"
+					rows="3"
 					class="widefat"
 				><?php echo esc_textarea($description); ?></textarea>
 				<p class="description">Internal notes about this redirect (not visible to visitors)</p>
