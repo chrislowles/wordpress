@@ -7,8 +7,8 @@ add_action('add_meta_boxes', function() {
 		'Tracklist',
 		function ($post) {
 			// 1. Get existing data
-			$tracklist = get_post_meta($post->ID, 'tracklist', true) ?: [];
-			wp_nonce_field('save_tracklist_meta', 'tracklist_meta_nonce');
+			$tracklist = get_post_meta( $post->ID, 'tracklist', true ) ?: [];
+			wp_nonce_field( 'save_tracklist_meta', 'tracklist_meta_nonce' );
 			?>
 			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
 				<div style="font-size: 13px; color: #666;">
@@ -26,22 +26,22 @@ add_action('add_meta_boxes', function() {
 						<span class="drag-handle" title="Drag to reorder">|||</span>
 						<input type="hidden" name="tracklist[<?= $i ?>][type]" value="<?= esc_attr($type) ?>" />
 						<input type="text"
-							   name="tracklist[<?= $i ?>][track_title]"
-							   placeholder="<?= $type === 'spacer' ? '[In The Cinema/The Pin Drop/Walking On Thin Ice/One Up]' : 'Artist/Group - Track Title' ?>"
-							   value="<?= esc_attr($item['track_title']) ?>"
-							   class="track-title-input" />
+								name="tracklist[<?= $i ?>][track_title]"
+								placeholder="<?= $type === 'spacer' ? '[In The Cinema/The Pin Drop/Walking On Thin Ice/One Up]' : 'Artist/Group - Track Title' ?>"
+								value="<?= esc_attr($item['track_title']) ?>"
+								class="track-title-input" />
 						<input type="url"
-							   name="tracklist[<?= $i ?>][track_url]"
-							   placeholder="https://..."
-							   value="<?= esc_url($item['track_url'] ?? '') ?>"
-							   class="track-url-input"
-							   style="<?= $type === 'spacer' ? 'display:none;' : '' ?>" />
+								name="tracklist[<?= $i ?>][track_url]"
+								placeholder="https://..."
+								value="<?= esc_url($item['track_url'] ?? '') ?>"
+								class="track-url-input"
+								style="<?= $type === 'spacer' ? 'display:none;' : '' ?>" />
 						<input type="text"
-							   name="tracklist[<?= $i ?>][duration]"
-							   placeholder="3:45"
-							   value="<?= esc_attr($duration) ?>"
-							   class="track-duration-input"
-							   style="width: 60px; <?= $type === 'spacer' ? 'display:none;' : '' ?>" />
+								name="tracklist[<?= $i ?>][duration]"
+								placeholder="3:45"
+								value="<?= esc_attr($duration) ?>"
+								class="track-duration-input"
+								style="width: 60px; <?= $type === 'spacer' ? 'display:none;' : '' ?>" />
 						<button type="button" class="fetch-duration button" style="<?= $type === 'spacer' ? 'display:none;' : '' ?>">Grab Duration</button>
 						<button type="button" class="remove-track button">Remove</button>
 					</div>
