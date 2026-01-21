@@ -27,7 +27,7 @@ add_action('add_meta_boxes', function() {
 						<input type="hidden" name="tracklist[<?= $i ?>][type]" value="<?= esc_attr($type) ?>" />
 						<input type="text"
 								name="tracklist[<?= $i ?>][track_title]"
-								placeholder="<?= $type === 'spacer' ? '[In The Cinema/The Pin Drop/Walking On Thin Ice/One Up]' : 'Artist/Group - Track Title' ?>"
+								placeholder="<?= $type === 'spacer' ? 'Segment (In The Cinema/The Pin Drop/Walking On Thin Ice/One Up P1-2)' : 'Artist/Group - Track Title' ?>"
 								value="<?= esc_attr($item['track_title']) ?>"
 								class="track-title-input" />
 						<input type="url"
