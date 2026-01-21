@@ -90,16 +90,14 @@ jQuery(document).ready(function($) {
 
 		// Show or hide the YouTube playlist link
 		if (allYouTube && videoIds.length > 0 && hasAnyTracks) {
-			var playlistUrl = 'https://www.youtube.com/watch_videos?video_ids=' + videoIds.join(',');
+			var playlistUrl = `https://www.youtube.com/watch_videos?video_ids=${videoIds.join(',')}`;
 			
 			// Create or update the link
 			if ($('#youtube-playlist-link').length === 0) {
 				$('#total-duration').parent().after(
-					'<div style="font-size: 13px; margin-top: 8px;">' +
-					'<a id="youtube-playlist-link" href="' + playlistUrl + '" target="_blank" rel="noopener noreferrer" class="button button-secondary" style="text-decoration: none;">' +
-					'Open All in YouTube' +
-					'</a>' +
-					'</div>'
+					`<div style="font-size: 13px; margin-top: 8px;">
+						<a id="youtube-playlist-link" href="${playlistUrl}" title="The condition of all the tracks being from YouTube was met so heres a temp playlist." target="_blank" rel="noopener noreferrer" class="button button-secondary" style="text-decoration: none;">Play All</a>
+					</div>`
 				);
 			} else {
 				$('#youtube-playlist-link').attr('href', playlistUrl);
@@ -115,17 +113,16 @@ jQuery(document).ready(function($) {
 		var urlInput = row.find('.track-url-input');
 		var durationInput = row.find('.track-duration-input');
 		var url = urlInput.val();
-		
+
 		if (!url) {
 			alert('Please enter a valid URL first.');
 			return;
 		}
-		
+
 		// Disable button and show loading state
 		button.prop('disabled', true).text('Grabbing Duration');
-		
-		// Use noembed.com which supports multiple platforms
-		// (YouTube, Vimeo, SoundCloud, Dailymotion, etc.)
+
+		// Use noembed.com which supports multiple platforms (YouTube, Vimeo, SoundCloud, Dailymotion, etc.)
 		$.ajax({
 			url: 'https://noembed.com/embed',
 			data: { url: url },
@@ -150,9 +147,9 @@ jQuery(document).ready(function($) {
 	// 9. Function to add a new row
 	function addRow(type) {
 		var index = container.find('.track-row').length;
-		
+
 		// Define placeholders based on type
-		var titlePlaceholder = (type === 'spacer') ? '[In The Cinema/The Pin Drop/Walking On Thin Ice/One Up]' : 'Artist/Group - Track Title';
+		var titlePlaceholder = (type === 'spacer') ? 'Segment (In The Cinema/The Pin Drop/Walking On Thin Ice/One Up P1-2)' : 'Artist/Group - Track Title';
 
 		// Hide URL and duration inputs if it is a spacer
 		var hiddenStyle = (type === 'spacer') ? 'display:none;' : '';
