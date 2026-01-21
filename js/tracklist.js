@@ -95,7 +95,7 @@ jQuery(document).ready(function($) {
 			// Create or update the link
 			if ($('#youtube-playlist-link').length === 0) {
 				$('#total-duration').parent().after(
-					`<div style="font-size: 13px; margin-top: 8px;">
+					`<div style="font-size: 13px;">
 						<a id="youtube-playlist-link" href="${playlistUrl}" title="The condition of all the tracks being from YouTube was met so heres a temp playlist." target="_blank" rel="noopener noreferrer" class="button button-secondary" style="text-decoration: none;">Play All</a>
 					</div>`
 				);
