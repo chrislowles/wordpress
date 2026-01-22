@@ -1,11 +1,6 @@
 /* TODO: comprehensive dark mode css for all dashboard UI elements with fallbacks */
 /* @media (prefers-color-scheme: dark) {} */
 
-/* Quirk with Caching Plugins Purge Cache button */
-#wpadminbar #wp-admin-bar-litespeed-menu .ab-icon {
-	margin-right: unset !important;
-}
-
 /* Tracklist Metabox Styles */
 #tracklist-container {
 	container-type: inline-size;
@@ -27,7 +22,7 @@
 /* Style specifically for the Spacer rows */
 .track-row.is-spacer {
 	background: #F0F0F1;
-	border-left: 4px solid #72AEE6;
+	border: 2px solid #72AEE6;
 }
 
 .track-row .track-title-input { 
@@ -82,36 +77,27 @@
 	
 	.track-row .track-title-input {
 		order: 2;
-		flex: 1;
-		min-width: 0;
-		width: 100%;
 		flex-basis: calc(100% - 50px); /* Account for drag handle width */
 	}
 	
 	/* Full width inputs and buttons below */
 	.track-row .track-url-input {
 		order: 3;
-		width: 100%;
 		flex-basis: 100%;
-		min-width: 0;
 	}
 	
 	.track-row .track-duration-input {
 		order: 4;
-		width: 100%;
 		flex-basis: 100%;
-		text-align: left;
 	}
 	
 	.track-row .fetch-duration {
 		order: 5;
-		width: 100%;
 		flex-basis: 100%;
 	}
 	
 	.track-row .remove-track {
 		order: 6;
-		width: 100%;
 		flex-basis: 100%;
 	}
 	
@@ -120,7 +106,7 @@
 		font-size: 12px;
 		padding: 8px;
 		height: auto;
-		line-height: 1.4;
+		line-height: 1.1;
 	}
 }
 
