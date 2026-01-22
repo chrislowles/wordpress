@@ -7,8 +7,14 @@
 }
 
 /* Tracklist Metabox Styles */
+#tracklist-container {
+	container-type: inline-size;
+	container-name: tracklist;
+}
+
 .track-row {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 10px;
 	align-items: center;
 	margin-bottom: 8px;
@@ -25,17 +31,20 @@
 }
 
 .track-row .track-title-input { 
-	flex: 1;
+	flex: 1 1 250px;
+	min-width: 150px;
 }
 
 .track-row .track-duration-input {
 	width: 60px;
 	text-align: center;
 	font-family: monospace;
+	flex-shrink: 0;
 }
 
 .track-row .track-url-input { 
-	flex: 1;
+	flex: 1 1 250px;
+	min-width: 150px;
 }
 
 .drag-handle {
@@ -44,9 +53,75 @@
 	padding: 0 10px;
 	color: #CCC;
 	line-height: 1;
+	flex-shrink: 0;
 }
 .drag-handle:hover { 
 	color: #333;
+}
+
+/* Buttons */
+.track-row .button {
+	flex-shrink: 0;
+	white-space: nowrap;
+}
+
+/* Mobile responsive adjustments - using container queries */
+@container (max-width: 1024px) {
+	.track-row {
+		gap: 8px;
+		padding: 8px;
+	}
+	
+	/* Drag handle stays with track title */
+	.track-row .drag-handle {
+		order: 1;
+		font-size: 24px;
+		padding: 0 8px;
+		touch-action: none;
+	}
+	
+	.track-row .track-title-input {
+		order: 2;
+		flex: 1;
+		min-width: 0;
+		width: 100%;
+		flex-basis: calc(100% - 50px); /* Account for drag handle width */
+	}
+	
+	/* Full width inputs and buttons below */
+	.track-row .track-url-input {
+		order: 3;
+		width: 100%;
+		flex-basis: 100%;
+		min-width: 0;
+	}
+	
+	.track-row .track-duration-input {
+		order: 4;
+		width: 100%;
+		flex-basis: 100%;
+		text-align: left;
+	}
+	
+	.track-row .fetch-duration {
+		order: 5;
+		width: 100%;
+		flex-basis: 100%;
+	}
+	
+	.track-row .remove-track {
+		order: 6;
+		width: 100%;
+		flex-basis: 100%;
+	}
+	
+	/* Smaller buttons on mobile */
+	.track-row .button {
+		font-size: 12px;
+		padding: 8px;
+		height: auto;
+		line-height: 1.4;
+	}
 }
 
 /* The grey dotted box that appears when you are dragging an item */
