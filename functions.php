@@ -13,8 +13,8 @@ require get_stylesheet_directory() . '/inc/tag-utils.php';
 // Co-Authors
 require get_stylesheet_directory() . '/inc/co-authors.php';
 
-// Tracklist Logic
-require get_stylesheet_directory() . '/inc/tracklist.php';
+// Tracklist/Show Post type logic
+require get_stylesheet_directory() . '/inc/shows.php';
 
 // Redirect Manager
 require get_stylesheet_directory() . '/inc/redirects.php';
