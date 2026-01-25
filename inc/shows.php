@@ -45,7 +45,7 @@ function register_shows_post_type() {
 
 	register_post_type('show', $args);
 }
-add_action('init', 'register_shows_post_type');
+add_action('init', 'register_shows_post_type', 0);
 
 // =============================================================================
 // TRACKLIST METABOX FOR SHOWS
