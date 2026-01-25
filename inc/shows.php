@@ -10,47 +10,42 @@
 // =============================================================================
 
 function register_shows_post_type() {
-	$labels = array(
-		'name'                  => 'Shows',
-		'singular_name'         => 'Show',
-		'menu_name'             => 'Shows',
-		'name_admin_bar'        => 'Show',
-		'add_new'               => 'Add New',
-		'add_new_item'          => 'Add New Show',
-		'new_item'              => 'New Show',
-		'edit_item'             => 'Edit Show',
-		'view_item'             => 'View Show',
-		'all_items'             => 'All Shows',
-		'search_items'          => 'Search Shows',
-		'not_found'             => 'No shows found.',
-		'not_found_in_trash'    => 'No shows found in Trash.',
-	);
-
-	$args = array(
-		'labels'             => $labels,
-		'public'             => false,
+	register_post_type('show', array(
+		'labels' => array(
+			'name' => 'Shows',
+			'singular_name' => 'Show',
+			'menu_name' => 'Shows',
+			'name_admin_bar' => 'Show',
+			'add_new' => 'Add New',
+			'add_new_item' => 'Add New Show',
+			'new_item' => 'New Show',
+			'edit_item' => 'Edit Show',
+			'view_item' => 'View Show',
+			'all_items' => 'All Shows',
+			'search_items' => 'Search Shows',
+			'not_found' => 'No shows found.',
+			'not_found_in_trash' => 'No shows found in Trash.',
+		),
+		'public' => false,
 		'publicly_queryable' => false,
-		'show_ui'            => true,
-		'show_in_menu'       => true,
-		'menu_icon'          => 'dashicons-playlist-audio',
-		'query_var'          => false,
-		'rewrite'            => false,
-		'capability_type'    => 'post',
-		'has_archive'        => false,
-		'hierarchical'       => false,
-		'menu_position'      => 21,
-		'supports'           => array('title', 'editor', 'thumbnail'),
-		'taxonomies'         => array('post_tag'),
-	);
-
-	register_post_type('show', $args);
+		'show_ui' => true,
+		'show_in_menu' => true,
+		'menu_icon' => 'dashicons-playlist-audio',
+		'query_var' => false,
+		'rewrite' => false,
+		'capability_type' => 'post',
+		'has_archive' => false,
+		'hierarchical' => false,
+		'menu_position' => 21,
+		'supports' => array('title', 'editor', 'thumbnail'),
+		'taxonomies' => array('post_tag'),
+	));
 }
 add_action('init', 'register_shows_post_type', 0);
 
 // =============================================================================
 // TRACKLIST METABOX FOR SHOWS
 // =============================================================================
-
 add_action('add_meta_boxes', function() {
 	add_meta_box(
 		'tracklist_meta_box',
