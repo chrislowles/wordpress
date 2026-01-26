@@ -37,8 +37,8 @@ function register_shows_post_type() {
 		'has_archive' => false,
 		'hierarchical' => false,
 		'menu_position' => 21,
-		'supports' => array('markup_markdown', 'thumbnail'),
-		'taxonomies' => array('post_tag'),
+		'supports' => array('editor', 'thumbnail'),
+		// 'taxonomies' => array('post_tag'),
 	));
 }
 add_action('init', 'register_shows_post_type', 0);
