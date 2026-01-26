@@ -1,6 +1,11 @@
 /* TODO: comprehensive dark mode css for all dashboard UI elements with fallbacks */
 /* @media (prefers-color-scheme: dark) {} */
 
+
+#wp-content-editor-container {
+	padding-top: 0;
+}
+
 /* Tracklist Metabox Styles */
 #tracklist-container {
 	container-type: inline-size;
