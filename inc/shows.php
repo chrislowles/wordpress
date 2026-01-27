@@ -37,7 +37,7 @@ function register_shows_post_type() {
 		'has_archive' => false,
 		'hierarchical' => false,
 		'menu_position' => 21,
-		'supports' => array('editor', 'thumbnail'),
+		'supports' => array('markup_markdown', 'thumbnail'),
 		// 'taxonomies' => array('post_tag'),
 	));
 }
@@ -61,10 +61,10 @@ add_action('add_meta_boxes', function() {
 				</div>
 			</div>
 			<div id="tracklist-container">
-				<?php 
+				<?php
 				// Loop through saved tracks/spacers
-				foreach ($tracklist as $i => $item): 
-					$type = $item['type'] ?? 'track'; 
+				foreach ($tracklist as $i => $item):
+					$type = $item['type'] ?? 'track';
 					$duration = $item['duration'] ?? '';
 				?>
 					<div class="track-row <?= $type === 'spacer' ? 'is-spacer' : '' ?>">
@@ -116,7 +116,7 @@ add_action('save_post_show', function($post_id) {
 	) {
 		return;
 	}
-	
+
 	if (!empty($_POST['tracklist']) && is_array($_POST['tracklist'])) {
 		$sanitized = [];
 		foreach ($_POST['tracklist'] as $track) {
@@ -140,7 +140,6 @@ add_action('save_post_show', function($post_id) {
 
 add_action('admin_enqueue_scripts', function($hook) {
 	global $post;
-	
 	if (($hook === 'post-new.php' || $hook === 'post.php') && $post && $post->post_type === 'show') {
 		// Enqueue tracklist.js
 		wp_enqueue_script(
