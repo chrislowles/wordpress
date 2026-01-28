@@ -23,7 +23,7 @@ add_action('admin_enqueue_scripts', function($hook) {
 	// 1. Define the path to your new CSS file, get_stylesheet_directory_uri() points to your current active theme folder
 	$css_path = get_stylesheet_directory_uri() . '/css/dashboard.css';
 	// 2. Enqueue the style, 'dashboard-css' is a unique ID (handle) for this file.
-	wp_enqueue_style( 
+	wp_enqueue_style(
 		'dashboard-css',
 		$css_path,
 		array(),      // Dependencies (none needed here)
