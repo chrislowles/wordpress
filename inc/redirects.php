@@ -47,7 +47,7 @@ function register_redirects_post_type() {
 		'hierarchical'       => false,             // Not hierarchical like pages
 		'menu_position'      => 20,                // Position in admin menu
 		'supports'           => array('title'),    // Only support title field
-		'taxonomies'         => array('post_tag'), // Enable tags
+		// 'taxonomies'         => array('post_tag'), // Enable tags
 	);
 	register_post_type('redirect', $args);
 }
