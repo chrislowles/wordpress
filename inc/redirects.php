@@ -203,7 +203,7 @@ function redirect_custom_columns($columns) {
 		'redirect_path'         => 'Path',
 		'redirect_url'          => 'Destination URL',
 		'redirect_description'  => 'Description',
-		'tags'                  => 'Tags',
+		// 'tags'                  => 'Tags',
 		'date'                  => 'Date',
 	);
 	return $new_columns;
