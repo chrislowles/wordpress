@@ -7,12 +7,6 @@ require get_stylesheet_directory() . '/inc/disable-gutenberg.php';
 require get_stylesheet_directory() . '/inc/disable-widgets.php';
 require get_stylesheet_directory() . '/inc/nuke-hostinger.php';
 
-// Tag Utils (tag prefill parameters, menu presets)
-require get_stylesheet_directory() . '/inc/tag-utils.php';
-
-// Co-Authors
-require get_stylesheet_directory() . '/inc/co-authors.php';
-
 // Tracklist/Show Post type logic
 require get_stylesheet_directory() . '/inc/shows.php';
 
