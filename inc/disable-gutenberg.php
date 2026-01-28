@@ -1,9 +1,16 @@
 <?php
 
-// Disable Gutenberg
+// Disable Gutenberg for most post types, but allow it for specific ones like 'show'
 
 // BACKEND
-add_filter('use_block_editor_for_post', '__return_false');
+add_filter('use_block_editor_for_post', function($use_block_editor, $post) {
+	// Allow block editor for 'show' post type (so Markup Markdown can work)
+	if ($post->post_type === 'show') {
+		return true;
+	}
+	// Disable for everything else
+	return false;
+}, 10, 2);
 
 // WIDGETS
 add_filter('use_widgets_block_editor', '__return_false');
