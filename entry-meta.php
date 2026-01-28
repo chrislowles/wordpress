@@ -8,9 +8,5 @@
 			<?php the_time(get_option('date_format')); ?>
 		</a>
 	</span>
-	<?php if (has_tag()): ?>
-		<span class="sep">|</span>
-		<span class="tags"><?php the_tags(); ?></span>
-	<?php endif; ?>
 </div>
 <!-- /entry-meta.php -->
