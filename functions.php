@@ -18,29 +18,17 @@ add_action('admin_head', function() {
 	echo '<meta name="color-scheme" content="light dark" />';
 });
 
-// Enqueue Scripts & Styles (as yet decoupled from this file, will do soon)
+// Enqueue Scripts & Styles
 add_action('admin_enqueue_scripts', function($hook) {
-	// 1. Define the path to your new CSS file, get_stylesheet_directory_uri() points to your current active theme folder
+	// Enqueue dashboard CSS for all admin pages
 	$css_path = get_stylesheet_directory_uri() . '/css/dashboard.css';
-	// 2. Enqueue the style, 'dashboard-css' is a unique ID (handle) for this file.
 	wp_enqueue_style(
 		'dashboard-css',
 		$css_path,
-		array(),      // Dependencies (none needed here)
-		'1.0.0'       // Version number (useful for cache busting)
+		array(),
+		'1.0.1'  // Version bump
 	);
-	global $post;
-	if ($hook === 'post-new.php' || $hook === 'post.php') {
-		if ($post && $post->post_type === 'post') {
-			// Enqueue tracklist.js
-			// Note: We added 'jquery-ui-sortable' to the dependency array
-			wp_enqueue_script(
-				'tracklist-js',
-				get_theme_file_uri() . '/js/tracklist.js',
-				['jquery', 'jquery-ui-sortable'],
-				'2.0',
-				true
-			);
-		}
-	}
+	
+	// Note: tracklist.js is now handled in inc/shows.php
+	// Removed duplicate enqueue logic that was causing conflicts
 });
