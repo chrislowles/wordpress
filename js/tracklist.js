@@ -91,7 +91,7 @@ jQuery(document).ready(function($) {
 
             if (allYouTube && videoIds.length > 0 && hasTracks) {
                 var playlistUrl = `https://www.youtube.com/watch_videos?video_ids=${videoIds.join(',')}`;
-                var linkHtml = `<a href="${playlistUrl}" target="_blank" class="button button-small">Play All (YT)</a>`;
+                var linkHtml = `<a href="${playlistUrl}" target="_blank" class="button">Play All (YT)</a>`;
                 $youtubeContainer.html(linkHtml);
             } else {
                 $youtubeContainer.empty();
