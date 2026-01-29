@@ -1,4 +1,8 @@
-<!-- entry-meta.php -->
+<?php
+/**
+ * Template part for displaying post meta (date, author).
+ */
+?>
 <div class="entry meta">
 	<?php the_author_posts_link(); ?>
 	<span class="sep">|</span>
@@ -8,4 +12,3 @@
 		</a>
 	</span>
 </div>
-<!-- /entry-meta.php -->
