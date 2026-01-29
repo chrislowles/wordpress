@@ -3,7 +3,7 @@
 // Disabling Shit (and nuking Hostinger bloat, this is for me mostly)
 require get_stylesheet_directory() . '/inc/disable-categories.php';
 require get_stylesheet_directory() . '/inc/disable-comments.php';
-//require get_stylesheet_directory() . '/inc/disable-gutenberg.php';
+require get_stylesheet_directory() . '/inc/disable-gutenberg.php';
 require get_stylesheet_directory() . '/inc/disable-widgets.php';
 require get_stylesheet_directory() . '/inc/nuke-hostinger.php';
 
