@@ -30,19 +30,19 @@ html {
 }
 
 .tracklist-display .track-item.type-spacer {
-  margin: 3px 0 2px;
-  list-style: none;
+	margin: 3px 0 2px;
+	list-style: none;
 }
 
 .entry .thumbnail-link img.attachment-post-thumbnail,
 .entry .thumbnail-link img.attachment-full {
-  max-width: 100%;
-  height: auto;
+	max-width: 100%;
+	height: auto;
 }
 
 #header, #content, #footer {
-  max-width: 1080px;
-  margin: 0 auto;
+	max-width: 1080px;
+	margin: 0 auto;
 }
 
 .screen-reader-text {

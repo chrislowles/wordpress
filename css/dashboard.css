@@ -34,7 +34,7 @@
 }
 
 .track-row.is-spacer .track-title-input {
-    font-weight: bold;
+	font-weight: bold;
 }
 
 .track-row .track-title-input { 
@@ -74,8 +74,8 @@
 
 /* Global Controls (Save Button & Spinner) */
 .global-controls {
-    display: flex;
-    align-items: center;
+	display: flex;
+	align-items: center;
 }
 
 /* The grey dotted box that appears when you are dragging an item */
@@ -97,21 +97,21 @@
 
 /* Tracklist Locking Overlay */
 .tracklist-lock-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.85);
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(1px);
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(255, 255, 255, 0.85);
+	z-index: 100;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	backdrop-filter: blur(1px);
 }
 
 .tracklist-lock-overlay.hidden {
-    display: none;
+	display: none;
 }
 
 /* Mobile responsive adjustments - using container queries */
@@ -169,57 +169,57 @@
    ========================================================================== */
 
 #agenda-wrapper {
-    position: relative;
-    border: 1px solid #ccc;
+	position: relative;
+	border: 1px solid #ccc;
 }
 
 #agenda-content {
-    width: 100%;
-    display: block;
-    border: none;
-    box-shadow: none;
-    resize: vertical;
-    padding: 10px;
+	width: 100%;
+	display: block;
+	border: none;
+	box-shadow: none;
+	resize: vertical;
+	padding: 10px;
 }
 
 .agenda-controls {
-    padding: 10px;
-    background: #f0f0f1;
-    border-top: 1px solid #ccc;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+	padding: 10px;
+	background: #f0f0f1;
+	border-top: 1px solid #ccc;
+	display: flex;
+	align-items: center;
+	gap: 10px;
 }
 
 /* Agenda Locking Overlay */
 #agenda-lock-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.85);
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(1px);
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(255, 255, 255, 0.85);
+	z-index: 10;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	backdrop-filter: blur(1px);
 }
 
 #agenda-lock-overlay.hidden {
-    display: none;
+	display: none;
 }
 
 /* Shared Lock Message Style */
 .lock-message {
-    background: #fff;
-    padding: 15px 20px;
-    border-radius: 4px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    border: 1px solid #dcdcde;
-    font-weight: 500;
-    color: #d63638; /* WordPress Error Red */
-    display: flex;
-    align-items: center;
-    gap: 8px;
+	background: #fff;
+	padding: 15px 20px;
+	border-radius: 4px;
+	box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+	border: 1px solid #dcdcde;
+	font-weight: 500;
+	color: #d63638; /* WordPress Error Red */
+	display: flex;
+	align-items: center;
+	gap: 8px;
 }

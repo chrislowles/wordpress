@@ -292,11 +292,11 @@ function redirect_search_join($join) {
 	global $wpdb, $pagenow;
 
 	if (is_admin() && 
-	    'edit.php' === $pagenow && 
-	    isset($_GET['post_type']) && 
-	    'redirect' === $_GET['post_type'] && 
-	    isset($_GET['s']) && 
-	    !empty($_GET['s'])) {
+		'edit.php' === $pagenow && 
+		isset($_GET['post_type']) && 
+		'redirect' === $_GET['post_type'] && 
+		isset($_GET['s']) && 
+		!empty($_GET['s'])) {
 		$join .= " LEFT JOIN {$wpdb->postmeta} ON {$wpdb->posts}.ID = {$wpdb->postmeta}.post_id ";
 	}
 
@@ -312,11 +312,11 @@ function redirect_search_where($where) {
 	global $wpdb, $pagenow;
 
 	if (is_admin() && 
-	    'edit.php' === $pagenow && 
-	    isset($_GET['post_type']) && 
-	    'redirect' === $_GET['post_type'] && 
-	    isset($_GET['s']) && 
-	    !empty($_GET['s'])) {
+		'edit.php' === $pagenow && 
+		isset($_GET['post_type']) && 
+		'redirect' === $_GET['post_type'] && 
+		isset($_GET['s']) && 
+		!empty($_GET['s'])) {
 		
 		$search = esc_sql($wpdb->esc_like($_GET['s']));
 		
@@ -342,11 +342,11 @@ function redirect_search_distinct($distinct) {
 	global $pagenow;
 
 	if (is_admin() && 
-	    'edit.php' === $pagenow && 
-	    isset($_GET['post_type']) && 
-	    'redirect' === $_GET['post_type'] && 
-	    isset($_GET['s']) && 
-	    !empty($_GET['s'])) {
+		'edit.php' === $pagenow && 
+		isset($_GET['post_type']) && 
+		'redirect' === $_GET['post_type'] && 
+		isset($_GET['s']) && 
+		!empty($_GET['s'])) {
 		return "DISTINCT";
 	}
 

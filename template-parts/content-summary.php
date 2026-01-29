@@ -4,6 +4,7 @@
  */
 ?>
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+
 	<header>
 		<h2 class="entry-title">
 			<a href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>"><?php the_title(); ?></a>
@@ -24,4 +25,5 @@
 			<div class="links"><?php wp_link_pages(); ?></div>
 		<?php endif; ?>
 	</div>
+
 </article>
