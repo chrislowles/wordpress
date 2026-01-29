@@ -27,13 +27,13 @@ add_action('init', function() {
 			'search_items' => 'Search Shows',
 			'not_found' => 'No shows found.',
 		),
-		'public' => false,
+		'public' => true,
 		'publicly_queryable' => false,
 		'show_ui' => true,
 		'show_in_menu' => true,
 		'menu_icon' => 'dashicons-playlist-audio',
 		'supports' => array('title', 'editor', 'markup_markdown', 'thumbnail'),
-		'show_in_rest' => false,
+		'show_in_rest' => true,
 		'menu_position' => 21,
 	));
 }, 0);
