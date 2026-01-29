@@ -40,7 +40,7 @@ function register_shows_post_type() {
 		'hierarchical' => false,
 		'menu_position' => 21,
 		'supports' => array('title', 'editor', 'thumbnail'),
-		'show_in_rest' => true,  // ADDED: Enable REST API support (needed for Gutenberg)
+		'show_in_rest' => false,  // CHANGED: Disable REST API to prevent Gutenberg
 	);
 	
 	register_post_type('show', $args);
@@ -119,7 +119,7 @@ function render_show_tracklist_metabox($post) {
 function save_show_tracklist_meta($post_id) {
 	// Security checks
 	if (!isset($_POST['tracklist_meta_nonce']) || 
-	    !wp_verify_nonce($_POST['tracklist_meta_nonce'], 'save_tracklist_meta')) {
+		!wp_verify_nonce($_POST['tracklist_meta_nonce'], 'save_tracklist_meta')) {
 		return;
 	}
 
@@ -161,7 +161,7 @@ function enqueue_show_scripts($hook) {
 	
 	// Only load on show edit screens
 	if (($hook === 'post-new.php' || $hook === 'post.php') && 
-	    $post && $post->post_type === 'show') {
+		$post && $post->post_type === 'show') {
 		
 		// Enqueue tracklist.js
 		wp_enqueue_script(
