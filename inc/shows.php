@@ -33,7 +33,7 @@ add_action('init', function() {
 		'show_in_menu' => true,
 		'menu_icon' => 'dashicons-playlist-audio',
 		'supports' => array('title', 'editor', 'thumbnail'),
-		'show_in_rest' => false, // Disable Gutenberg
+		'show_in_rest' => true, // Disable Gutenberg
 		'menu_position' => 21,
 	));
 }, 0);
