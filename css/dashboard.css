@@ -1,13 +1,16 @@
 /* TODO: comprehensive dark mode css for all dashboard UI elements with fallbacks */
 /* @media (prefers-color-scheme: dark) {} */
 
-
 #wp-content-editor-container {
 	padding-top: 0;
 }
 
-/* Tracklist Metabox Styles */
-#tracklist-container {
+/* ==========================================================================
+   TRACKLIST METABOX STYLES
+   ========================================================================== */
+
+#tracklist-container,
+.tracklist-wrapper {
 	container-type: inline-size;
 	container-name: tracklist;
 }
@@ -28,6 +31,10 @@
 .track-row.is-spacer {
 	background: #F0F0F1;
 	border: 2px solid #72AEE6;
+}
+
+.track-row.is-spacer .track-title-input {
+    font-weight: bold;
 }
 
 .track-row .track-title-input { 
@@ -63,6 +70,48 @@
 .track-row .button {
 	flex-shrink: 0;
 	white-space: nowrap;
+}
+
+/* Global Controls (Save Button & Spinner) */
+.global-controls {
+    display: flex;
+    align-items: center;
+}
+
+/* The grey dotted box that appears when you are dragging an item */
+.placeholder-highlight {
+	border: 2px dashed #CCC;
+	height: 45px;
+	margin-bottom: 8px;
+	background: #F9F9F9;
+}
+
+/* Total duration display styling */
+#total-duration,
+.total-duration-display {
+	font-size: 16px;
+	font-weight: 600;
+	color: #2271B1;
+	font-family: monospace;
+}
+
+/* Tracklist Locking Overlay */
+.tracklist-lock-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.85);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(1px);
+}
+
+.tracklist-lock-overlay.hidden {
+    display: none;
 }
 
 /* Mobile responsive adjustments - using container queries */
@@ -115,23 +164,10 @@
 	}
 }
 
-/* The grey dotted box that appears when you are dragging an item */
-.placeholder-highlight {
-	border: 2px dashed #CCC;
-	height: 45px;
-	margin-bottom: 8px;
-	background: #F9F9F9;
-}
+/* ==========================================================================
+   AGENDA SCRATCHPAD STYLES
+   ========================================================================== */
 
-/* Total duration display styling */
-#total-duration {
-	font-size: 16px;
-	font-weight: 600;
-	color: #2271B1;
-	font-family: monospace;
-}
-
-/* Agenda Scratchpad Styles */
 #agenda-wrapper {
     position: relative;
     border: 1px solid #ccc;
@@ -155,7 +191,7 @@
     gap: 10px;
 }
 
-/* Locking Overlay */
+/* Agenda Locking Overlay */
 #agenda-lock-overlay {
     position: absolute;
     top: 0;
@@ -174,6 +210,7 @@
     display: none;
 }
 
+/* Shared Lock Message Style */
 .lock-message {
     background: #fff;
     padding: 15px 20px;

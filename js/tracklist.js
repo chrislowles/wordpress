@@ -1,203 +1,280 @@
 jQuery(document).ready(function($) {
-	var container = $('#tracklist-container');
+    
+    // Iterate over every tracklist wrapper (could be Local or Global)
+    $('.tracklist-wrapper').each(function() {
+        initTracklist($(this));
+    });
 
-	// 1. Enable Drag and Drop Sorting using WordPress built-in jQuery UI
-	container.sortable({
-		handle: '.drag-handle',
-		placeholder: 'placeholder-highlight',
-		axis: 'y',
-		update: function() {
-			calculateTotalDuration();
-			updateYouTubePlaylistLink();
-		}
-	});
+    function initTracklist($wrapper) {
+        var scope = $wrapper.data('scope'); // 'post' or 'global'
+        var $list = $wrapper.find('.tracklist-items');
+        var $durationDisplay = $wrapper.find('.total-duration-display');
+        var $youtubeContainer = $wrapper.find('.youtube-playlist-container');
+        
+        // Locking Elements (Global only)
+        var $overlay = $wrapper.find('.tracklist-lock-overlay');
+        var $ownerLabel = $wrapper.find('.lock-owner-name');
+        var isEditing = false;
+        var idleTimer;
 
-	// 2. Function to parse duration string (3:45 or 45) into seconds
-	function parseToSeconds(duration) {
-		if (!duration) return 0;
-		duration = duration.trim();
-		
-		// Handle formats like "3:45" or "45"
-		if (duration.includes(':')) {
-			var parts = duration.split(':');
-			var mins = parseInt(parts[0]) || 0;
-			var secs = parseInt(parts[1]) || 0;
-			return (mins * 60) + secs;
-		} else {
-			// Just seconds
-			return parseInt(duration) || 0;
-		}
-	}
+        // 1. Initialize Sortable
+        // We use connectWith so you can drag from Global -> Local
+        $list.sortable({
+            handle: '.drag-handle',
+            placeholder: 'placeholder-highlight',
+            connectWith: '.tracklist-items', 
+            axis: 'y',
+            update: function(event, ui) {
+                // Only calculate if the item was dropped here
+                calculateTotalDuration();
+                updateYouTubePlaylistLink();
+                triggerEdit();
+                
+                // If we dragged an item from Global to Local, we need to rename input fields
+                // so the Local form saves them correctly.
+                var item = ui.item;
+                if (item.parent().is($list)) {
+                    refreshInputNames($list, scope);
+                }
+            }
+        });
 
-	// 3. Function to format seconds back to MM:SS
-	function formatDuration(totalSeconds) {
-		var mins = Math.floor(totalSeconds / 60);
-		var secs = totalSeconds % 60;
-		return mins + ':' + (secs < 10 ? '0' : '') + secs;
-	}
+        // 2. HELPER: Parse Duration
+        function parseToSeconds(duration) {
+            if (!duration) return 0;
+            duration = duration.toString().trim();
+            if (duration.includes(':')) {
+                var parts = duration.split(':');
+                var mins = parseInt(parts[0]) || 0;
+                var secs = parseInt(parts[1]) || 0;
+                return (mins * 60) + secs;
+            }
+            return parseInt(duration) || 0;
+        }
 
-	// 4. Function to calculate and display total duration
-	function calculateTotalDuration() {
-		var total = 0;
-		
-		container.find('.track-row:not(.is-spacer)').each(function() {
-			var duration = $(this).find('.track-duration-input').val();
-			total += parseToSeconds(duration);
-		});
-		
-		$('#total-duration').text(formatDuration(total));
-	}
+        function formatDuration(totalSeconds) {
+            var mins = Math.floor(totalSeconds / 60);
+            var secs = totalSeconds % 60;
+            return mins + ':' + (secs < 10 ? '0' : '') + secs;
+        }
 
-	// 5. Function to extract YouTube video ID from URL
-	function extractYouTubeID(url) {
-		if (!url) return null;
-		
-		// Handle various YouTube URL formats
-		var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-		var match = url.match(regExp);
-		return (match && match[7].length == 11) ? match[7] : null;
-	}
+        // 3. HELPER: Calculate Total
+        function calculateTotalDuration() {
+            var total = 0;
+            $list.find('.track-row:not(.is-spacer)').each(function() {
+                var val = $(this).find('.track-duration-input').val();
+                total += parseToSeconds(val);
+            });
+            $durationDisplay.text(formatDuration(total));
+        }
 
-	// 6. NEW: Function to check if URL is a YouTube URL
-	function isYouTubeURL(url) {
-		if (!url) return false;
-		return url.includes('youtube.com') || url.includes('youtu.be');
-	}
+        // 4. HELPER: Update YouTube Link
+        function updateYouTubePlaylistLink() {
+            var videoIds = [];
+            var allYouTube = true;
+            var hasTracks = false;
 
-	// 7. NEW: Function to update YouTube playlist link
-	function updateYouTubePlaylistLink() {
-		var videoIds = [];
-		var allYouTube = true;
-		var hasAnyTracks = false;
+            $list.find('.track-row:not(.is-spacer)').each(function() {
+                var url = $(this).find('.track-url-input').val();
+                if (url) {
+                    hasTracks = true;
+                    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                        // Simple regex extract
+                        var match = url.match(/^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/);
+                        var vid = (match && match[7].length == 11) ? match[7] : null;
+                        if (vid) videoIds.push(vid);
+                    } else {
+                        allYouTube = false;
+                    }
+                }
+            });
 
-		// Collect all video IDs from track rows (not spacers)
-		container.find('.track-row:not(.is-spacer)').each(function() {
-			var urlInput = $(this).find('.track-url-input');
-			var url = urlInput.val();
-			
-			if (url) {
-				hasAnyTracks = true;
-				if (isYouTubeURL(url)) {
-					var videoId = extractYouTubeID(url);
-					if (videoId) {
-						videoIds.push(videoId);
-					}
-				} else {
-					allYouTube = false;
-				}
-			}
-		});
+            if (allYouTube && videoIds.length > 0 && hasTracks) {
+                var playlistUrl = `https://www.youtube.com/watch_videos?video_ids=${videoIds.join(',')}`;
+                var linkHtml = `<a href="${playlistUrl}" target="_blank" class="button button-small">Play All (YT)</a>`;
+                $youtubeContainer.html(linkHtml);
+            } else {
+                $youtubeContainer.empty();
+            }
+        }
 
-		// Show or hide the YouTube playlist link
-		if (allYouTube && videoIds.length > 0 && hasAnyTracks) {
-			var playlistUrl = `https://www.youtube.com/watch_videos?video_ids=${videoIds.join(',')}`;
-			
-			// Create or update the link
-			if ($('#youtube-playlist-link').length === 0) {
-				$('#total-duration').parent().after(
-					`<div style="font-size: 13px;">
-						<a id="youtube-playlist-link" href="${playlistUrl}" title="The condition of all the tracks being from YouTube was met so heres a temp playlist." target="_blank" rel="noopener noreferrer" class="button button-secondary" style="text-decoration: none;">Play All</a>
-					</div>`
-				);
-			} else {
-				$('#youtube-playlist-link').attr('href', playlistUrl);
-			}
-		} else {
-			$('#youtube-playlist-link').parent().remove();
-		}
-	}
+        // 5. HELPER: Fetch Duration (API)
+        $wrapper.on('click', '.fetch-duration', function() {
+            var btn = $(this);
+            var row = btn.closest('.track-row');
+            var url = row.find('.track-url-input').val();
+            var durInput = row.find('.track-duration-input');
 
-	// 8. Function to fetch duration from any supported platform
-	function fetchDuration(button) {
-		var row = button.closest('.track-row');
-		var urlInput = row.find('.track-url-input');
-		var durationInput = row.find('.track-duration-input');
-		var url = urlInput.val();
+            if (!url) return alert('Enter URL first');
+            
+            btn.prop('disabled', true).text('...');
+            triggerEdit();
 
-		if (!url) {
-			alert('Please enter a valid URL first.');
-			return;
-		}
+            $.ajax({
+                url: 'https://noembed.com/embed',
+                data: { url: url },
+                dataType: 'json',
+                success: function(data) {
+                    if (data.duration) {
+                        durInput.val(formatDuration(data.duration));
+                        calculateTotalDuration();
+                    }
+                    btn.prop('disabled', false).text('Grab');
+                },
+                error: function() {
+                    btn.prop('disabled', false).text('Err');
+                }
+            });
+        });
 
-		// Disable button and show loading state
-		button.prop('disabled', true).text('Grabbing Duration');
+        // 6. HELPER: Add Row
+        function addRow(type) {
+            var isSpacer = (type === 'spacer');
+            // We use a dummy index '9999', refreshInputNames will fix it
+            var namePrefix = (scope === 'global') ? 'global_tracklist' : 'tracklist';
+            
+            var html = `
+                <div class="track-row ${isSpacer ? 'is-spacer' : ''}">
+                    <span class="drag-handle" title="Drag">|||</span>
+                    <input type="hidden" name="${namePrefix}[9999][type]" value="${type}" class="track-type" />
+                    <input type="text" name="${namePrefix}[9999][track_title]" class="track-title-input" 
+                           placeholder="${isSpacer ? 'Segment Title...' : 'Artist - Track'}" />
+                    <input type="url" name="${namePrefix}[9999][track_url]" class="track-url-input" 
+                           placeholder="https://..." style="${isSpacer ? 'display:none' : ''}" />
+                    <input type="text" name="${namePrefix}[9999][duration]" class="track-duration-input" 
+                           placeholder="3:45" style="width:60px; ${isSpacer ? 'display:none' : ''}" />
+                    <button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Grab</button>
+                    <button type="button" class="remove-track button">X</button>
+                </div>
+            `;
+            $list.append(html);
+            refreshInputNames($list, scope); // Crucial for indexing
+            triggerEdit();
+        }
 
-		// Use noembed.com which supports multiple platforms (YouTube, Vimeo, SoundCloud, Dailymotion, etc.)
-		$.ajax({
-			url: 'https://noembed.com/embed',
-			data: { url: url },
-			dataType: 'json',
-			success: function(data) {
-				if (data.duration) {
-					durationInput.val(formatDuration(data.duration));
-					calculateTotalDuration();
-					button.prop('disabled', false).text('Grab Duration');
-				} else {
-					alert('Duration not available for this URL. Please enter it manually.');
-					button.prop('disabled', false).text('Grab Duration');
-				}
-			},
-			error: function() {
-				alert('Couldn\'t fetch duration. Please enter it manually.');
-				button.prop('disabled', false).text('Grab Duration');
-			}
-		});
-	}
+        $wrapper.find('.add-track').click(function() { addRow('track'); });
+        $wrapper.find('.add-spacer').click(function() { addRow('spacer'); });
+        
+        $wrapper.on('click', '.remove-track', function() {
+            $(this).closest('.track-row').remove();
+            calculateTotalDuration();
+            updateYouTubePlaylistLink();
+            refreshInputNames($list, scope);
+            triggerEdit();
+        });
 
-	// 9. Function to add a new row
-	function addRow(type) {
-		var index = container.find('.track-row').length;
+        // 7. INPUT HANDLING & LOCKING (Global Only)
+        $wrapper.on('input', 'input', function() {
+            calculateTotalDuration();
+            updateYouTubePlaylistLink();
+            triggerEdit();
+        });
 
-		// Define placeholders based on type
-		var titlePlaceholder = (type === 'spacer') ? 'Segment (In The Cinema/The Pin Drop/Walking On Thin Ice/One Up P1-2)' : 'Artist/Group - Track Title';
+        function triggerEdit() {
+            if (scope === 'global') {
+                isEditing = true;
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(function() { isEditing = false; }, 30000); // 30s idle
+            }
+        }
 
-		// Hide URL and duration inputs if it is a spacer
-		var hiddenStyle = (type === 'spacer') ? 'display:none;' : '';
-		var rowClass = (type === 'spacer') ? 'track-row is-spacer' : 'track-row';
+        // 8. HELPER: Re-index inputs (Crucial when dragging between lists)
+        function refreshInputNames($container, currentScope) {
+            var prefix = (currentScope === 'global') ? 'global_tracklist' : 'tracklist';
+            
+            $container.find('.track-row').each(function(index) {
+                var row = $(this);
+                row.find('input, select, textarea').each(function() {
+                    var name = $(this).attr('name');
+                    if (name) {
+                        // Regex to replace [number] and the prefix
+                        // matches "something[123][field]"
+                        var newName = name.replace(/\[\d+\]/, '[' + index + ']');
+                        // Swap prefix if we dragged from Global to Local
+                        if (currentScope === 'post' && newName.indexOf('global_tracklist') !== -1) {
+                            newName = newName.replace('global_tracklist', 'tracklist');
+                        }
+                        if (currentScope === 'global' && newName.indexOf('tracklist') === 0) {
+                            newName = newName.replace('tracklist', 'global_tracklist');
+                        }
+                        $(this).attr('name', newName);
+                    }
+                });
+            });
+        }
 
-		var html = `
-			<div class="${rowClass}">
-				<span class="drag-handle" title="Drag to reorder">|||</span>
-				<input type="hidden" name="tracklist[${index}][type]" value="${type}" />
-				<input type="text" name="tracklist[${index}][track_title]" placeholder="${titlePlaceholder}" class="track-title-input" />
-				<input type="url" name="tracklist[${index}][track_url]" placeholder="https://..." class="track-url-input" style="${hiddenStyle}" />
-				<input type="text" name="tracklist[${index}][duration]" placeholder="3:45" class="track-duration-input" style="width: 60px; ${hiddenStyle}" />
-				<button type="button" class="fetch-duration button" style="${hiddenStyle}">Grab Duration</button>
-				<button type="button" class="remove-track button">Remove</button>
-			</div>
-		`;
-		container.append(html);
-		calculateTotalDuration();
-		updateYouTubePlaylistLink();
-	}
+        // 9. GLOBAL SAVE & HEARTBEAT
+        if (scope === 'global') {
+            
+            // AJAX Save
+            $wrapper.find('.global-save-btn').click(function() {
+                var btn = $(this);
+                var spinner = $wrapper.find('.global-spinner');
+                var data = [];
 
-	// 10. Button Click Events
-	$('.add-track').on('click', function() { addRow('track'); });
-	$('.add-spacer').on('click', function() { addRow('spacer'); });
+                btn.prop('disabled', true);
+                spinner.addClass('is-active');
 
-	// 11. Remove Button Event (Delegated for dynamically added items)
-	container.on('click', '.remove-track', function() {
-		$(this).closest('.track-row').remove();
-		calculateTotalDuration();
-		updateYouTubePlaylistLink();
-	});
+                // Build data array
+                $list.find('.track-row').each(function() {
+                    var row = $(this);
+                    data.push({
+                        type: row.find('.track-type').val(),
+                        track_title: row.find('.track-title-input').val(),
+                        track_url: row.find('.track-url-input').val(),
+                        duration: row.find('.track-duration-input').val()
+                    });
+                });
 
-	// 12. Fetch Duration Button Event (Delegated for dynamically added items)
-	container.on('click', '.fetch-duration', function() {
-		fetchDuration($(this));
-	});
+                $.post(tracklistSettings.ajax_url, {
+                    action: 'save_global_tracklist',
+                    nonce: tracklistSettings.nonce,
+                    data: data
+                }).done(function(res) {
+                    if(res.success) {
+                        btn.text('Saved!');
+                        setTimeout(function(){ btn.text('Save Global List').prop('disabled', false); }, 2000);
+                    } else {
+                        alert(res.data.message);
+                        btn.prop('disabled', false);
+                    }
+                }).always(function() {
+                    spinner.removeClass('is-active');
+                });
+            });
 
-	// 13. Update total when duration changes
-	container.on('input', '.track-duration-input', function() {
-		calculateTotalDuration();
-	});
+            // Heartbeat Logic
+            $(document).on('heartbeat-send', function(e, data) {
+                data.global_tl_check = true;
+                data.global_tl_editing = isEditing;
+            });
 
-	// 14. NEW: Update YouTube link when URL changes
-	container.on('input', '.track-url-input', function() {
-		updateYouTubePlaylistLink();
-	});
+            $(document).on('heartbeat-tick', function(e, data) {
+                if (!data.global_tl_status) return;
 
-	// 15. Calculate initial total and YouTube link on page load
-	calculateTotalDuration();
-	updateYouTubePlaylistLink();
+                if (data.global_tl_status === 'locked') {
+                    // Lock UI
+                    $list.sortable('disable');
+                    $wrapper.find('input, button').prop('disabled', true);
+                    $overlay.removeClass('hidden');
+                    $ownerLabel.text(data.global_tl_owner);
+                    
+                    // Sync content (optional - simple reload of list)
+                    // Implementing full DOM sync is complex, simply locking prevents overwrite.
+                } else {
+                    // Unlock UI
+                    $list.sortable('enable');
+                    $wrapper.find('input, button').not('.global-save-btn[disabled]').prop('disabled', false);
+                    $overlay.addClass('hidden');
+                }
+            });
+            
+            // Initial check
+            if (wp && wp.heartbeat) wp.heartbeat.connectNow();
+        }
+
+        // Initialize calculations
+        calculateTotalDuration();
+        updateYouTubePlaylistLink();
+    }
 });
