@@ -82,7 +82,7 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 			<?php endif; ?>
 		</div>
 
-		<div class="tracklist-items" style="min-height: 50px;">
+		<div class="tracklist-items">
 			<?php foreach ($tracks as $i => $item): 
 				$type = $item['type'] ?? 'track';
 				$duration = $item['duration'] ?? '';
