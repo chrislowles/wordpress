@@ -33,13 +33,13 @@ add_action('admin_enqueue_scripts', function($hook) {
 	// Removed duplicate enqueue logic that was causing conflicts
 });
 
-add_action('admin_notices', function() {
-	if (post_type_exists('show')) {
-		echo '<div class="notice notice-success"><p>Show post type is registered :)</p></div>';
-	} else {
-		echo '<div class="notice notice-error"><p>Show post type is not registered :(</p></div>';
-	}
-});
+//add_action('admin_notices', function() {
+//	if (post_type_exists('show')) {
+//		echo '<div class="notice notice-success"><p>Show post type is registered :)</p></div>';
+//	} else {
+//		echo '<div class="notice notice-error"><p>Show post type is not registered :(</p></div>';
+//	}
+//});
 
 /**
  * Automatically add IDs to headings in post content, transforms "The Main Header Text" into <h2 id="the-main-header-text">...
