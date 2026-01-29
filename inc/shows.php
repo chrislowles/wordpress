@@ -149,11 +149,8 @@ add_action('save_post_show', function($post_id) {
 
 add_action('admin_enqueue_scripts', function($hook) {
 	global $post;
-	
 	// Only load on show edit screens
-	if (($hook === 'post-new.php' || $hook === 'post.php') && 
-		$post && $post->post_type === 'show') {
-		
+	if (($hook === 'post-new.php' || $hook === 'post.php') && $post && $post->post_type === 'show') {
 		// Enqueue tracklist.js
 		wp_enqueue_script(
 			'tracklist-js',
