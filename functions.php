@@ -13,6 +13,9 @@ require get_stylesheet_directory() . '/inc/shows.php';
 // Redirect Manager
 require get_stylesheet_directory() . '/inc/redirects.php';
 
+// Agenda Scratchpad (Dashboard/Editor Widget)
+require get_stylesheet_directory() . '/inc/agenda.php';
+
 // Setting baseline for system-set light/dark mode in dashboard
 add_action('admin_head', function() {
 	echo '<meta name="color-scheme" content="light dark" />';
