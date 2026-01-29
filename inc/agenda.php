@@ -15,9 +15,9 @@ add_action('admin_init', function() {
         );
     });
 
-    // Add to Post/Page/Show Edit Screens
+    // Add to Show Edit Screens ONLY
     add_action('add_meta_boxes', function() {
-        $screens = ['post', 'page', 'show']; // Add your custom post types here
+        $screens = ['show']; 
         foreach ($screens as $screen) {
             add_meta_box(
                 'agenda_scratchpad_metabox',
