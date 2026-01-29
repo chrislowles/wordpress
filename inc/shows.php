@@ -32,8 +32,8 @@ add_action('init', function() {
 		'show_ui' => true,
 		'show_in_menu' => true,
 		'menu_icon' => 'dashicons-playlist-audio',
-		'supports' => array('title', 'editor', 'thumbnail'),
-		'show_in_rest' => true, // Disable Gutenberg
+		'supports' => array('title', 'editor', 'markup_markdown', 'thumbnail'),
+		'show_in_rest' => false,
 		'menu_position' => 21,
 	));
 }, 0);
