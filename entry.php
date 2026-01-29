@@ -10,3 +10,10 @@
 	<?php if (is_singular()) { get_template_part('entry', 'footer'); } ?>
 </article>
 <!-- /entry.php -->
+
+<!--
+/**
+ * TODO: Implement automatic h1-6 id code to post body content, transforms "The Main Header Text" into <h2 id="the-main-header-text">...
+ * Intended for as yet unfinished inner linking from Spacers in the tracklist metabox to sections in the agenda body text
+ */
+-->
