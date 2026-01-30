@@ -47,7 +47,7 @@ function render_agenda_scratchpad() {
 		<textarea id="agenda-content" class="widefat" rows="10" placeholder="Type notes here..."><?php echo esc_textarea($content); ?></textarea>
 		
 		<div class="agenda-controls">
-			<button type="button" id="agenda-save" class="button button-primary">Save Agenda</button>
+			<button type="button" id="agenda-save" class="button button-primary">Save</button>
 			<span id="agenda-status" class="spinner-inline"></span>
 		</div>
 	</div>

@@ -70,14 +70,14 @@ jQuery(document).ready(function($) {
 		}).done(function(response) {
 			if (response.success) {
 				$btn.text('Saved!');
-				setTimeout(function() { $btn.text('Save Agenda').prop('disabled', false); }, 2000);
+				setTimeout(function() { $btn.text('Save').prop('disabled', false); }, 2000);
 			} else {
 				alert('Error: ' + response.data.message);
-				$btn.text('Save Agenda').prop('disabled', false);
+				$btn.text('Save').prop('disabled', false);
 			}
 		}).fail(function() {
 			alert('Request failed');
-			$btn.text('Save Agenda').prop('disabled', false);
+			$btn.text('Save').prop('disabled', false);
 		});
 	});
 });
