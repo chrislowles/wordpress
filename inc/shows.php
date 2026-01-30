@@ -132,7 +132,7 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 			<button type="button" class="add-track button" <?php echo $disabled_attr; ?>>+ Track</button>
 			<button type="button" class="add-spacer button" <?php echo $disabled_attr; ?>>+ Spacer</button>
 			
-			<span class="youtube-playlist-container" style="margin-left: 10px;"></span>
+			<span class="youtube-playlist-container"></span>
 		</div>
 	</div>
 	<?php
