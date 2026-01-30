@@ -104,6 +104,7 @@ jQuery(document).ready(function($) {
 			var row = btn.closest('.track-row');
 			var url = row.find('.track-url-input').val();
 			var durInput = row.find('.track-duration-input');
+			var titleInput = row.find('.track-title-input'); // Select the title input
 
 			if (!url) return alert('Enter URL first');
 			
@@ -115,10 +116,17 @@ jQuery(document).ready(function($) {
 				data: { url: url },
 				dataType: 'json',
 				success: function(data) {
+					// Handle Duration
 					if (data.duration) {
 						durInput.val(formatDuration(data.duration));
 						calculateTotalDuration();
 					}
+
+					// Handle Title
+					if (data.title) {
+						titleInput.val(data.title); // Prefill the title
+					}
+
 					btn.prop('disabled', false).text('Grab');
 				},
 				error: function() {
