@@ -29,17 +29,6 @@ add_action('admin_enqueue_scripts', function($hook) {
 		'dashboard-css',
 		$css_path,
 		array(),
-		'1.0.1'  // Version bump
+		'1.0.1'
 	);
-
-	// Note: tracklist.js is now handled in inc/shows.php
-	// Removed duplicate enqueue logic that was causing conflicts
 });
-
-//add_action('admin_notices', function() {
-//	if (post_type_exists('show')) {
-//		echo '<div class="notice notice-success"><p>Show post type is registered :)</p></div>';
-//	} else {
-//		echo '<div class="notice notice-error"><p>Show post type is not registered :(</p></div>';
-//	}
-//});
