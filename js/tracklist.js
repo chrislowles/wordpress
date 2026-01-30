@@ -152,7 +152,7 @@ jQuery(document).ready(function($) {
 					<input type="text" name="${namePrefix}[9999][duration]" class="track-duration-input" 
 						   placeholder="3:45" style="width:60px; ${isSpacer ? 'display:none' : ''}" />
 					<button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Grab</button>
-					<button type="button" class="remove-track button">X</button>
+					<button type="button" class="remove-track button">Delete</button>
 				</div>
 			`;
 			$list.append(html);
@@ -241,7 +241,7 @@ jQuery(document).ready(function($) {
 				}).done(function(res) {
 					if(res.success) {
 						btn.text('Saved!');
-						setTimeout(function(){ btn.text('Save Global List').prop('disabled', false); }, 2000);
+						setTimeout(function(){ btn.text('Save').prop('disabled', false); }, 2000);
 					} else {
 						alert(res.data.message);
 						btn.prop('disabled', false);
