@@ -77,7 +77,7 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 			<?php if ($scope === 'global'): ?>
 				<div class="global-controls">
 					<span class="spinner-inline global-spinner" style="float:none; margin: 0 5px 0 0;"></span>
-					<button type="button" class="button button-primary global-save-btn" <?php echo $disabled_attr; ?>>Save Global List</button>
+					<button type="button" class="button button-primary global-save-btn" <?php echo $disabled_attr; ?>>Save</button>
 				</div>
 			<?php endif; ?>
 		</div>
@@ -161,7 +161,7 @@ add_action('add_meta_boxes', function() {
 	// B. GLOBAL REFERENCE WIDGET (Sidebar on Edit Screen) - Scope: 'global'
 	add_meta_box(
 		'global_tracklist_widget',
-		'Global Tracklist Source',
+		'Global Tracklist / Timeline',
 		'render_global_tracklist_widget',
 		'show',
 		'side',
@@ -173,7 +173,7 @@ add_action('add_meta_boxes', function() {
 add_action('wp_dashboard_setup', function() {
 	wp_add_dashboard_widget(
 		'global_tracklist_dashboard',
-		'Global Tracklist / Timeline Source',
+		'Global Tracklist / Timeline',
 		'render_global_tracklist_widget'
 	);
 });
