@@ -23,5 +23,4 @@
 		</div>
 		<div class="links"><?php wp_link_pages(); ?></div>
 	</div>
-	<?php get_template_part('entry', 'footer'); // Optional: Keeps your placeholder footer ?>
 </article>

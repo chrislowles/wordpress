@@ -10,8 +10,14 @@
 		</h2>
 		<?php get_template_part('parts/entry-meta'); ?>
 	</header>
-
 	<div class="entry content">
+		<div class="thumbnail">
+			<?php if (has_post_thumbnail()): ?>
+				<a class="thumbnail-link" href="<?php the_post_thumbnail_url('full'); ?>" title="<?php $attachment_id = get_post_thumbnail_id($post->ID); the_title_attribute(array('post' => get_post($attachment_id))); ?>">
+					<?php the_post_thumbnail('full', array('itemprop' => 'image')); ?>
+				</a>
+			<?php endif; ?>
+		</div>
 		<?php
 		// 1. Retrieve the Tracklist Data
 		$tracklist = get_post_meta($post->ID, 'tracklist', true);
@@ -19,8 +25,8 @@
 		// 2. The Simple Array Loop
 		if (is_array($tracklist) && !empty($tracklist)): ?>
 			<div class="tracklist-display" style="margin-bottom: 2em; padding: 1.5em; background: #f7f7f7; border: 1px solid #ddd; border-radius: 4px;">
-				<h3 style="margin-top: 0; font-size: 1.2em; border-bottom: 1px solid #ccc; padding-bottom: 0.5em;">Tracklist / Timeline</h3>
-				<ul style="list-style: none; margin: 0; padding: 0;">
+				<h3>Tracklist / Timeline</h3>
+				<ul>
 					<?php foreach ($tracklist as $track): 
 						$type = $track['type'] ?? 'track';
 						$title = $track['track_title'] ?? '';
@@ -28,11 +34,11 @@
 						$url = $track['track_url'] ?? '';
 					?>
 						<?php if ($type === 'spacer'): ?>
-							<li class="track-item type-spacer" style="margin-top: 1em; font-weight: bold; border-bottom: 1px solid #eee;">
+							<li class="track-item type-spacer">
 								<?php echo esc_html($title); ?>
 							</li>
 						<?php else: ?>
-							<li class="track-item type-track" style="display: flex; justify-content: space-between; padding: 4px 0;">
+							<li class="track-item type-track">
 								<span class="track-title">
 									<?php if (!empty($url)): ?>
 										<a href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer">
@@ -53,21 +59,9 @@
 				</ul>
 			</div>
 		<?php endif; ?>
-
-		<div class="thumbnail">
-			<?php if (has_post_thumbnail()): ?>
-				<a class="thumbnail-link" href="<?php the_post_thumbnail_url('full'); ?>" title="<?php $attachment_id = get_post_thumbnail_id($post->ID); the_title_attribute(array('post' => get_post($attachment_id))); ?>">
-					<?php the_post_thumbnail('full', array('itemprop' => 'image')); ?>
-				</a>
-			<?php endif; ?>
-		</div>
-
 		<div class="body-content">
 			<?php the_content(); ?>
 		</div>
-
 		<div class="links"><?php wp_link_pages(); ?></div>
 	</div>
-
-	<?php get_template_part('entry', 'footer'); ?>
 </article>
