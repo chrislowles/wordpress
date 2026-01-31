@@ -25,5 +25,3 @@ add_filter('quick_edit_show_taxonomy', function($show, $taxonomy, $post_type) {
 	}
 	return $show;
 }, 10, 3);
-
-/// COMMENTS/TRACKBACKS/PINGBACKS

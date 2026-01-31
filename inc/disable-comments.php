@@ -1,7 +1,7 @@
 <?php
 
-// COMPLETELY DISABLE COMMENTS/TRACKBACKS/PINGBACKS.
-// Removes UI elements from Admin Menu, Admin Bar, and Front End.
+/// COMPLETELY DISABLE COMMENTS/TRACKBACKS/PINGBACKS.
+/// Removes UI elements from Admin Menu, Admin Bar, and Front End.
 
 // 1. Disable support for comments and trackbacks in post types
 add_action('admin_init', function() {
