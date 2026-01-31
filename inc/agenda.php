@@ -117,7 +117,7 @@ add_filter('heartbeat_received', function($response, $data) {
 // 5. Handle Save (AJAX)
 add_action('wp_ajax_save_agenda', function() {
 	check_ajax_referer('agenda_save_nonce', 'nonce');
-	
+
 	$user_id = get_current_user_id();
 	$lock = get_transient('agenda_scratchpad_lock');
 
