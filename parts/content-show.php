@@ -24,7 +24,7 @@
 		
 		// 2. The Simple Array Loop
 		if (is_array($tracklist) && !empty($tracklist)): ?>
-			<div class="tracklist-display" style="margin-bottom: 2em; padding: 1.5em; background: #f7f7f7; border: 1px solid #ddd; border-radius: 4px;">
+			<div class="tracklist-display">
 				<h3>Tracklist / Timeline</h3>
 				<ul>
 					<?php foreach ($tracklist as $track): 
