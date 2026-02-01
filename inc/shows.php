@@ -89,6 +89,7 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 				$duration = $item['duration'] ?? '';
 				$title = $item['track_title'] ?? '';
 				$url = $item['track_url'] ?? '';
+				$link_to_section = $item['link_to_section'] ?? false;
 			?>
 				<div class="track-row <?php echo $type === 'spacer' ? 'is-spacer' : ''; ?>">
 					<span class="drag-handle" title="Drag to reorder">|||</span>
@@ -119,6 +120,18 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 						   class="track-duration-input"
 						   style="width: 60px; <?php echo $type === 'spacer' ? 'display:none;' : ''; ?>" 
 						   <?php echo $disabled_attr; ?> />
+
+					<label class="link-checkbox-label" 
+						   style="<?php echo $type === 'spacer' ? '' : 'display:none;'; ?>" 
+						   title="Link this spacer to a section in the body content">
+						<input type="checkbox" 
+							   name="<?php echo $name_prefix; ?>[<?php echo $i; ?>][link_to_section]"
+							   class="link-to-section-checkbox"
+							   value="1"
+							   <?php checked($link_to_section, true); ?>
+							   <?php echo $disabled_attr; ?> />
+						Link
+					</label>
 
 					<button type="button" class="fetch-duration button" 
 							style="<?php echo $type === 'spacer' ? 'display:none;' : ''; ?>" 
@@ -224,6 +237,7 @@ add_action('save_post_show', function($post_id) {
 				'track_title' => sanitize_text_field($track['track_title']),
 				'duration' => sanitize_text_field($track['duration'] ?? ''),
 				'track_url' => esc_url_raw($track['track_url'] ?? ''),
+				'link_to_section' => isset($track['link_to_section']) && $track['link_to_section'] == '1',
 			];
 		}
 		update_post_meta($post_id, 'tracklist', $sanitized);
@@ -252,6 +266,7 @@ add_action('wp_ajax_save_global_tracklist', function() {
 				'track_title' => sanitize_text_field($track['track_title']),
 				'duration' => sanitize_text_field($track['duration'] ?? ''),
 				'track_url' => esc_url_raw($track['track_url'] ?? ''),
+				'link_to_section' => isset($track['link_to_section']) && $track['link_to_section'] == '1',
 			];
 		}
 		update_option('global_tracklist_data', $sanitized);
@@ -314,7 +329,7 @@ add_action('admin_enqueue_scripts', function($hook) {
 			'tracklist-js',
 			get_theme_file_uri() . '/js/tracklist.js',
 			['jquery', 'jquery-ui-sortable', 'heartbeat'],
-			'3.0',
+			'3.1',
 			true
 		);
 
@@ -326,3 +341,57 @@ add_action('admin_enqueue_scripts', function($hook) {
 		]);
 	}
 }, 20);
+
+// =============================================================================
+// 7. DISPLAY FILTER - AUTO-ADD IDs TO HEADINGS (DISPLAY ONLY, NOT SAVED)
+// =============================================================================
+
+/**
+ * Automatically add ID attributes to h1-h6 tags when displaying content
+ * Only adds IDs if they don't already have one
+ * This runs on display only and does NOT modify the saved post content
+ */
+add_filter('the_content', function($content) {
+	// Only run on show posts on the frontend
+	if (!is_singular('show') || is_admin()) {
+		return $content;
+	}
+
+	// Use DOMDocument to parse HTML safely
+	$dom = new DOMDocument();
+	
+	// Suppress errors from malformed HTML
+	libxml_use_internal_errors(true);
+	
+	// Load HTML with UTF-8 encoding
+	$dom->loadHTML('<?xml encoding="utf-8" ?>' . $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+	
+	libxml_clear_errors();
+
+	// Find all heading tags (h1-h6)
+	$headings = [];
+	for ($i = 1; $i <= 6; $i++) {
+		$tags = $dom->getElementsByTagName('h' . $i);
+		foreach ($tags as $tag) {
+			$headings[] = $tag;
+		}
+	}
+
+	// Process each heading
+	foreach ($headings as $heading) {
+		// Only add ID if it doesn't already have one
+		if (!$heading->hasAttribute('id')) {
+			// Get the text content
+			$text = $heading->textContent;
+			
+			// Generate slug-like ID
+			$id = sanitize_title($text);
+			
+			// Set the ID attribute
+			$heading->setAttribute('id', $id);
+		}
+	}
+
+	// Return the modified HTML (for display only, not saved to DB)
+	return $dom->saveHTML();
+}, 10);

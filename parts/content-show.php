@@ -32,10 +32,17 @@
 						$title = $track['track_title'] ?? '';
 						$duration = $track['duration'] ?? '';
 						$url = $track['track_url'] ?? '';
+						$link_to_section = $track['link_to_section'] ?? false;
 					?>
 						<?php if ($type === 'spacer'): ?>
 							<li class="track-item type-spacer">
-								<?php echo esc_html($title); ?>
+								<?php if ($link_to_section): ?>
+									<a href="#<?php echo esc_attr(sanitize_title($title)); ?>">
+										<?php echo esc_html($title); ?>
+									</a>
+								<?php else: ?>
+									<?php echo esc_html($title); ?>
+								<?php endif; ?>
 							</li>
 						<?php else: ?>
 							<li class="track-item type-track">

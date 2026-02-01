@@ -72,6 +72,29 @@
 	white-space: nowrap;
 }
 
+/* Link Checkbox for Spacers */
+.link-checkbox-label {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 12px;
+	flex-shrink: 0;
+	cursor: pointer;
+	user-select: none;
+	padding: 4px 8px;
+	border-radius: 3px;
+	transition: background-color 0.2s;
+}
+
+.link-checkbox-label:hover {
+	background-color: #F0F0F1;
+}
+
+.link-checkbox-label input[type="checkbox"] {
+	margin: 0;
+	cursor: pointer;
+}
+
 /* Global Controls (Save Button & Spinner) */
 .global-controls {
 	display: flex;
@@ -145,13 +168,18 @@
 		flex-basis: 100%;
 	}
 	
-	.track-row .fetch-duration {
+	.track-row .link-checkbox-label {
 		order: 5;
 		flex-basis: 100%;
 	}
 	
-	.track-row .remove-track {
+	.track-row .fetch-duration {
 		order: 6;
+		flex-basis: 100%;
+	}
+	
+	.track-row .remove-track {
+		order: 7;
 		flex-basis: 100%;
 	}
 	

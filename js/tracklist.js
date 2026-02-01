@@ -151,6 +151,10 @@ jQuery(document).ready(function($) {
 						   placeholder="https://..." style="${isSpacer ? 'display:none' : ''}" />
 					<input type="text" name="${namePrefix}[9999][duration]" class="track-duration-input" 
 						   placeholder="3:45" style="width:60px; ${isSpacer ? 'display:none' : ''}" />
+					<label class="link-checkbox-label" style="${isSpacer ? '' : 'display:none'}" title="Link this spacer to a section in the body content">
+						<input type="checkbox" name="${namePrefix}[9999][link_to_section]" class="link-to-section-checkbox" value="1" />
+						Link
+					</label>
 					<button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Grab</button>
 					<button type="button" class="remove-track button">Delete</button>
 				</div>
@@ -172,7 +176,7 @@ jQuery(document).ready(function($) {
 		});
 
 		// 7. INPUT HANDLING & LOCKING (Global Only)
-		$wrapper.on('input', 'input', function() {
+		$wrapper.on('input change', 'input', function() {
 			calculateTotalDuration();
 			updateYouTubePlaylistLink();
 			triggerEdit();
@@ -230,7 +234,8 @@ jQuery(document).ready(function($) {
 						type: row.find('.track-type').val(),
 						track_title: row.find('.track-title-input').val(),
 						track_url: row.find('.track-url-input').val(),
-						duration: row.find('.track-duration-input').val()
+						duration: row.find('.track-duration-input').val(),
+						link_to_section: row.find('.link-to-section-checkbox').is(':checked') ? '1' : '0'
 					});
 				});
 
