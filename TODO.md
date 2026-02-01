@@ -1,2 +1,1 @@
-* Unregister/deactivate pretty much everything to do with parts of the "Appearance" menu, the functionality of the pages in the menu (Design, Widgets, Theme File Editor [as I manage the source through this now])
-* Move the "Appearance" to the very bottom of the dashboard, as it's almost entirely unnessesary for me right now.
+* Add a button next to the title field in the Show post new/edit screen that prefills the body (that's using the EasyMDE-based Markup Markdown editor) and title field with an initial template.
