@@ -6,6 +6,7 @@ require get_stylesheet_directory() . '/inc/disable-comments.php';
 require get_stylesheet_directory() . '/inc/disable-gutenberg.php';
 require get_stylesheet_directory() . '/inc/disable-pages.php';
 require get_stylesheet_directory() . '/inc/disable-widgets.php';
+require get_stylesheet_directory() . '/inc/disable-appearance.php';
 require get_stylesheet_directory() . '/inc/nuke-hostinger.php';
 
 // Tracklist/Show Post type logic
