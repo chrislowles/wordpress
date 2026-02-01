@@ -32,7 +32,7 @@ add_action('admin_enqueue_scripts', function($hook) {
  */
 function get_show_title_template() {
 	$today = date('Y-m-d');
-	return "Show Title - {$today}";
+	return "CNJ {$today}";
 }
 
 /**
@@ -41,29 +41,19 @@ function get_show_title_template() {
  */
 function get_show_body_template() {
 	return <<<TEMPLATE
-## Show Notes
+### In The Cinema
+* []()
 
-Date: 
-Location: 
-Duration: 
+### The Pin Drop
+* []()
 
-## Overview
+### Walking on Thin Ice
+* []()
 
-Brief description of this show/episode.
+### One Up P1
+* []()
 
-## Highlights
-
-- Key point 1
-- Key point 2
-- Key point 3
-
-## Resources
-
-- [Link 1](https://example.com)
-- [Link 2](https://example.com)
-
-## Notes
-
-Additional notes and thoughts...
+### One Up P2
+* []()
 TEMPLATE;
 }
