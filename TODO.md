@@ -1,2 +1,2 @@
-* Automatic (unless theres a h1-6 html tag or markdown equivalent already written with an id to avoid clashing) id attributes for h1-6 tags for later inner linking functionality from the spacer rows
-* A checkbox (to the left of the Grab button) that enables spacer rows in the tracklist/timeline renderer (all contexts) to link (href tags) to sections of the body text now processed to have ids (spacer row value = In The Cinema | resulting html output on spacer row in show post template when checkbox is on: <a href="#in-the-cinema">In The Cinema</a> instead of regular <a>In The Cinema</a>)
+* Unregister/deactivate pretty much everything to do with parts of the "Appearance" menu, the functionality of the pages in the menu (Design, Widgets, Theme File Editor [as I manage the source through this now])
+* Move the "Appearance" to the very bottom of the dashboard, as it's almost entirely unnessesary for me right now.
