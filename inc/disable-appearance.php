@@ -1,42 +1,56 @@
 <?php
 /**
- * COMPLETELY DISABLE APPEARANCE MENU & FUNCTIONALITY
+ * MOSTLY RESTRICT APPEARANCE MENU
  * 
- * This file removes the entire Appearance menu and all associated functionality:
- * - Removes all Appearance submenu items
- * - Blocks direct access to all Appearance pages
- * - Removes Appearance from admin bar
- * - Disables theme switching and customization
- * - Removes all theme-related capabilities
-*/
+ * This version keeps the Customizer accessible for basic site settings
+ * (like site icon, title, tagline) while blocking theme switching and
+ * file editing capabilities.
+ * 
+ * What's BLOCKED:
+ * - Theme switching/installation
+ * - Theme file editor (site source is managed through gh repo/gh action workflow)
+ * - Menu management (nav-menus.php) [As yet implemented custom menu editor]
+ * - Widget management (entirely unused so it can go lol)
+ * 
+ * What's ALLOWED:
+ * - Customizer (for site identity, colors, etc.)
+ */
 
 // =============================================================================
-// 1. REMOVE ALL APPEARANCE SUBMENU PAGES
+// 1. REMOVE UNWANTED APPEARANCE SUBMENU PAGES
 // =============================================================================
 add_action('admin_menu', function() {
-	// Remove the entire Appearance menu
-	remove_menu_page('themes.php');
-	// Belt and suspenders: Also remove all submenus in case they're added by plugins
-	remove_submenu_page('themes.php', 'themes.php');           // Themes
-	remove_submenu_page('themes.php', 'customize.php');        // Customize
-	remove_submenu_page('themes.php', 'nav-menus.php');        // Menus
-	remove_submenu_page('themes.php', 'widgets.php');          // Widgets
-	remove_submenu_page('themes.php', 'theme-editor.php');     // Theme File Editor
-	remove_submenu_page('themes.php', 'custom-header');        // Header
-	remove_submenu_page('themes.php', 'custom-background');    // Background
-	remove_submenu_page('themes.php', 'theme-install.php');    // Add New Theme
+	// Remove theme switching page
+	remove_submenu_page('themes.php', 'themes.php');
+	
+	// Remove theme installation
+	remove_submenu_page('themes.php', 'theme-install.php');
+	
+	// Remove theme file editor
+	remove_submenu_page('themes.php', 'theme-editor.php');
+	
+	// Remove menus (you said you don't use them)
+	remove_submenu_page('themes.php', 'nav-menus.php');
+	
+	// Remove widgets
+	remove_submenu_page('themes.php', 'widgets.php');
+	
+	// Remove header/background (legacy)
+	remove_submenu_page('themes.php', 'custom-header');
+	remove_submenu_page('themes.php', 'custom-background');
+	
+	// KEEP customize.php accessible for site settings
 }, 999);
 
 // =============================================================================
-// 2. BLOCK DIRECT ACCESS TO ALL APPEARANCE PAGES
+// 2. BLOCK DIRECT ACCESS TO UNWANTED PAGES
 // =============================================================================
 add_action('admin_init', function() {
 	global $pagenow;
 
-	// List of all Appearance-related pages to block
+	// List of blocked pages (NOTE: customize.php is NOT in this list)
 	$blocked_pages = array(
 		'themes.php',           // Main Themes page
-		'customize.php',        // Customizer
 		'nav-menus.php',        // Menus
 		'widgets.php',          // Widgets
 		'theme-editor.php',     // Theme File Editor
@@ -48,125 +62,75 @@ add_action('admin_init', function() {
 		wp_safe_redirect(admin_url());
 		exit;
 	}
-	
-	// Also block customize.php with action parameter
-	if ($pagenow === 'customize.php' || (isset($_GET['action']) && $_GET['action'] === 'customize')) {
-		wp_safe_redirect(admin_url());
-		exit;
-	}
 });
 
 // =============================================================================
-// 3. REMOVE APPEARANCE & CUSTOMIZER FROM ADMIN BAR
-// =============================================================================
-add_action('wp_before_admin_bar_render', function() {
-	global $wp_admin_bar;
-	// Remove Customize link from admin bar
-	$wp_admin_bar->remove_menu('customize');
-	// Remove Themes link from admin bar
-	$wp_admin_bar->remove_menu('themes');
-	// Remove any appearance-related submenus
-	$wp_admin_bar->remove_menu('appearance');
-}, 999);
-// Also remove from frontend admin bar
-add_action('admin_bar_menu', function($wp_admin_bar) {
-	$wp_admin_bar->remove_node('customize');
-	$wp_admin_bar->remove_node('themes');
-	$wp_admin_bar->remove_node('appearance');
-}, 999);
-
-// =============================================================================
-// 4. DISABLE THEME SWITCHING & CUSTOMIZATION CAPABILITIES
+// 3. REMOVE THEME SWITCHING CAPABILITIES (BUT NOT CUSTOMIZER ACCESS)
 // =============================================================================
 add_filter('user_has_cap', function($caps) {
-	// Remove all theme-related capabilities
+	// Block theme management
 	$caps['switch_themes'] = false;          // Can't switch themes
-	$caps['edit_theme_options'] = false;     // Can't edit theme options
 	$caps['install_themes'] = false;         // Can't install new themes
 	$caps['update_themes'] = false;          // Can't update themes
 	$caps['delete_themes'] = false;          // Can't delete themes
 	$caps['edit_themes'] = false;            // Can't edit theme files
 	
+	// IMPORTANT: We're NOT removing 'edit_theme_options' because that controls
+	// access to the customizer, which we want to keep for site settings
+	
 	return $caps;
 });
 
 // =============================================================================
-// 5. REMOVE THEME CUSTOMIZATION FUNCTIONALITY
+// 4. CUSTOMIZE THE CUSTOMIZER (Keep Only What You Need)
 // =============================================================================
-// Disable Customizer completely
 add_action('customize_register', function($wp_customize) {
-	// Remove all default sections
-	$wp_customize->remove_section('title_tagline');
-	$wp_customize->remove_section('colors');
-	$wp_customize->remove_section('header_image');
-	$wp_customize->remove_section('background_image');
-	$wp_customize->remove_section('nav');
-	$wp_customize->remove_section('static_front_page');
-	$wp_customize->remove_section('custom_css');
+	// Remove sections you don't need
+	// Uncomment any you want to hide
+	
+	// $wp_customize->remove_section('header_image');
+	// $wp_customize->remove_section('background_image');
+	$wp_customize->remove_section('nav');  // Nav menus
+	// $wp_customize->remove_section('static_front_page');
+	
+	// KEEP: title_tagline (for site icon!)
+	// KEEP: colors (if you want them)
+	// KEEP: custom_css (if you want it)
 }, 999);
-// Disable theme preview
-add_filter('customize_previewable_devices', '__return_empty_array');
 
 // =============================================================================
-// 6. DISABLE WIDGETS FUNCTIONALITY
+// 5. DISABLE WIDGETS FUNCTIONALITY
 // =============================================================================
-// Remove widgets screen
 add_action('widgets_init', function() {
-	// Unregister all widget areas/sidebars
-	// This prevents the Widgets screen from being functional
 	global $wp_registered_sidebars;
 	$wp_registered_sidebars = array();
 }, 999);
 
 // =============================================================================
-// 7. DISABLE MENUS FUNCTIONALITY
+// 6. DISABLE MENUS FUNCTIONALITY
 // =============================================================================
-// Remove menu management capability
-add_filter('user_has_cap', function($caps) {
-	$caps['edit_theme_options'] = false; // This also controls menu access
-	return $caps;
-}, 20);
+// Menus are blocked via the admin_menu and admin_init hooks above
+// No additional code needed
 
 // =============================================================================
-// 8. REMOVE THEME SUPPORT FEATURES
+// 7. DISABLE THEME FILE EDITOR
 // =============================================================================
-add_action('after_setup_theme', function() {
-	// Remove theme customization features
-	remove_theme_support('custom-header');
-	remove_theme_support('custom-background');
-	remove_theme_support('custom-logo');
-	remove_theme_support('customize-selective-refresh-widgets');
-}, 999);
-
-// =============================================================================
-// 9. DISABLE THEME FILE EDITOR
-// =============================================================================
-// Disable file editing completely (also affects plugins)
 if (!defined('DISALLOW_FILE_EDIT')) {
 	define('DISALLOW_FILE_EDIT', true);
 }
 
 // =============================================================================
-// 10. HIDE THEME-RELATED NOTICES & UPDATES
+// 8. HIDE THEME-RELATED NOTICES & UPDATES
 // =============================================================================
-// Remove theme update notifications
 add_filter('site_transient_update_themes', function($value) {
 	return new stdClass();
 });
-// Remove theme update checks
+
 remove_action('load-update-core.php', 'wp_update_themes');
 add_filter('pre_site_transient_update_themes', '__return_null');
 
 // =============================================================================
-// 11. REMOVE APPEARANCE LINKS FROM DASHBOARD WIDGETS
-// =============================================================================
-add_action('wp_dashboard_setup', function() {
-	// Remove any appearance-related dashboard widgets
-	remove_meta_box('dashboard_primary', 'dashboard', 'side'); // WordPress News might have theme links
-}, 999);
-
-// =============================================================================
-// 12. PREVENT THEME SWITCHING VIA URL MANIPULATION
+// 9. PREVENT THEME SWITCHING VIA URL MANIPULATION
 // =============================================================================
 add_action('admin_init', function() {
 	// Block theme switching actions
@@ -179,29 +143,33 @@ add_action('admin_init', function() {
 });
 
 // =============================================================================
-// 13. REMOVE THEME SETUP WIZARD & WELCOME SCREENS
+// 10. REMOVE THEME SETUP WIZARD & WELCOME SCREENS
 // =============================================================================
-// Remove theme activation redirect
 remove_action('after_switch_theme', 'wp_new_admin_notice');
-// Remove customizer redirect after theme activation
+
 add_action('after_switch_theme', function() {
-	// Do nothing - prevents auto-redirect to customizer
+	// Prevent auto-redirect to customizer
 }, 1);
 
 // =============================================================================
-// OPTIONAL: DEBUGGING
+// WHAT YOU CAN NOW ACCESS
 // =============================================================================
-
 /**
- * Uncomment the function below to log when someone attempts to access
- * Appearance-related pages. Useful for debugging.
+ * With this refactored version, you can access:
+ * 
+ * 1. CUSTOMIZER: Go to Appearance > Customize
+ *    - Site Identity (site icon, title, tagline)
+ *    - Colors (if your theme supports it)
+ *    - Custom CSS
+ *    - Any other customizer panels your theme adds
+ * 
+ * 2. The main "Appearance" menu item will still show in the admin menu
+ *    but most sub-items are removed
+ * 
+ * What's still blocked:
+ * - Theme switching
+ * - Installing new themes
+ * - Theme file editor
+ * - Menus
+ * - Widgets
  */
-/*
-add_action('admin_init', function() {
-	global $pagenow;
-	$appearance_pages = array('themes.php', 'customize.php', 'nav-menus.php', 'widgets.php', 'theme-editor.php');
-	if (in_array($pagenow, $appearance_pages)) {
-		error_log('Blocked access to Appearance page: ' . $pagenow . ' by user ID: ' . get_current_user_id());
-	}
-});
-*/
