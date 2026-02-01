@@ -12,6 +12,9 @@ require get_stylesheet_directory() . '/inc/nuke-hostinger.php';
 // Tracklist/Show Post type logic
 require get_stylesheet_directory() . '/inc/shows.php';
 
+// Show Template Button
+require get_stylesheet_directory() . '/inc/show-template-button.php';
+
 // Redirect Manager
 require get_stylesheet_directory() . '/inc/redirects.php';
 
