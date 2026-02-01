@@ -9,7 +9,6 @@
 add_action('admin_enqueue_scripts', function($hook) {
 	// Only run on post edit/new screens for 'show' post type
 	if (($hook === 'post.php' || $hook === 'post-new.php') && get_post_type() === 'show') {
-		
 		wp_enqueue_script(
 			'show-template-button',
 			get_stylesheet_directory_uri() . '/js/show-template-button.js',
@@ -17,7 +16,6 @@ add_action('admin_enqueue_scripts', function($hook) {
 			'1.0.0',
 			true
 		);
-
 		// Pass the template data to JavaScript
 		wp_localize_script('show-template-button', 'showTemplate', [
 			'title' => get_show_title_template(),
