@@ -1,1 +1,0 @@
-* Add a button next to the title field in the Show post new/edit screen that prefills the body (that's using the EasyMDE-based Markup Markdown editor) and title field with an initial template.
