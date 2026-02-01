@@ -47,7 +47,7 @@ jQuery(document).ready(function($) {
 		setEditorContent(showTemplate.body);
 		
 		// Visual feedback
-		$templateButton.text('✓ Template Loaded').prop('disabled', true);
+		$templateButton.text('Template Loaded').prop('disabled', true);
 		setTimeout(function() {
 			$templateButton.text('Load Template').prop('disabled', false);
 		}, 2000);
@@ -94,6 +94,11 @@ jQuery(document).ready(function($) {
 	 * Set editor content
 	 */
 	function setEditorContent(content) {
+		// finally found the markup markdown (easymde) editor (i think, idk i'm tired lmao) (unfinished, to be used in refactor)
+		//new EasyMDE({
+			//element: document.querySelector('.mmd-running')
+		//}).value(content);
+
 		var editor = getEditor();
 		
 		// EasyMDE instance
