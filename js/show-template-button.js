@@ -17,9 +17,7 @@ jQuery(document).ready(function($) {
 	});
 
 	// Insert the button next to the title field
-	// WordPress places the title in #titlewrap
 	var $titleWrap = $('#titlewrap');
-	
 	if ($titleWrap.length) {
 		$titleWrap.append($templateButton);
 	}
@@ -28,11 +26,12 @@ jQuery(document).ready(function($) {
 	$templateButton.on('click', function(e) {
 		e.preventDefault();
 		
-		// Confirm before overwriting (if there's existing content)
 		var $titleField = $('#title');
-		var $editor = getEditor();
+		var editor = getEditor();
+		var currentBody = getEditorContent(editor);
 		
-		var hasContent = $titleField.val().trim() !== '' || getEditorContent().trim() !== '';
+		// Check if there is existing content to warn the user
+		var hasContent = $titleField.val().trim() !== '' || currentBody.trim() !== '';
 		
 		if (hasContent) {
 			if (!confirm('This will replace the current title and content. Continue?')) {
@@ -44,7 +43,7 @@ jQuery(document).ready(function($) {
 		$titleField.val(showTemplate.title).trigger('input');
 		
 		// Set the body content
-		setEditorContent(showTemplate.body);
+		setEditorContent(editor, showTemplate.body);
 		
 		// Visual feedback
 		$templateButton.text('Template Loaded').prop('disabled', true);
@@ -54,66 +53,92 @@ jQuery(document).ready(function($) {
 	});
 
 	/**
-	 * Get the editor instance (handles both Classic Editor and EasyMDE/Markup Markdown)
+	 * Robustly find the Editor Instance
+	 * Checks globals, DOM properties, and CodeMirror classes
 	 */
 	function getEditor() {
-		// Check for EasyMDE (Markup Markdown plugin)
-		if (typeof window.easyMDE !== 'undefined') {
-			return window.easyMDE;
+		// 1. Try Global EasyMDE/SimpleMDE (Standard implementations)
+		if (typeof window.easyMDE !== 'undefined') return window.easyMDE;
+		if (typeof window.simpleMDE !== 'undefined') return window.simpleMDE;
+
+		// 2. Try User's Hint: .mmd-running (Markup Markdown Plugin specific)
+		// Plugins often attach the instance to the textarea element
+		var mmdTextarea = document.querySelector('.mmd-running');
+		if (mmdTextarea) {
+			if (mmdTextarea.EasyMDE) return mmdTextarea.EasyMDE;
+			if (mmdTextarea.codemirror) return mmdTextarea.codemirror;
+		}
+
+		// 3. specific check for Markup Markdown's global instance pattern
+		// Sometimes plugins use a specific global variable like 'mmd_editor'
+		if (typeof window.mmd_editor !== 'undefined') return window.mmd_editor;
+
+		// 4. Fallback: Find the CodeMirror instance directly in the DOM
+		// EasyMDE wraps the editor in a div with class .CodeMirror
+		var cmElement = document.querySelector('.CodeMirror');
+		if (cmElement && cmElement.CodeMirror) {
+			return cmElement.CodeMirror;
 		}
 		
-		// Check for global EasyMDE instances
-		if (typeof window.simpleMDE !== 'undefined') {
-			return window.simpleMDE;
-		}
-		
-		// Fallback to textarea
+		// 5. Last Resort: Return the standard WordPress textarea
 		return $('#content');
 	}
 
 	/**
-	 * Get current editor content
+	 * Get content from the found editor
 	 */
-	function getEditorContent() {
-		var editor = getEditor();
-		
-		// EasyMDE instance
-		if (editor && typeof editor.value === 'function') {
+	function getEditorContent(editor) {
+		if (!editor) return '';
+
+		// EasyMDE / SimpleMDE instance
+		if (typeof editor.value === 'function') {
 			return editor.value();
 		}
-		
-		// jQuery object (textarea)
-		if (editor && editor.val) {
+
+		// CodeMirror instance
+		if (typeof editor.getValue === 'function') {
+			return editor.getValue();
+		}
+
+		// jQuery Object or DOM Element (textarea)
+		if (editor instanceof jQuery) {
 			return editor.val();
 		}
-		
+		if (editor.value !== undefined) {
+			return editor.value;
+		}
+
 		return '';
 	}
 
 	/**
-	 * Set editor content
+	 * Set content to the found editor
 	 */
-	function setEditorContent(content) {
-		// finally found the markup markdown (easymde) editor (i think, idk i'm tired lmao) (unfinished, to be used in refactor)
-		//new EasyMDE({
-			//element: document.querySelector('.mmd-running')
-		//}).value(content);
+	function setEditorContent(editor, content) {
+		if (!editor) return;
 
-		var editor = getEditor();
-		
-		// EasyMDE instance
-		if (editor && typeof editor.value === 'function') {
+		// EasyMDE / SimpleMDE instance
+		if (typeof editor.value === 'function') {
 			editor.value(content);
 			return;
 		}
-		
-		// jQuery object (textarea)
-		if (editor && editor.val) {
-			editor.val(content).trigger('input');
+
+		// CodeMirror instance (Markup Markdown likely exposes this via the DOM)
+		if (typeof editor.setValue === 'function') {
+			editor.setValue(content);
+			// Refresh is sometimes needed if the editor was hidden
+			if (typeof editor.refresh === 'function') {
+				editor.refresh();
+			}
 			return;
 		}
-		
-		// Last resort: try to find the textarea
-		$('#content').val(content).trigger('input');
+
+		// Fallback: Textarea
+		// We trigger 'change' and 'input' to ensure any listeners (like autosave) pick it up
+		if (editor instanceof jQuery) {
+			editor.val(content).trigger('change').trigger('input');
+		} else if (editor.value !== undefined) {
+			editor.value = content;
+		}
 	}
 });
