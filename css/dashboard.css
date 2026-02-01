@@ -86,10 +86,6 @@
 	transition: background-color 0.2s;
 }
 
-.link-checkbox-label:hover {
-	background-color: #F0F0F1;
-}
-
 .link-checkbox-label input[type="checkbox"] {
 	margin: 0;
 	cursor: pointer;
