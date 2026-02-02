@@ -391,6 +391,9 @@ jQuery(document).ready(function($) {
 			$list.append(html);
 			refreshInputNames($list, scope); // Crucial for indexing
 			triggerEdit();
+			
+			// NEW: Focus the title input of the newly added row
+			$list.children().last().find('.track-title-input').focus();
 		}
 
 		$wrapper.find('.add-track').click(function() { addRow('track'); });
