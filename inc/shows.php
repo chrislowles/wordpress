@@ -49,8 +49,9 @@ add_action('init', function() {
  * @param string $scope     'post' (saves with post) or 'global' (saves via AJAX).
  * @param bool   $locked    Whether the widget is locked by another user (Global only).
  * @param string $owner     Name of the user holding the lock.
+ * @param bool   $show_transfer_buttons  Whether to show transfer buttons (only on show edit screen)
  */
-function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false, $owner = '') {
+function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false, $owner = '', $show_transfer_buttons = false) {
 	$tracks = is_array($tracks) ? $tracks : [];
 	// Prefix input names to avoid collision between Global widget and Post metabox on the same screen
 	$name_prefix = ($scope === 'global') ? 'global_tracklist' : 'tracklist';
@@ -133,6 +134,17 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 						Link
 					</label>
 
+					<?php if ($show_transfer_buttons): ?>
+						<button type="button" 
+								class="transfer-track button" 
+								title="<?php echo $scope === 'global' ? 'Copy to Local' : 'Copy to Global'; ?>"
+								data-target-scope="<?php echo $scope === 'global' ? 'post' : 'global'; ?>"
+								style="<?php echo $type === 'spacer' ? 'display:none;' : ''; ?>" 
+								<?php echo $disabled_attr; ?>>
+							<?php echo $scope === 'global' ? '↓' : '↑'; ?>
+						</button>
+					<?php endif; ?>
+
 					<button type="button" class="fetch-duration button" 
 							style="<?php echo $type === 'spacer' ? 'display:none;' : ''; ?>" 
 							<?php echo $disabled_attr; ?>>Grab</button>
@@ -145,6 +157,10 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 		<div style="margin-top: 10px;">
 			<button type="button" class="add-track button" <?php echo $disabled_attr; ?>>+ Track</button>
 			<button type="button" class="add-spacer button" <?php echo $disabled_attr; ?>>+ Spacer</button>
+			
+			<?php if ($show_transfer_buttons && $scope === 'post'): ?>
+				<button type="button" class="copy-all-to-global button" <?php echo $disabled_attr; ?>>Copy All to Global</button>
+			<?php endif; ?>
 			
 			<span class="youtube-playlist-container"></span>
 		</div>
@@ -164,8 +180,8 @@ add_action('add_meta_boxes', function() {
 		function($post) {
 			$tracklist = get_post_meta($post->ID, 'tracklist', true) ?: [];
 			wp_nonce_field('save_tracklist_meta', 'tracklist_meta_nonce');
-			// Render using shared function
-			render_tracklist_editor_html($tracklist, 'post');
+			// Render using shared function - show transfer buttons on edit screen
+			render_tracklist_editor_html($tracklist, 'post', false, '', true);
 		},
 		'show',
 		'normal',
@@ -211,7 +227,15 @@ function render_global_tracklist_widget() {
 		$owner_name = $user_info ? $user_info->display_name : 'Another user';
 	}
 
-	render_tracklist_editor_html($tracklist, 'global', $is_locked, $owner_name);
+	// Only show transfer buttons if we're on a show edit screen
+	global $pagenow, $post;
+	$show_transfer_buttons = (
+		($pagenow === 'post.php' || $pagenow === 'post-new.php') && 
+		isset($post) && 
+		$post->post_type === 'show'
+	);
+
+	render_tracklist_editor_html($tracklist, 'global', $is_locked, $owner_name, $show_transfer_buttons);
 }
 
 // =============================================================================
@@ -329,7 +353,7 @@ add_action('admin_enqueue_scripts', function($hook) {
 			'tracklist-js',
 			get_theme_file_uri() . '/js/tracklist.js',
 			['jquery', 'jquery-ui-sortable', 'heartbeat'],
-			'3.1',
+			'3.2', // Bumped version
 			true
 		);
 
