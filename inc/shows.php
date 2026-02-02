@@ -72,16 +72,10 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 			</div>
 		<?php endif; ?>
 
-		<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+		<div style="margin-bottom: 10px; padding: 0 5px;">
 			<div style="font-size: 13px; color: #666;">
 				<strong>Total:</strong> <span class="total-duration-display">0:00</span>
 			</div>
-			<?php if ($scope === 'global'): ?>
-				<div class="global-controls">
-					<span class="spinner-inline global-spinner" style="float:none; margin: 0 5px 0 0;"></span>
-					<button type="button" class="button button-primary global-save-btn" <?php echo $disabled_attr; ?>>Save</button>
-				</div>
-			<?php endif; ?>
 		</div>
 
 		<div class="tracklist-items">
@@ -154,20 +148,31 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 			<?php endforeach; ?>
 		</div>
 
-		<div style="margin-top: 10px;">
-			<button type="button" class="add-track button" <?php echo $disabled_attr; ?>>+ Track</button>
-			<button type="button" class="add-spacer button" <?php echo $disabled_attr; ?>>+ Spacer</button>
+		<div class="tracklist-controls">
+			<div class="controls-group">
+				<button type="button" class="add-track button" <?php echo $disabled_attr; ?>>+ Track</button>
+				<button type="button" class="add-spacer button" <?php echo $disabled_attr; ?>>+ Spacer</button>
+			</div>
 			
-			<?php if ($show_transfer_buttons): ?>
-				<?php if ($scope === 'post'): ?>
-					<button type="button" class="copy-all-to-global button" title="Copy all items to Global Tracklist/Timeline" <?php echo $disabled_attr; ?>>Global</button>
-				<?php else: ?>
-					<button type="button" class="copy-all-to-local button" title="Copy all items to Local Tracklist/Timeline" <?php echo $disabled_attr; ?>>Local</button>
+			<div class="controls-group center">
+				<?php if ($show_transfer_buttons): ?>
+					<?php if ($scope === 'post'): ?>
+						<button type="button" class="copy-all-to-global button" title="Copy all items to Global Tracklist/Timeline" <?php echo $disabled_attr; ?>>All &rarr; Global</button>
+					<?php else: ?>
+						<button type="button" class="copy-all-to-local button" title="Copy all items to Local Tracklist/Timeline" <?php echo $disabled_attr; ?>>All &rarr; Local</button>
+					<?php endif; ?>
 				<?php endif; ?>
-			<?php endif; ?>
+				<span class="youtube-playlist-container"></span>
+			</div>
 			
-			<span class="youtube-playlist-container"></span>
+			<div class="controls-group right">
+				<?php if ($scope === 'global'): ?>
+					<span class="spinner-inline global-spinner"></span>
+					<button type="button" class="button button-primary global-save-btn" <?php echo $disabled_attr; ?>>Save</button>
+				<?php endif; ?>
+			</div>
 		</div>
+		
 	</div>
 	<?php
 }
