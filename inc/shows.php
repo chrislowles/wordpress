@@ -152,9 +152,6 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 			<div class="controls-group">
 				<button type="button" class="add-track button" <?php echo $disabled_attr; ?>>+ Track</button>
 				<button type="button" class="add-spacer button" <?php echo $disabled_attr; ?>>+ Spacer</button>
-			</div>
-			
-			<div class="controls-group center">
 				<?php if ($show_transfer_buttons): ?>
 					<?php if ($scope === 'post'): ?>
 						<button type="button" class="copy-all-to-global button" title="Copy all items to Global Tracklist/Timeline" <?php echo $disabled_attr; ?>>All &rarr; Global</button>
@@ -163,9 +160,6 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 					<?php endif; ?>
 				<?php endif; ?>
 				<span class="youtube-playlist-container"></span>
-			</div>
-			
-			<div class="controls-group right">
 				<?php if ($scope === 'global'): ?>
 					<span class="spinner-inline global-spinner"></span>
 					<button type="button" class="button button-primary global-save-btn" <?php echo $disabled_attr; ?>>Save</button>
