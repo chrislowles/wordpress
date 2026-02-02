@@ -1,2 +1,1 @@
-* Add a button to the left of the Grab button in track rows for the Global Tracklist (when in the new/edit show post screen) that adds the individual item (Title, URL, Duration etc) to the end of the Local Tracklist
-* Similarly, the button should be in the local tracklist and add back into the global tracklist, cover the bases for adding individual items to the global tracklist and the whole timeline (perhaps with a button at the bottom, refactor code where needed to cover this)
+Refactor the code where needed to move the buttons (+ Track, + Spacer, Copy To Global/Local, Play All (YT), the save button in the Global Tracklist) into a single bar for both contexts that utilizes position: sticky; so the menu is visible for when you're scrolling through either.
