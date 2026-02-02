@@ -143,6 +143,10 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 		</div>
 
 		<div class="tracklist-controls">
+			<span class="total-duration-wrapper" style="margin: 0 10px; font-weight: 600; color: #666; white-space: nowrap;">
+				Total: <span class="total-duration-display">0:00</span>
+			</span>
+
 			<button type="button" class="add-track button" <?php echo $disabled_attr; ?>>+ Track</button>
 			<button type="button" class="add-spacer button" <?php echo $disabled_attr; ?>>+ Spacer</button>
 			
@@ -155,10 +159,6 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 			<?php endif; ?>
 			
 			<span class="youtube-playlist-container"></span>
-			
-			<span class="total-duration-wrapper" style="margin: 0 10px; font-weight: 600; color: #666; white-space: nowrap;">
-				Total: <span class="total-duration-display">0:00</span>
-			</span>
 
 			<?php if ($scope === 'global'): ?>
 				<div class="global-actions" style="margin-left: auto; display: flex; align-items: center; gap: 5px;">
