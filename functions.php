@@ -4,11 +4,11 @@
  * * Organized into class-based modules for readability and scope isolation.
  */
 
-// 1. General Site Cleanup & restrictions (Consolidates all 'disable-*' and 'nuke-*' files)
+// 1. General Site Cleanup & restrictions
 require get_stylesheet_directory() . '/inc/cleanup.php';
 new ChrisLowles_Cleanup();
 
-// 2. Show CPT, Tracklists & Template Button (Consolidates 'shows.php' and 'show-template-button.php')
+// 2. Show CPT, Tracklists & Template Button
 require get_stylesheet_directory() . '/inc/shows.php';
 new ChrisLowles_Shows();
 
