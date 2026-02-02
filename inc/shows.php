@@ -149,22 +149,25 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 		</div>
 
 		<div class="tracklist-controls">
-			<div class="controls-group">
-				<button type="button" class="add-track button" <?php echo $disabled_attr; ?>>+ Track</button>
-				<button type="button" class="add-spacer button" <?php echo $disabled_attr; ?>>+ Spacer</button>
-				<?php if ($show_transfer_buttons): ?>
-					<?php if ($scope === 'post'): ?>
-						<button type="button" class="copy-all-to-global button" title="Copy all items to Global Tracklist/Timeline" <?php echo $disabled_attr; ?>>All &rarr; Global</button>
-					<?php else: ?>
-						<button type="button" class="copy-all-to-local button" title="Copy all items to Local Tracklist/Timeline" <?php echo $disabled_attr; ?>>All &rarr; Local</button>
-					<?php endif; ?>
+			<button type="button" class="add-track button" <?php echo $disabled_attr; ?>>+ Track</button>
+			<button type="button" class="add-spacer button" <?php echo $disabled_attr; ?>>+ Spacer</button>
+			
+			<?php if ($show_transfer_buttons): ?>
+				<?php if ($scope === 'post'): ?>
+					<button type="button" class="copy-all-to-global button" title="Copy all items to Global Tracklist/Timeline" <?php echo $disabled_attr; ?>>All &rarr; Global</button>
+				<?php else: ?>
+					<button type="button" class="copy-all-to-local button" title="Copy all items to Local Tracklist/Timeline" <?php echo $disabled_attr; ?>>All &rarr; Local</button>
 				<?php endif; ?>
-				<span class="youtube-playlist-container"></span>
-				<?php if ($scope === 'global'): ?>
-					<span class="spinner-inline global-spinner"></span>
+			<?php endif; ?>
+			
+			<span class="youtube-playlist-container"></span>
+			
+			<?php if ($scope === 'global'): ?>
+				<div class="global-actions" style="margin-left: auto; display: flex; align-items: center; gap: 5px;">
+					<span class="spinner-inline global-spinner" style="float: none; margin: 0;"></span>
 					<button type="button" class="button button-primary global-save-btn" <?php echo $disabled_attr; ?>>Save</button>
-				<?php endif; ?>
-			</div>
+				</div>
+			<?php endif; ?>
 		</div>
 		
 	</div>
