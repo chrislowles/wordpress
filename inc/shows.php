@@ -197,7 +197,7 @@ add_action('add_meta_boxes', function() {
 	// B. GLOBAL REFERENCE WIDGET (Sidebar on Edit Screen) - Scope: 'global'
 	add_meta_box(
 		'global_tracklist_widget',
-		'Global Tracklist / Timeline',
+		'Show Tracklist (Global)',
 		'render_global_tracklist_widget',
 		'show',
 		'side',
@@ -209,7 +209,7 @@ add_action('add_meta_boxes', function() {
 add_action('wp_dashboard_setup', function() {
 	wp_add_dashboard_widget(
 		'global_tracklist_dashboard',
-		'Global Tracklist / Timeline',
+		'Show Tracklist (Global)',
 		'render_global_tracklist_widget'
 	);
 });
