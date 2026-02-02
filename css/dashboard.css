@@ -153,6 +153,48 @@
 	display: none;
 }
 
+/* ==========================================================================
+   STICKY CONTROLS BAR
+   ========================================================================== 
+*/
+.tracklist-controls {
+	position: sticky;
+	bottom: 0;
+	z-index: 50;
+	background: #f6f7f7; /* Matches WP Metabox Footer bg */
+	border-top: 1px solid #dcdcde;
+	padding: 10px;
+	
+	/* Negative margins to sit flush with container edges if needed */
+	margin-top: 10px; 
+	margin-left: -12px;
+	margin-right: -12px;
+	margin-bottom: -12px;
+	
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+.tracklist-controls .controls-group {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.tracklist-controls .controls-group.center {
+	flex: 1;
+	justify-content: center;
+}
+
+/* Adjust spinner margin for the new layout */
+.tracklist-controls .global-spinner {
+	float: none;
+	margin: 0 5px 0 0;
+}
+
 /* Mobile responsive adjustments - using container queries */
 @container (max-width: 1024px) {
 	.track-row {
@@ -210,6 +252,19 @@
 		padding: 8px;
 		height: auto;
 		line-height: 1.1;
+	}
+
+	/* Stack the sticky controls on very small screens */
+	.tracklist-controls {
+		justify-content: center;
+	}
+	.tracklist-controls .controls-group {
+		justify-content: center;
+		width: 100%;
+	}
+	.tracklist-controls .controls-group.center {
+		order: -1; /* Move important actions up or down as preferred */
+		margin-bottom: 5px;
 	}
 }
 
