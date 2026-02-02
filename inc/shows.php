@@ -160,9 +160,9 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 			
 			<?php if ($show_transfer_buttons): ?>
 				<?php if ($scope === 'post'): ?>
-					<button type="button" class="copy-all-to-global button" <?php echo $disabled_attr; ?>>All To Global</button>
+					<button type="button" class="copy-all-to-global button" title="Copy all items to Global Tracklist/Timeline" <?php echo $disabled_attr; ?>>Global</button>
 				<?php else: ?>
-					<button type="button" class="copy-all-to-local button" <?php echo $disabled_attr; ?>>All To Local</button>
+					<button type="button" class="copy-all-to-local button" title="Copy all items to Local Tracklist/Timeline" <?php echo $disabled_attr; ?>>Local</button>
 				<?php endif; ?>
 			<?php endif; ?>
 			
