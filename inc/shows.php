@@ -72,12 +72,6 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 			</div>
 		<?php endif; ?>
 
-		<div style="margin-bottom: 10px; padding: 0 5px;">
-			<div style="font-size: 13px; color: #666;">
-				<strong>Total:</strong> <span class="total-duration-display">0:00</span>
-			</div>
-		</div>
-
 		<div class="tracklist-items">
 			<?php foreach ($tracks as $i => $item): 
 				$type = $item['type'] ?? 'track';
@@ -162,6 +156,10 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 			
 			<span class="youtube-playlist-container"></span>
 			
+			<span class="total-duration-wrapper" style="margin: 0 10px; font-weight: 600; color: #666; white-space: nowrap;">
+				Total: <span class="total-duration-display">0:00</span>
+			</span>
+
 			<?php if ($scope === 'global'): ?>
 				<div class="global-actions" style="margin-left: auto; display: flex; align-items: center; gap: 5px;">
 					<span class="spinner-inline global-spinner" style="float: none; margin: 0;"></span>
