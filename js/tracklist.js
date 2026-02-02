@@ -180,9 +180,9 @@ jQuery(document).ready(function($) {
 			}
 			
 			// Visual feedback
-			btn.text('✓').prop('disabled', true);
+			btn.text('Success!').prop('disabled', true);
 			setTimeout(function() {
-				btn.text(scope === 'global' ? '↓' : '↑').prop('disabled', false);
+				btn.text(scope === 'global' ? 'Local' : 'Global').prop('disabled', false);
 			}, 1000);
 		});
 
