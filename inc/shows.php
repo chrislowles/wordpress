@@ -158,8 +158,12 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 			<button type="button" class="add-track button" <?php echo $disabled_attr; ?>>+ Track</button>
 			<button type="button" class="add-spacer button" <?php echo $disabled_attr; ?>>+ Spacer</button>
 			
-			<?php if ($show_transfer_buttons && $scope === 'post'): ?>
-				<button type="button" class="copy-all-to-global button" <?php echo $disabled_attr; ?>>Copy All to Global</button>
+			<?php if ($show_transfer_buttons): ?>
+				<?php if ($scope === 'post'): ?>
+					<button type="button" class="copy-all-to-global button" <?php echo $disabled_attr; ?>>Copy All to Global</button>
+				<?php else: ?>
+					<button type="button" class="copy-all-to-local button" <?php echo $disabled_attr; ?>>Copy All to Local</button>
+				<?php endif; ?>
 			<?php endif; ?>
 			
 			<span class="youtube-playlist-container"></span>
@@ -353,7 +357,7 @@ add_action('admin_enqueue_scripts', function($hook) {
 			'tracklist-js',
 			get_theme_file_uri() . '/js/tracklist.js',
 			['jquery', 'jquery-ui-sortable', 'heartbeat'],
-			'3.2', // Bumped version
+			'3.3', // Bumped version
 			true
 		);
 
