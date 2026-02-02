@@ -92,16 +92,24 @@
 	border-color: #0A4B78;
 }
 
-/* Copy All to Global button */
-.copy-all-to-global {
+/* Copy All buttons - both to-global and to-local */
+.copy-all-to-global,
+.copy-all-to-local {
 	background: #2271B1;
 	color: #FFF;
 	border-color: #2271B1;
 }
 
-.copy-all-to-global:hover {
+.copy-all-to-global:hover,
+.copy-all-to-local:hover {
 	background: #135E96;
 	border-color: #135E96;
+}
+
+.copy-all-to-global:active,
+.copy-all-to-local:active {
+	background: #0A4B78;
+	border-color: #0A4B78;
 }
 
 /* Link Checkbox for Spacers */
