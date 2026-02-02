@@ -147,7 +147,7 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 
 					<button type="button" class="fetch-duration button" 
 							style="<?php echo $type === 'spacer' ? 'display:none;' : ''; ?>" 
-							<?php echo $disabled_attr; ?>>Grab</button>
+							<?php echo $disabled_attr; ?>>Fetch</button>
 					
 					<button type="button" class="remove-track button" <?php echo $disabled_attr; ?>>Delete</button>
 				</div>
