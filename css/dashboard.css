@@ -72,6 +72,38 @@
 	white-space: nowrap;
 }
 
+/* Transfer buttons - make them visually distinct */
+.track-row .transfer-track {
+	background: #2271B1;
+	color: #FFF;
+	border-color: #2271B1;
+	font-weight: bold;
+	min-width: 32px;
+	padding: 4px 8px;
+}
+
+.track-row .transfer-track:hover {
+	background: #135E96;
+	border-color: #135E96;
+}
+
+.track-row .transfer-track:active {
+	background: #0A4B78;
+	border-color: #0A4B78;
+}
+
+/* Copy All to Global button */
+.copy-all-to-global {
+	background: #2271B1;
+	color: #FFF;
+	border-color: #2271B1;
+}
+
+.copy-all-to-global:hover {
+	background: #135E96;
+	border-color: #135E96;
+}
+
 /* Link Checkbox for Spacers */
 .link-checkbox-label {
 	display: flex;
@@ -169,13 +201,18 @@
 		flex-basis: 100%;
 	}
 	
-	.track-row .fetch-duration {
+	.track-row .transfer-track {
 		order: 6;
 		flex-basis: 100%;
 	}
 	
-	.track-row .remove-track {
+	.track-row .fetch-duration {
 		order: 7;
+		flex-basis: 100%;
+	}
+	
+	.track-row .remove-track {
+		order: 8;
 		flex-basis: 100%;
 	}
 	
