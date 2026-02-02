@@ -154,7 +154,7 @@
 }
 
 /* ==========================================================================
-   STICKY CONTROLS BAR
+   STICKY SCROLLABLE CONTROLS BAR
    ========================================================================== 
 */
 .tracklist-controls {
@@ -165,29 +165,27 @@
 	border-top: 1px solid #dcdcde;
 	padding: 10px;
 	
-	/* Negative margins to sit flush with container edges if needed */
-	margin-top: 10px; 
-	margin-left: -12px;
-	margin-right: -12px;
-	margin-bottom: -12px;
+	/* Negative margins to sit flush with container edges */
+	margin: 10px -12px -12px -12px;
 	
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: space-between;
-	gap: 10px;
-}
-
-.tracklist-controls .controls-group {
+	/* Flexbox Layout */
 	display: flex;
 	align-items: center;
-	gap: 5px;
+	gap: 8px;
+	
+	/* Key properties for scrolling */
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+	
+	/* Ensure container respects layout */
+	width: auto;
+	max-width: 100%;
 }
 
-/* Adjust spinner margin for the new layout */
-.tracklist-controls .global-spinner {
-	float: none;
-	margin: 0 5px 0 0;
+/* Ensure items don't shrink inside the scrollable area */
+.tracklist-controls > * {
+	flex-shrink: 0;
 }
 
 /* Mobile responsive adjustments - using container queries */
@@ -247,15 +245,6 @@
 		padding: 8px;
 		height: auto;
 		line-height: 1.1;
-	}
-
-	/* Stack the sticky controls on very small screens */
-	.tracklist-controls {
-		justify-content: center;
-	}
-	.tracklist-controls .controls-group {
-		justify-content: center;
-		width: 100%;
 	}
 }
 
