@@ -1,1 +1,0 @@
-Refactor the code where needed to move the buttons (+ Track, + Spacer, Copy To Global/Local, Play All (YT), the save button in the Global Tracklist) into a single bar for both contexts that utilizes position: sticky; so the menu is visible for when you're scrolling through either.
