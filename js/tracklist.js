@@ -239,7 +239,55 @@ jQuery(document).ready(function($) {
 			idleTimer = setTimeout(function() { isEditing = false; }, 30000);
 		});
 
-		// 8. HELPER: Calculate duration for a specific list
+		// 8. HELPER: Copy All Global Tracks to Local
+		$wrapper.on('click', '.copy-all-to-local', function() {
+			var btn = $(this);
+			
+			if (!confirm('Copy all global tracks to local tracklist?')) {
+				return;
+			}
+			
+			// Find the local list
+			var $localWrapper = $('.tracklist-wrapper.is-local');
+			if ($localWrapper.length === 0) {
+				alert('Local tracklist not found');
+				return;
+			}
+			
+			var $localList = $localWrapper.find('.tracklist-items');
+			
+			// Get all global tracks
+			var tracksAdded = 0;
+			$list.find('.track-row').each(function() {
+				var row = $(this);
+				var trackData = {
+					type: row.find('.track-type').val(),
+					track_title: row.find('.track-title-input').val(),
+					track_url: row.find('.track-url-input').val(),
+					duration: row.find('.track-duration-input').val(),
+					link_to_section: row.find('.link-to-section-checkbox').is(':checked')
+				};
+				
+				// Only add non-empty tracks
+				if (trackData.track_title || trackData.track_url) {
+					addRowToList($localList, 'post', trackData);
+					tracksAdded++;
+				}
+			});
+			
+			// Update local list display
+			$localWrapper.find('.total-duration-display').text(
+				formatDuration(calculateDurationForList($localList))
+			);
+			
+			// Visual feedback
+			btn.text(`✓ ${tracksAdded} copied`).prop('disabled', true);
+			setTimeout(function() {
+				btn.text('Copy All to Local').prop('disabled', false);
+			}, 2000);
+		});
+
+		// 9. HELPER: Calculate duration for a specific list
 		function calculateDurationForList($targetList) {
 			var total = 0;
 			$targetList.find('.track-row:not(.is-spacer)').each(function() {
@@ -249,7 +297,7 @@ jQuery(document).ready(function($) {
 			return total;
 		}
 
-		// 9. HELPER: Add Row to a specific list
+		// 10. HELPER: Add Row to a specific list
 		function addRowToList($targetList, targetScope, trackData) {
 			var isSpacer = (trackData.type === 'spacer');
 			var namePrefix = (targetScope === 'global') ? 'global_tracklist' : 'tracklist';
@@ -297,8 +345,9 @@ jQuery(document).ready(function($) {
 			refreshInputNames($targetList, targetScope);
 		}
 
-		// 10. HELPER: Escape HTML for safety
+		// 11. HELPER: Escape HTML for safety
 		function escapeHtml(text) {
+			if (!text) return '';
 			var map = {
 				'&': '&amp;',
 				'<': '&lt;',
@@ -306,10 +355,10 @@ jQuery(document).ready(function($) {
 				'"': '&quot;',
 				"'": '&#039;'
 			};
-			return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+			return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
 		}
 
-		// 11. HELPER: Add Row (original function)
+		// 12. HELPER: Add Row (original function)
 		function addRow(type) {
 			var isSpacer = (type === 'spacer');
 			// We use a dummy index '9999', refreshInputNames will fix it
@@ -355,7 +404,7 @@ jQuery(document).ready(function($) {
 			triggerEdit();
 		});
 
-		// 12. INPUT HANDLING & LOCKING (Global Only)
+		// 13. INPUT HANDLING & LOCKING (Global Only)
 		$wrapper.on('input change', 'input', function() {
 			calculateTotalDuration();
 			updateYouTubePlaylistLink();
@@ -370,7 +419,7 @@ jQuery(document).ready(function($) {
 			}
 		}
 
-		// 13. HELPER: Re-index inputs (Crucial when dragging between lists)
+		// 14. HELPER: Re-index inputs (Crucial when dragging between lists)
 		function refreshInputNames($container, currentScope) {
 			var prefix = (currentScope === 'global') ? 'global_tracklist' : 'tracklist';
 			
@@ -395,7 +444,7 @@ jQuery(document).ready(function($) {
 			});
 		}
 
-		// 14. GLOBAL SAVE & HEARTBEAT
+		// 15. GLOBAL SAVE & HEARTBEAT
 		if (scope === 'global') {
 			
 			// AJAX Save
