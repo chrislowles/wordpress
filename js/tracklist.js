@@ -135,7 +135,181 @@ jQuery(document).ready(function($) {
 			});
 		});
 
-		// 6. HELPER: Add Row
+		// 6. HELPER: Transfer Track Between Lists
+		$wrapper.on('click', '.transfer-track', function() {
+			var btn = $(this);
+			var row = btn.closest('.track-row');
+			var targetScope = btn.data('target-scope'); // 'post' or 'global'
+			
+			// Find the target list
+			var $targetWrapper = $('.tracklist-wrapper.is-' + targetScope);
+			if ($targetWrapper.length === 0) {
+				alert('Target tracklist not found');
+				return;
+			}
+			
+			var $targetList = $targetWrapper.find('.tracklist-items');
+			
+			// Get the track data
+			var trackData = {
+				type: row.find('.track-type').val(),
+				track_title: row.find('.track-title-input').val(),
+				track_url: row.find('.track-url-input').val(),
+				duration: row.find('.track-duration-input').val(),
+				link_to_section: row.find('.link-to-section-checkbox').is(':checked')
+			};
+			
+			// Create new row in target list
+			addRowToList($targetList, targetScope, trackData);
+			
+			// Update both lists
+			calculateTotalDuration();
+			updateYouTubePlaylistLink();
+			$targetWrapper.find('.total-duration-display').text(
+				formatDuration(calculateDurationForList($targetList))
+			);
+			
+			// Trigger edit on target if it's global
+			if (targetScope === 'global') {
+				var $targetWrapperInstance = $targetWrapper;
+				// Need to trigger edit on the target wrapper's context
+				// We'll just set a flag that heartbeat will pick up
+				isEditing = true;
+				clearTimeout(idleTimer);
+				idleTimer = setTimeout(function() { isEditing = false; }, 30000);
+			}
+			
+			// Visual feedback
+			btn.text('✓').prop('disabled', true);
+			setTimeout(function() {
+				btn.text(scope === 'global' ? '↓' : '↑').prop('disabled', false);
+			}, 1000);
+		});
+
+		// 7. HELPER: Copy All Local Tracks to Global
+		$wrapper.on('click', '.copy-all-to-global', function() {
+			var btn = $(this);
+			
+			if (!confirm('Copy all local tracks to global tracklist?')) {
+				return;
+			}
+			
+			// Find the global list
+			var $globalWrapper = $('.tracklist-wrapper.is-global');
+			if ($globalWrapper.length === 0) {
+				alert('Global tracklist not found');
+				return;
+			}
+			
+			var $globalList = $globalWrapper.find('.tracklist-items');
+			
+			// Get all local tracks
+			var tracksAdded = 0;
+			$list.find('.track-row').each(function() {
+				var row = $(this);
+				var trackData = {
+					type: row.find('.track-type').val(),
+					track_title: row.find('.track-title-input').val(),
+					track_url: row.find('.track-url-input').val(),
+					duration: row.find('.track-duration-input').val(),
+					link_to_section: row.find('.link-to-section-checkbox').is(':checked')
+				};
+				
+				// Only add non-empty tracks
+				if (trackData.track_title || trackData.track_url) {
+					addRowToList($globalList, 'global', trackData);
+					tracksAdded++;
+				}
+			});
+			
+			// Update global list display
+			$globalWrapper.find('.total-duration-display').text(
+				formatDuration(calculateDurationForList($globalList))
+			);
+			
+			// Visual feedback
+			btn.text(`✓ ${tracksAdded} copied`).prop('disabled', true);
+			setTimeout(function() {
+				btn.text('Copy All to Global').prop('disabled', false);
+			}, 2000);
+			
+			// Trigger edit on global
+			isEditing = true;
+			clearTimeout(idleTimer);
+			idleTimer = setTimeout(function() { isEditing = false; }, 30000);
+		});
+
+		// 8. HELPER: Calculate duration for a specific list
+		function calculateDurationForList($targetList) {
+			var total = 0;
+			$targetList.find('.track-row:not(.is-spacer)').each(function() {
+				var val = $(this).find('.track-duration-input').val();
+				total += parseToSeconds(val);
+			});
+			return total;
+		}
+
+		// 9. HELPER: Add Row to a specific list
+		function addRowToList($targetList, targetScope, trackData) {
+			var isSpacer = (trackData.type === 'spacer');
+			var namePrefix = (targetScope === 'global') ? 'global_tracklist' : 'tracklist';
+			
+			// Check if target is locked (global only)
+			if (targetScope === 'global') {
+				var $targetWrapper = $targetList.closest('.tracklist-wrapper');
+				var $targetOverlay = $targetWrapper.find('.tracklist-lock-overlay');
+				if (!$targetOverlay.hasClass('hidden')) {
+					alert('Global tracklist is locked by another user');
+					return;
+				}
+			}
+			
+			var html = `
+				<div class="track-row ${isSpacer ? 'is-spacer' : ''}">
+					<span class="drag-handle" title="Drag">|||</span>
+					<input type="hidden" name="${namePrefix}[9999][type]" value="${trackData.type}" class="track-type" />
+					<input type="text" name="${namePrefix}[9999][track_title]" class="track-title-input" 
+						   placeholder="${isSpacer ? 'Segment Title...' : 'Artist - Track'}" 
+						   value="${escapeHtml(trackData.track_title)}" />
+					<input type="url" name="${namePrefix}[9999][track_url]" class="track-url-input" 
+						   placeholder="https://..." 
+						   value="${escapeHtml(trackData.track_url)}"
+						   style="${isSpacer ? 'display:none' : ''}" />
+					<input type="text" name="${namePrefix}[9999][duration]" class="track-duration-input" 
+						   placeholder="3:45" 
+						   value="${escapeHtml(trackData.duration)}"
+						   style="width:60px; ${isSpacer ? 'display:none' : ''}" />
+					<label class="link-checkbox-label" style="${isSpacer ? '' : 'display:none'}" title="Link this spacer to a section in the body content">
+						<input type="checkbox" name="${namePrefix}[9999][link_to_section]" class="link-to-section-checkbox" value="1" ${trackData.link_to_section ? 'checked' : ''} />
+						Link
+					</label>
+					<button type="button" class="transfer-track button" 
+							title="${targetScope === 'global' ? 'Copy to Local' : 'Copy to Global'}"
+							data-target-scope="${targetScope === 'global' ? 'post' : 'global'}"
+							style="${isSpacer ? 'display:none' : ''}">
+						${targetScope === 'global' ? '↓' : '↑'}
+					</button>
+					<button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Grab</button>
+					<button type="button" class="remove-track button">Delete</button>
+				</div>
+			`;
+			$targetList.append(html);
+			refreshInputNames($targetList, targetScope);
+		}
+
+		// 10. HELPER: Escape HTML for safety
+		function escapeHtml(text) {
+			var map = {
+				'&': '&amp;',
+				'<': '&lt;',
+				'>': '&gt;',
+				'"': '&quot;',
+				"'": '&#039;'
+			};
+			return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+		}
+
+		// 11. HELPER: Add Row (original function)
 		function addRow(type) {
 			var isSpacer = (type === 'spacer');
 			// We use a dummy index '9999', refreshInputNames will fix it
@@ -155,6 +329,12 @@ jQuery(document).ready(function($) {
 						<input type="checkbox" name="${namePrefix}[9999][link_to_section]" class="link-to-section-checkbox" value="1" />
 						Link
 					</label>
+					<button type="button" class="transfer-track button" 
+							title="${scope === 'global' ? 'Copy to Local' : 'Copy to Global'}"
+							data-target-scope="${scope === 'global' ? 'post' : 'global'}"
+							style="${isSpacer ? 'display:none' : ''}">
+						${scope === 'global' ? '↓' : '↑'}
+					</button>
 					<button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Grab</button>
 					<button type="button" class="remove-track button">Delete</button>
 				</div>
@@ -175,7 +355,7 @@ jQuery(document).ready(function($) {
 			triggerEdit();
 		});
 
-		// 7. INPUT HANDLING & LOCKING (Global Only)
+		// 12. INPUT HANDLING & LOCKING (Global Only)
 		$wrapper.on('input change', 'input', function() {
 			calculateTotalDuration();
 			updateYouTubePlaylistLink();
@@ -190,7 +370,7 @@ jQuery(document).ready(function($) {
 			}
 		}
 
-		// 8. HELPER: Re-index inputs (Crucial when dragging between lists)
+		// 13. HELPER: Re-index inputs (Crucial when dragging between lists)
 		function refreshInputNames($container, currentScope) {
 			var prefix = (currentScope === 'global') ? 'global_tracklist' : 'tracklist';
 			
@@ -215,7 +395,7 @@ jQuery(document).ready(function($) {
 			});
 		}
 
-		// 9. GLOBAL SAVE & HEARTBEAT
+		// 14. GLOBAL SAVE & HEARTBEAT
 		if (scope === 'global') {
 			
 			// AJAX Save
