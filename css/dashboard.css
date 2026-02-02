@@ -11,8 +11,13 @@
 
 #tracklist-container,
 .tracklist-wrapper {
+	position: relative;
+}
+
+.tracklist-items {
 	container-type: inline-size;
 	container-name: tracklist;
+	width: 100%; /* Ensure it fills the wrapper */
 }
 
 .track-row {
