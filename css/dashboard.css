@@ -184,11 +184,6 @@
 	gap: 5px;
 }
 
-.tracklist-controls .controls-group.center {
-	flex: 1;
-	justify-content: center;
-}
-
 /* Adjust spinner margin for the new layout */
 .tracklist-controls .global-spinner {
 	float: none;
@@ -261,10 +256,6 @@
 	.tracklist-controls .controls-group {
 		justify-content: center;
 		width: 100%;
-	}
-	.tracklist-controls .controls-group.center {
-		order: -1; /* Move important actions up or down as preferred */
-		margin-bottom: 5px;
 	}
 }
 
