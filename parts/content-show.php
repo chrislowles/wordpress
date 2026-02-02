@@ -56,8 +56,8 @@
 									<?php endif; ?>
 								</span>
 								<?php if (!empty($duration)): ?>
-									<span class="track-duration" style="color: #666; font-family: monospace;">
-										<?php echo esc_html($duration); ?>
+									<span class="track-duration">
+										[<?php echo esc_html($duration); ?>]
 									</span>
 								<?php endif; ?>
 							</li>
