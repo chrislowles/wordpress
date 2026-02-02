@@ -124,7 +124,7 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 
 					<label class="link-checkbox-label" 
 						   style="<?php echo $type === 'spacer' ? '' : 'display:none;'; ?>" 
-						   title="Link this spacer to a section in the body content">
+						   title="Link this spacer to a section in the body content (Make sure the header content is exact)">
 						<input type="checkbox" 
 							   name="<?php echo $name_prefix; ?>[<?php echo $i; ?>][link_to_section]"
 							   class="link-to-section-checkbox"
@@ -141,7 +141,7 @@ function render_tracklist_editor_html($tracks, $scope = 'post', $locked = false,
 								data-target-scope="<?php echo $scope === 'global' ? 'post' : 'global'; ?>"
 								style="<?php echo $type === 'spacer' ? 'display:none;' : ''; ?>" 
 								<?php echo $disabled_attr; ?>>
-							<?php echo $scope === 'global' ? '↓' : '↑'; ?>
+							<?php echo $scope === 'global' ? 'Local' : 'Global'; ?>
 						</button>
 					<?php endif; ?>
 
