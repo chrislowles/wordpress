@@ -127,7 +127,7 @@ jQuery(document).ready(function($) {
 						titleInput.val(data.title); // Prefill the title
 					}
 
-					btn.prop('disabled', false).text('Grab');
+					btn.prop('disabled', false).text('Fetch');
 				},
 				error: function() {
 					btn.prop('disabled', false).text('Err');
@@ -228,9 +228,9 @@ jQuery(document).ready(function($) {
 			);
 			
 			// Visual feedback
-			btn.text(`✓ ${tracksAdded} copied`).prop('disabled', true);
+			btn.text(`${tracksAdded} copied`).prop('disabled', true);
 			setTimeout(function() {
-				btn.text('Copy All to Global').prop('disabled', false);
+				btn.text('All to Global').prop('disabled', false);
 			}, 2000);
 			
 			// Trigger edit on global
@@ -281,9 +281,9 @@ jQuery(document).ready(function($) {
 			);
 			
 			// Visual feedback
-			btn.text(`✓ ${tracksAdded} copied`).prop('disabled', true);
+			btn.text(`${tracksAdded} copied`).prop('disabled', true);
 			setTimeout(function() {
-				btn.text('Copy All to Local').prop('disabled', false);
+				btn.text('All to Local').prop('disabled', false);
 			}, 2000);
 		});
 
@@ -332,12 +332,12 @@ jQuery(document).ready(function($) {
 						Link
 					</label>
 					<button type="button" class="transfer-track button" 
-							title="${targetScope === 'global' ? 'Copy to Local' : 'Copy to Global'}"
+							title="${targetScope === 'global' ? 'Copy to Local Tracklist/Timeline' : 'Copy to Global Tracklist/Timeline'}"
 							data-target-scope="${targetScope === 'global' ? 'post' : 'global'}"
 							style="${isSpacer ? 'display:none' : ''}">
-						${targetScope === 'global' ? '↓' : '↑'}
+						${targetScope === 'global' ? 'Local' : 'Global'}
 					</button>
-					<button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Grab</button>
+					<button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Fetch</button>
 					<button type="button" class="remove-track button">Delete</button>
 				</div>
 			`;
@@ -379,12 +379,12 @@ jQuery(document).ready(function($) {
 						Link
 					</label>
 					<button type="button" class="transfer-track button" 
-							title="${scope === 'global' ? 'Copy to Local' : 'Copy to Global'}"
+							title="${scope === 'global' ? 'Copy to Local Tracklist/Timeline' : 'Copy to Global Tracklist/Timeline'}"
 							data-target-scope="${scope === 'global' ? 'post' : 'global'}"
 							style="${isSpacer ? 'display:none' : ''}">
-						${scope === 'global' ? '↓' : '↑'}
+						${scope === 'global' ? 'Local' : 'Global'}
 					</button>
-					<button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Grab</button>
+					<button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Fetch</button>
 					<button type="button" class="remove-track button">Delete</button>
 				</div>
 			`;
