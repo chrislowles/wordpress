@@ -142,7 +142,10 @@ jQuery(document).ready(function($) {
 			var targetScope = btn.data('target-scope'); // 'post' or 'global'
 			
 			// Find the target list
-			var $targetWrapper = $('.tracklist-wrapper.is-' + targetScope);
+			// FIXED: Map 'post' scope to 'local' class selector to ensure Global -> Local transfer finds the wrapper
+			var cssScope = (targetScope === 'post') ? 'local' : targetScope;
+			var $targetWrapper = $('.tracklist-wrapper.is-' + cssScope);
+
 			if ($targetWrapper.length === 0) {
 				alert('Target tracklist not found');
 				return;
@@ -312,6 +315,7 @@ jQuery(document).ready(function($) {
 				}
 			}
 			
+			// FIXED: Removed style="display:none" from transfer button for spacers
 			var html = `
 				<div class="track-row ${isSpacer ? 'is-spacer' : ''}">
 					<span class="drag-handle" title="Drag">|||</span>
@@ -334,7 +338,7 @@ jQuery(document).ready(function($) {
 					<button type="button" class="transfer-track button" 
 							title="${targetScope === 'global' ? 'Copy to Local Tracklist/Timeline' : 'Copy to Global Tracklist/Timeline'}"
 							data-target-scope="${targetScope === 'global' ? 'post' : 'global'}"
-							style="${isSpacer ? 'display:none' : ''}">
+							style="">
 						${targetScope === 'global' ? 'Local' : 'Global'}
 					</button>
 					<button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Fetch</button>
@@ -364,6 +368,7 @@ jQuery(document).ready(function($) {
 			// We use a dummy index '9999', refreshInputNames will fix it
 			var namePrefix = (scope === 'global') ? 'global_tracklist' : 'tracklist';
 			
+			// FIXED: Removed style="display:none" from transfer button for spacers
 			var html = `
 				<div class="track-row ${isSpacer ? 'is-spacer' : ''}">
 					<span class="drag-handle" title="Drag">|||</span>
@@ -381,7 +386,7 @@ jQuery(document).ready(function($) {
 					<button type="button" class="transfer-track button" 
 							title="${scope === 'global' ? 'Copy to Local Tracklist/Timeline' : 'Copy to Global Tracklist/Timeline'}"
 							data-target-scope="${scope === 'global' ? 'post' : 'global'}"
-							style="${isSpacer ? 'display:none' : ''}">
+							style="">
 						${scope === 'global' ? 'Local' : 'Global'}
 					</button>
 					<button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Fetch</button>
