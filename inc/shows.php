@@ -96,17 +96,13 @@ class ChrisLowles_Shows {
         $wrapper_class = ($scope === 'global') ? 'tracklist-wrapper is-global' : 'tracklist-wrapper is-local';
         $disabled = $locked ? 'disabled' : '';
         
-        include get_stylesheet_directory() . '/parts/admin-tracklist-editor.php';
-        // Note: For cleaner separation, you could move the big HTML block 
-        // from the original shows.php into a separate file 'parts/admin-tracklist-editor.php'.
-        // For now, assume the HTML logic resides here or is pasted back in.
-        // *To reduce code bloat in this response, I am assuming you can copy the 
-        // HTML from the original render_tracklist_editor_html function here.*
-        // *If you prefer, I can print the full HTML again.*
-        
-        // -- INLINE HTML FOR CONTEXT (Simplified for brevity, use original full HTML) --
+        // include get_stylesheet_directory() . '/parts/admin-tracklist-editor.php';
         ?>
-        <div class="<?php echo esc_attr($wrapper_class); ?>" data-scope="<?php echo esc_attr($scope); ?>" style="position: relative;">
+        <div class="<?php echo esc_attr($wrapper_class); ?>" 
+             data-scope="<?php echo esc_attr($scope); ?>" 
+             data-allow-transfer="<?php echo $show_transfer ? '1' : '0'; ?>"
+             style="position: relative;">
+
             <?php if ($scope === 'global'): ?>
                 <div class="tracklist-lock-overlay <?php echo $locked ? '' : 'hidden'; ?>">
                     <div class="lock-message"><span class="dashicons dashicons-lock"></span> <?php echo esc_html($owner); ?> is editing.</div>
@@ -114,7 +110,6 @@ class ChrisLowles_Shows {
             <?php endif; ?>
             <div class="tracklist-items">
                 <?php foreach ($tracks as $i => $item): 
-                     // ... (Loop logic same as original file) ...
                      $type = $item['type'] ?? 'track';
                      $title = $item['track_title'] ?? '';
                      $url = $item['track_url'] ?? '';
@@ -124,7 +119,7 @@ class ChrisLowles_Shows {
                 <div class="track-row <?php echo $type === 'spacer' ? 'is-spacer' : ''; ?>">
                     <span class="drag-handle">|||</span>
                     <input type="hidden" name="<?php echo $prefix; ?>[<?php echo $i; ?>][type]" value="<?php echo esc_attr($type); ?>" class="track-type">
-                    <input type="text" name="<?php echo $prefix; ?>[<?php echo $i; ?>][track_title]" value="<?php echo esc_attr($title); ?>" class="track-title-input" <?php echo $disabled; ?> placeholder="Title">
+                    <input type="text" name="<?php echo $prefix; ?>[<?php echo $i; ?>][track_title]" value="<?php echo esc_attr($title); ?>" class="track-title-input" <?php echo $disabled; ?> placeholder="<?php echo $type === 'spacer' ? 'Segment Title...' : 'Title'; ?>">
                     <input type="url" name="<?php echo $prefix; ?>[<?php echo $i; ?>][track_url]" value="<?php echo esc_attr($url); ?>" class="track-url-input" style="<?php echo $type === 'spacer' ? 'display:none' : ''; ?>" <?php echo $disabled; ?> placeholder="URL">
                     <input type="text" name="<?php echo $prefix; ?>[<?php echo $i; ?>][duration]" value="<?php echo esc_attr($dur); ?>" class="track-duration-input" style="width:60px;<?php echo $type === 'spacer' ? 'display:none' : ''; ?>" <?php echo $disabled; ?> placeholder="0:00">
                     
@@ -238,7 +233,7 @@ class ChrisLowles_Shows {
 
         // 1. Tracklist JS
         if ($is_dashboard || $is_show_edit) {
-            wp_enqueue_script('tracklist-js', get_theme_file_uri() . '/js/tracklist.js', ['jquery', 'jquery-ui-sortable', 'heartbeat'], '3.3', true);
+            wp_enqueue_script('tracklist-js', get_theme_file_uri() . '/js/tracklist.js', ['jquery', 'jquery-ui-sortable', 'heartbeat'], '3.3.1', true);
             wp_localize_script('tracklist-js', 'tracklistSettings', [
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('global_tracklist_nonce'),
