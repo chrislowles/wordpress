@@ -7,6 +7,9 @@ jQuery(document).ready(function($) {
 
 	function initTracklist($wrapper) {
 		var scope = $wrapper.data('scope'); // 'post' or 'global'
+		// Check the data attribute from PHP to see if we should render transfer buttons
+		var allowTransfer = $wrapper.data('allow-transfer') == 1;
+
 		var $list = $wrapper.find('.tracklist-items');
 		var $durationDisplay = $wrapper.find('.total-duration-display');
 		var $youtubeContainer = $wrapper.find('.youtube-playlist-container');
@@ -142,7 +145,7 @@ jQuery(document).ready(function($) {
 			var targetScope = btn.data('target-scope'); // 'post' or 'global'
 			
 			// Find the target list
-			// FIXED: Map 'post' scope to 'local' class selector to ensure Global -> Local transfer finds the wrapper
+			// Map 'post' scope to 'local' class selector to ensure Global -> Local transfer finds the wrapper
 			var cssScope = (targetScope === 'post') ? 'local' : targetScope;
 			var $targetWrapper = $('.tracklist-wrapper.is-' + cssScope);
 
@@ -218,8 +221,8 @@ jQuery(document).ready(function($) {
 					link_to_section: row.find('.link-to-section-checkbox').is(':checked')
 				};
 				
-				// Only add non-empty tracks
-				if (trackData.track_title || trackData.track_url) {
+				// Add tracks and spacers (even if empty title/url)
+				if (trackData.track_title || trackData.track_url || trackData.type === 'spacer') {
 					addRowToList($globalList, 'global', trackData);
 					tracksAdded++;
 				}
@@ -271,8 +274,8 @@ jQuery(document).ready(function($) {
 					link_to_section: row.find('.link-to-section-checkbox').is(':checked')
 				};
 				
-				// Only add non-empty tracks
-				if (trackData.track_title || trackData.track_url) {
+				// Add tracks and spacers (even if empty title/url)
+				if (trackData.track_title || trackData.track_url || trackData.type === 'spacer') {
 					addRowToList($localList, 'post', trackData);
 					tracksAdded++;
 				}
@@ -306,8 +309,8 @@ jQuery(document).ready(function($) {
 			var namePrefix = (targetScope === 'global') ? 'global_tracklist' : 'tracklist';
 			
 			// Check if target is locked (global only)
+			var $targetWrapper = $targetList.closest('.tracklist-wrapper');
 			if (targetScope === 'global') {
-				var $targetWrapper = $targetList.closest('.tracklist-wrapper');
 				var $targetOverlay = $targetWrapper.find('.tracklist-lock-overlay');
 				if (!$targetOverlay.hasClass('hidden')) {
 					alert('Global tracklist is locked by another user');
@@ -315,7 +318,9 @@ jQuery(document).ready(function($) {
 				}
 			}
 			
-			// FIXED: Removed style="display:none" from transfer button for spacers
+			// Check if target wrapper allows transfers (to avoid rendering broken buttons on Dashboard)
+			var targetAllowsTransfer = $targetWrapper.data('allow-transfer') == 1;
+
 			var html = `
 				<div class="track-row ${isSpacer ? 'is-spacer' : ''}">
 					<span class="drag-handle" title="Drag">|||</span>
@@ -335,12 +340,14 @@ jQuery(document).ready(function($) {
 						<input type="checkbox" name="${namePrefix}[9999][link_to_section]" class="link-to-section-checkbox" value="1" ${trackData.link_to_section ? 'checked' : ''} />
 						Link
 					</label>
+					${targetAllowsTransfer ? `
 					<button type="button" class="transfer-track button" 
 							title="${targetScope === 'global' ? 'Copy to Local Tracklist/Timeline' : 'Copy to Global Tracklist/Timeline'}"
 							data-target-scope="${targetScope === 'global' ? 'post' : 'global'}"
 							style="">
 						${targetScope === 'global' ? 'Local' : 'Global'}
 					</button>
+					` : ''}
 					<button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Fetch</button>
 					<button type="button" class="remove-track button">Delete</button>
 				</div>
@@ -368,7 +375,6 @@ jQuery(document).ready(function($) {
 			// We use a dummy index '9999', refreshInputNames will fix it
 			var namePrefix = (scope === 'global') ? 'global_tracklist' : 'tracklist';
 			
-			// FIXED: Removed style="display:none" from transfer button for spacers
 			var html = `
 				<div class="track-row ${isSpacer ? 'is-spacer' : ''}">
 					<span class="drag-handle" title="Drag">|||</span>
@@ -383,12 +389,14 @@ jQuery(document).ready(function($) {
 						<input type="checkbox" name="${namePrefix}[9999][link_to_section]" class="link-to-section-checkbox" value="1" />
 						Link
 					</label>
+					${allowTransfer ? `
 					<button type="button" class="transfer-track button" 
 							title="${scope === 'global' ? 'Copy to Local Tracklist/Timeline' : 'Copy to Global Tracklist/Timeline'}"
 							data-target-scope="${scope === 'global' ? 'post' : 'global'}"
 							style="">
 						${scope === 'global' ? 'Local' : 'Global'}
 					</button>
+					` : ''}
 					<button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Fetch</button>
 					<button type="button" class="remove-track button">Delete</button>
 				</div>
@@ -397,7 +405,7 @@ jQuery(document).ready(function($) {
 			refreshInputNames($list, scope); // Crucial for indexing
 			triggerEdit();
 			
-			// NEW: Focus the title input of the newly added row
+			// Focus the title input of the newly added row
 			$list.children().last().find('.track-title-input').focus();
 		}
 
