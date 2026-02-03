@@ -292,7 +292,7 @@ jQuery(document).ready(function($) {
 		function addRowToList($targetList, targetScope, trackData) {
 			var isSpacer = (trackData.type === 'spacer');
 			var namePrefix = (targetScope === 'global') ? 'global_tracklist' : 'tracklist';
-			
+
 			// Check if target is locked (global only)
 			var $targetWrapper = $targetList.closest('.tracklist-wrapper');
 			if (targetScope === 'global') {
@@ -302,7 +302,7 @@ jQuery(document).ready(function($) {
 					return;
 				}
 			}
-			
+
 			// Check if target wrapper allows transfers (to avoid rendering broken buttons on Dashboard)
 			var targetAllowsTransfer = $targetWrapper.data('allow-transfer') == 1;
 
@@ -310,8 +310,8 @@ jQuery(document).ready(function($) {
 				<div class="track-row ${isSpacer ? 'is-spacer' : ''}">
 					<span class="drag-handle" title="Drag">|||</span>
 					<input type="hidden" name="${namePrefix}[9999][type]" value="${trackData.type}" class="track-type" />
-					<input type="text" name="${namePrefix}[9999][track_title]" class="track-title-input" 
-						   placeholder="${isSpacer ? 'Segment Title...' : 'Artist - Track'}" 
+					<input type="text" name="${namePrefix}[9999][track_title]" class="track-title-input"
+						   placeholder="${isSpacer ? 'Segment Title...' : 'Artist - Track'}"
 						   value="${escapeHtml(trackData.track_title)}" />
 					<input type="url" name="${namePrefix}[9999][track_url]" class="track-url-input" 
 						   placeholder="https://..." 
@@ -439,7 +439,7 @@ jQuery(document).ready(function($) {
 
 		// 15. GLOBAL SAVE & HEARTBEAT
 		if (scope === 'global') {
-			
+
 			// AJAX Save
 			$wrapper.find('.global-save-btn').click(function() {
 				var btn = $(this);
@@ -493,7 +493,7 @@ jQuery(document).ready(function($) {
 					$wrapper.find('input, button').prop('disabled', true);
 					$overlay.removeClass('hidden');
 					$ownerLabel.text(data.global_tl_owner);
-					
+
 					// Sync content (optional - simple reload of list)
 					// Implementing full DOM sync is complex, simply locking prevents overwrite.
 				} else {
@@ -503,7 +503,7 @@ jQuery(document).ready(function($) {
 					$overlay.addClass('hidden');
 				}
 			});
-			
+
 			// Initial check
 			if (wp && wp.heartbeat) wp.heartbeat.connectNow();
 		}
