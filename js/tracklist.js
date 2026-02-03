@@ -325,6 +325,7 @@ jQuery(document).ready(function($) {
 						<input type="checkbox" name="${namePrefix}[9999][link_to_section]" class="link-to-section-checkbox" value="1" ${trackData.link_to_section ? 'checked' : ''} />
 						Link
 					</label>
+					<button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Fetch</button>
 					${targetAllowsTransfer ? `
 					<button type="button" class="transfer-track button" 
 							title="${targetScope === 'global' ? 'Copy to Local Tracklist' : 'Copy to Global Tracklist'}"
@@ -333,7 +334,6 @@ jQuery(document).ready(function($) {
 						${targetScope === 'global' ? 'To Local' : 'To Global'}
 					</button>
 					` : ''}
-					<button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Fetch</button>
 					<button type="button" class="remove-track button">Delete</button>
 				</div>
 			`;
