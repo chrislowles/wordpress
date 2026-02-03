@@ -27,7 +27,7 @@ class ChrisLowles_Agenda {
         ?>
         <div id="agenda-wrapper" style="position: relative;">
             <div id="agenda-lock-overlay" class="hidden">
-                <div class="lock-message"><span class="dashicons dashicons-lock"></span> <span id="lock-owner-name"></span> is editing.</div>
+                <div class="lock-message"><span id="lock-owner-name"></span> is editing.</div>
             </div>
             <textarea id="agenda-content" class="widefat" rows="10" placeholder="Type notes here..."><?php echo esc_textarea($content); ?></textarea>
             <div class="agenda-controls">
