@@ -182,14 +182,12 @@ jQuery(document).ready(function($) {
 				// We'll just set a flag that heartbeat will pick up
 				isEditing = true;
 				clearTimeout(idleTimer);
-				idleTimer = setTimeout(function() { isEditing = false; }, 30000);
+				idleTimer = setTimeout(() => isEditing = false, 30000);
 			}
 			
 			// Visual feedback
 			btn.text('Success!').prop('disabled', true);
-			setTimeout(function() {
-				btn.text(scope === 'global' ? 'Local' : 'Global').prop('disabled', false);
-			}, 1000);
+			setTimeout(() => btn.text(scope === 'global' ? 'To Local' : 'To Global').prop('disabled', false), 1000);
 		});
 
 		// 7. HELPER: Copy All Local Tracks to Global
@@ -235,14 +233,12 @@ jQuery(document).ready(function($) {
 			
 			// Visual feedback
 			btn.text(`${tracksAdded} copied`).prop('disabled', true);
-			setTimeout(function() {
-				btn.text('All to Global').prop('disabled', false);
-			}, 2000);
+			setTimeout(() => btn.text('All to Global').prop('disabled', false), 2000);
 			
 			// Trigger edit on global
 			isEditing = true;
 			clearTimeout(idleTimer);
-			idleTimer = setTimeout(function() { isEditing = false; }, 30000);
+			idleTimer = setTimeout(() => isEditing = false, 30000);
 		});
 
 		// 8. HELPER: Copy All Global Tracks to Local
@@ -288,9 +284,7 @@ jQuery(document).ready(function($) {
 			
 			// Visual feedback
 			btn.text(`${tracksAdded} copied`).prop('disabled', true);
-			setTimeout(function() {
-				btn.text('All to Local').prop('disabled', false);
-			}, 2000);
+			setTimeout(() => btn.text('All to Local').prop('disabled', false), 2000);
 		});
 
 		// 9. HELPER: Calculate duration for a specific list
@@ -342,10 +336,10 @@ jQuery(document).ready(function($) {
 					</label>
 					${targetAllowsTransfer ? `
 					<button type="button" class="transfer-track button" 
-							title="${targetScope === 'global' ? 'Copy to Local Tracklist/Timeline' : 'Copy to Global Tracklist/Timeline'}"
+							title="${targetScope === 'global' ? 'Copy to Local Tracklist' : 'Copy to Global Tracklist'}"
 							data-target-scope="${targetScope === 'global' ? 'post' : 'global'}"
 							style="">
-						${targetScope === 'global' ? 'Local' : 'Global'}
+						${targetScope === 'global' ? 'To Local' : 'To Global'}
 					</button>
 					` : ''}
 					<button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Fetch</button>
@@ -391,10 +385,10 @@ jQuery(document).ready(function($) {
 					</label>
 					${allowTransfer ? `
 					<button type="button" class="transfer-track button" 
-							title="${scope === 'global' ? 'Copy to Local Tracklist/Timeline' : 'Copy to Global Tracklist/Timeline'}"
+							title="${scope === 'global' ? 'Copy to Local Tracklist' : 'Copy to Global Tracklist'}"
 							data-target-scope="${scope === 'global' ? 'post' : 'global'}"
 							style="">
-						${scope === 'global' ? 'Local' : 'Global'}
+						${scope === 'global' ? 'To Local' : 'To Global'}
 					</button>
 					` : ''}
 					<button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Fetch</button>
@@ -431,7 +425,7 @@ jQuery(document).ready(function($) {
 			if (scope === 'global') {
 				isEditing = true;
 				clearTimeout(idleTimer);
-				idleTimer = setTimeout(function() { isEditing = false; }, 30000); // 30s idle
+				idleTimer = setTimeout(() => isEditing = false, 30000); // 30s idle
 			}
 		}
 
@@ -491,7 +485,7 @@ jQuery(document).ready(function($) {
 				}).done(function(res) {
 					if(res.success) {
 						btn.text('Saved!');
-						setTimeout(function(){ btn.text('Save').prop('disabled', false); }, 2000);
+						setTimeout(() => btn.text('Save').prop('disabled', false), 2000);
 					} else {
 						alert(res.data.message);
 						btn.prop('disabled', false);
