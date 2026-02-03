@@ -128,7 +128,7 @@ class ChrisLowles_Shows {
                     </label>
 
                     <?php if ($show_transfer): ?>
-                        <button type="button" class="transfer-track button" data-target-scope="<?php echo $scope === 'global' ? 'post' : 'global'; ?>" <?php echo $disabled; ?>><?php echo $scope === 'global' ? 'Local' : 'Global'; ?></button>
+                        <button type="button" class="transfer-track button" data-target-scope="<?php echo $scope === 'global' ? 'post' : 'global'; ?>" <?php echo $disabled; ?>><?php echo $scope === 'global' ? 'To Local' : 'To Global'; ?></button>
                     <?php endif; ?>
                     
                     <button type="button" class="fetch-duration button" style="<?php echo $type === 'spacer' ? 'display:none' : ''; ?>" <?php echo $disabled; ?>>Fetch</button>
