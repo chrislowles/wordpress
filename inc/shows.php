@@ -117,8 +117,11 @@ class ChrisLowles_Shows {
                      $link = $item['link_to_section'] ?? false;
                 ?>
                 <div class="track-row <?php echo $type === 'spacer' ? 'is-spacer' : ''; ?>">
+
                     <span class="drag-handle">|||</span>
+
                     <input type="hidden" name="<?php echo $prefix; ?>[<?php echo $i; ?>][type]" value="<?php echo esc_attr($type); ?>" class="track-type">
+
                     <input type="text" name="<?php echo $prefix; ?>[<?php echo $i; ?>][track_title]" value="<?php echo esc_attr($title); ?>" class="track-title-input" <?php echo $disabled; ?> placeholder="<?php echo $type === 'spacer' ? 'Segment Title...' : 'Title'; ?>">
                     <input type="url" name="<?php echo $prefix; ?>[<?php echo $i; ?>][track_url]" value="<?php echo esc_attr($url); ?>" class="track-url-input" style="<?php echo $type === 'spacer' ? 'display:none' : ''; ?>" <?php echo $disabled; ?> placeholder="URL">
                     <input type="text" name="<?php echo $prefix; ?>[<?php echo $i; ?>][duration]" value="<?php echo esc_attr($dur); ?>" class="track-duration-input" style="width:60px;<?php echo $type === 'spacer' ? 'display:none' : ''; ?>" <?php echo $disabled; ?> placeholder="0:00">
@@ -127,11 +130,12 @@ class ChrisLowles_Shows {
                         <input type="checkbox" name="<?php echo $prefix; ?>[<?php echo $i; ?>][link_to_section]" value="1" <?php checked($link); ?> class="link-to-section-checkbox" <?php echo $disabled; ?>> Link
                     </label>
 
+                    <button type="button" class="fetch-duration button" style="<?php echo $type === 'spacer' ? 'display:none' : ''; ?>" <?php echo $disabled; ?>>Fetch</button>
+
                     <?php if ($show_transfer): ?>
                         <button type="button" class="transfer-track button" data-target-scope="<?php echo $scope === 'global' ? 'post' : 'global'; ?>" <?php echo $disabled; ?>><?php echo $scope === 'global' ? 'To Local' : 'To Global'; ?></button>
                     <?php endif; ?>
-                    
-                    <button type="button" class="fetch-duration button" style="<?php echo $type === 'spacer' ? 'display:none' : ''; ?>" <?php echo $disabled; ?>>Fetch</button>
+
                     <button type="button" class="remove-track button" <?php echo $disabled; ?>>Delete</button>
                 </div>
                 <?php endforeach; ?>
