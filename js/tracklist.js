@@ -20,25 +20,16 @@ jQuery(document).ready(function($) {
 		var isEditing = false;
 		var idleTimer;
 
-		// 1. Initialize Sortable
-		// We use connectWith so you can drag from Global -> Local
+		// 1. Initialize Sortable (within-list only, no cross-list dragging)
 		$list.sortable({
 			handle: '.drag-handle',
 			placeholder: 'placeholder-highlight',
-			connectWith: '.tracklist-items', 
 			axis: 'y',
 			update: function(event, ui) {
-				// Only calculate if the item was dropped here
 				calculateTotalDuration();
 				updateYouTubePlaylistLink();
 				triggerEdit();
-				
-				// If we dragged an item from Global to Local, we need to rename input fields
-				// so the Local form saves them correctly.
-				var item = ui.item;
-				if (item.parent().is($list)) {
-					refreshInputNames($list, scope);
-				}
+				refreshInputNames($list, scope);
 			}
 		});
 
@@ -107,7 +98,7 @@ jQuery(document).ready(function($) {
 			var row = btn.closest('.track-row');
 			var url = row.find('.track-url-input').val();
 			var durInput = row.find('.track-duration-input');
-			var titleInput = row.find('.track-title-input'); // Select the title input
+			var titleInput = row.find('.track-title-input');
 
 			if (!url) return alert('Enter URL first');
 			
@@ -127,7 +118,7 @@ jQuery(document).ready(function($) {
 
 					// Handle Title
 					if (data.title) {
-						titleInput.val(data.title); // Prefill the title
+						titleInput.val(data.title);
 					}
 
 					btn.prop('disabled', false).text('Fetch');
@@ -396,7 +387,7 @@ jQuery(document).ready(function($) {
 				</div>
 			`;
 			$list.append(html);
-			refreshInputNames($list, scope); // Crucial for indexing
+			refreshInputNames($list, scope);
 			triggerEdit();
 			
 			// Focus the title input of the newly added row
@@ -429,7 +420,7 @@ jQuery(document).ready(function($) {
 			}
 		}
 
-		// 14. HELPER: Re-index inputs (Crucial when dragging between lists)
+		// 14. HELPER: Re-index inputs (simplified - no cross-list handling needed)
 		function refreshInputNames($container, currentScope) {
 			var prefix = (currentScope === 'global') ? 'global_tracklist' : 'tracklist';
 			
@@ -438,16 +429,8 @@ jQuery(document).ready(function($) {
 				row.find('input, select, textarea').each(function() {
 					var name = $(this).attr('name');
 					if (name) {
-						// Regex to replace [number] and the prefix
-						// matches "something[123][field]"
+						// Replace [number] with the current index
 						var newName = name.replace(/\[\d+\]/, '[' + index + ']');
-						// Swap prefix if we dragged from Global to Local
-						if (currentScope === 'post' && newName.indexOf('global_tracklist') !== -1) {
-							newName = newName.replace('global_tracklist', 'tracklist');
-						}
-						if (currentScope === 'global' && newName.indexOf('tracklist') === 0) {
-							newName = newName.replace('tracklist', 'global_tracklist');
-						}
 						$(this).attr('name', newName);
 					}
 				});
