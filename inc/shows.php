@@ -20,6 +20,7 @@ class ChrisLowles_Shows {
         add_action('wp_ajax_get_show_posts', [$this, 'ajax_get_show_posts']);
         add_action('wp_ajax_get_show_tracklist', [$this, 'ajax_get_show_tracklist']);
         add_action('wp_ajax_copy_tracks_to_show', [$this, 'ajax_copy_tracks_to_show']);
+        add_action('wp_ajax_add_single_track_to_show', [$this, 'ajax_add_single_track_to_show']);
         
         // Assets & Template Button
         add_action('admin_enqueue_scripts', [$this, 'enqueue_assets'], 20);
@@ -98,6 +99,8 @@ class ChrisLowles_Shows {
 
                     <button type="button" class="fetch-duration button" style="<?php echo $type === 'spacer' ? 'display:none' : ''; ?>">Fetch</button>
 
+                    <button type="button" class="add-to-show-btn button">Add to Show</button>
+
                     <button type="button" class="remove-track button">Delete</button>
                 </div>
                 <?php endforeach; ?>
@@ -107,7 +110,7 @@ class ChrisLowles_Shows {
                 <span class="total-duration-display">0:00</span>
                 <button type="button" class="add-track button">+ Track</button>
                 <button type="button" class="add-spacer button">+ Spacer</button>
-                <button type="button" class="copy-to-show-btn button">Copy to Show...</button>
+                <button type="button" class="copy-all-to-show-btn button">Copy All to Show</button>
                 <span class="youtube-playlist-container"></span>
             </div>
         </div>
@@ -182,7 +185,7 @@ class ChrisLowles_Shows {
     }
 
     /**
-     * AJAX: Copy selected tracks to another show
+     * AJAX: Copy all tracks to another show
      */
     public function ajax_copy_tracks_to_show() {
         check_ajax_referer('tracklist_nonce', 'nonce');
@@ -215,6 +218,43 @@ class ChrisLowles_Shows {
         ));
     }
 
+    /**
+     * AJAX: Add a single track to another show
+     */
+    public function ajax_add_single_track_to_show() {
+        check_ajax_referer('tracklist_nonce', 'nonce');
+        
+        $target_post_id = isset($_POST['target_post_id']) ? intval($_POST['target_post_id']) : 0;
+        $track = isset($_POST['track']) ? $_POST['track'] : array();
+        
+        if (!$target_post_id || get_post_type($target_post_id) !== 'show') {
+            wp_send_json_error(array('message' => 'Invalid target post'));
+        }
+        
+        if (!current_user_can('edit_post', $target_post_id)) {
+            wp_send_json_error(array('message' => 'You do not have permission to edit this show'));
+        }
+        
+        // Get existing tracklist
+        $existing_tracklist = get_post_meta($target_post_id, 'tracklist', true);
+        $existing_tracklist = is_array($existing_tracklist) ? $existing_tracklist : array();
+        
+        // Sanitize and append single track
+        $sanitized_tracks = $this->sanitize_tracks(array($track));
+        if (empty($sanitized_tracks)) {
+            wp_send_json_error(array('message' => 'Invalid track data'));
+        }
+        
+        $existing_tracklist[] = $sanitized_tracks[0];
+        
+        // Save
+        update_post_meta($target_post_id, 'tracklist', $existing_tracklist);
+        
+        wp_send_json_success(array(
+            'message' => 'Track added successfully'
+        ));
+    }
+
     private function sanitize_tracks($tracks) {
         $clean = [];
         foreach ($tracks as $t) {
@@ -239,7 +279,7 @@ class ChrisLowles_Shows {
 
         // 1. Tracklist JS
         if ($is_show_edit) {
-            wp_enqueue_script('tracklist-js', get_theme_file_uri() . '/js/tracklist.js', ['jquery', 'jquery-ui-sortable'], '4.0.0', true);
+            wp_enqueue_script('tracklist-js', get_theme_file_uri() . '/js/tracklist.js', ['jquery', 'jquery-ui-sortable'], '5.0.0', true);
             wp_localize_script('tracklist-js', 'tracklistSettings', [
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('tracklist_nonce'),
