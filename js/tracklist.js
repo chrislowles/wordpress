@@ -133,6 +133,7 @@ jQuery(document).ready(function($) {
 						Link
 					</label>
 					<button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Fetch</button>
+					<button type="button" class="add-to-show-btn button">Add to Show</button>
 					<button type="button" class="remove-track button">Delete</button>
 				</div>
 			`;
@@ -173,48 +174,43 @@ jQuery(document).ready(function($) {
 			});
 		}
 
-		// 9. COPY TO SHOW FUNCTIONALITY
-		var $modal = null;
+		// =========================================================================
+		// INDIVIDUAL "ADD TO SHOW" FUNCTIONALITY
+		// =========================================================================
 		
-		$wrapper.on('click', '.copy-to-show-btn', function(e) {
+		$wrapper.on('click', '.add-to-show-btn', function(e) {
 			e.preventDefault();
-			showCopyToShowModal();
+			var $row = $(this).closest('.track-row');
+			showAddToShowModal($row);
 		});
 
-		function showCopyToShowModal() {
-			// Create modal if it doesn't exist
-			if (!$modal) {
-				createModal();
-			}
-			
-			// Load show posts
-			loadShowPosts();
-			
-			// Show modal
-			$modal.show();
-		}
+		// =========================================================================
+		// BULK "COPY ALL TO SHOW" FUNCTIONALITY
+		// =========================================================================
+		
+		$wrapper.on('click', '.copy-all-to-show-btn', function(e) {
+			e.preventDefault();
+			showCopyAllToShowModal();
+		});
+
+		// =========================================================================
+		// SHARED MODAL SYSTEM
+		// =========================================================================
+		
+		var $modal = null;
+		var showsList = null;
 
 		function createModal() {
 			var modalHtml = `
-				<div id="copy-to-show-modal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
-					<div style="background-color: #fff; margin: 5% auto; padding: 20px; border-radius: 8px; width: 80%; max-width: 700px; max-height: 80vh; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+				<div id="add-to-show-modal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+					<div style="background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 8px; width: 80%; max-width: 600px; max-height: 70vh; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
 						<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
-							<h2 style="margin: 0;">Copy Tracks to Show</h2>
+							<h2 id="modal-title" style="margin: 0;">Add to Show</h2>
 							<button type="button" class="modal-close" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
 						</div>
 						
 						<div style="margin-bottom: 20px;">
-							<label style="display: block; margin-bottom: 10px; font-weight: 600;">
-								<input type="checkbox" id="select-all-tracks" style="margin-right: 5px;">
-								Select All Tracks
-							</label>
-							<div id="track-selection" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px; background: #f9f9f9;">
-								<p style="color: #666; font-style: italic;">Loading tracks...</p>
-							</div>
-						</div>
-						
-						<div style="margin-bottom: 20px;">
-							<label style="display: block; margin-bottom: 5px; font-weight: 600;">Target Show:</label>
+							<label style="display: block; margin-bottom: 5px; font-weight: 600;">Select Show:</label>
 							<select id="target-show-select" class="widefat" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
 								<option value="">Loading shows...</option>
 							</select>
@@ -222,10 +218,10 @@ jQuery(document).ready(function($) {
 						
 						<div style="display: flex; gap: 10px; justify-content: flex-end;">
 							<button type="button" class="button modal-close">Cancel</button>
-							<button type="button" id="copy-tracks-btn" class="button button-primary">Copy Selected Tracks</button>
+							<button type="button" id="confirm-add-btn" class="button button-primary">Add</button>
 						</div>
 						
-						<div id="copy-status" style="margin-top: 15px; padding: 10px; border-radius: 4px; display: none;"></div>
+						<div id="add-status" style="margin-top: 15px; padding: 10px; border-radius: 4px; display: none;"></div>
 					</div>
 				</div>
 			`;
@@ -239,25 +235,56 @@ jQuery(document).ready(function($) {
 			});
 			
 			$modal.on('click', function(e) {
-				if (e.target.id === 'copy-to-show-modal') {
+				if (e.target.id === 'add-to-show-modal') {
 					$modal.hide();
 				}
 			});
+		}
+
+		function showAddToShowModal($row) {
+			if (!$modal) createModal();
 			
-			// Select all functionality
-			$modal.on('change', '#select-all-tracks', function() {
-				$modal.find('#track-selection input[type="checkbox"]').prop('checked', $(this).is(':checked'));
-			});
+			// Update modal title
+			$modal.find('#modal-title').text('Add Track to Show');
+			$modal.find('#confirm-add-btn').text('Add Track');
 			
-			// Copy button handler
-			$modal.on('click', '#copy-tracks-btn', function() {
-				copySelectedTracks();
+			// Store reference to the row
+			$modal.data('row', $row);
+			$modal.data('mode', 'single');
+			
+			// Load shows and display modal
+			loadShowsList(function() {
+				$modal.show();
 			});
 		}
 
-		function loadShowPosts() {
+		function showCopyAllToShowModal() {
+			if (!$modal) createModal();
+			
+			// Update modal title
+			$modal.find('#modal-title').text('Copy All Tracks to Show');
+			$modal.find('#confirm-add-btn').text('Copy All');
+			
+			// Clear row reference
+			$modal.removeData('row');
+			$modal.data('mode', 'all');
+			
+			// Load shows and display modal
+			loadShowsList(function() {
+				$modal.show();
+			});
+		}
+
+		function loadShowsList(callback) {
 			var $select = $modal.find('#target-show-select');
 			$select.html('<option value="">Loading...</option>');
+			
+			// Return cached list if available
+			if (showsList !== null) {
+				populateShowsDropdown(showsList);
+				if (callback) callback();
+				return;
+			}
 			
 			$.post(tracklistSettings.ajax_url, {
 				action: 'get_show_posts',
@@ -265,15 +292,9 @@ jQuery(document).ready(function($) {
 				current_post_id: postId
 			}).done(function(response) {
 				if (response.success) {
-					var options = '<option value="">-- Select a show --</option>';
-					$.each(response.data, function(i, show) {
-						var statusBadge = show.status === 'draft' ? ' (Draft)' : '';
-						options += `<option value="${show.id}">${show.title} - ${show.date}${statusBadge}</option>`;
-					});
-					$select.html(options);
-					
-					// Load current tracks for selection
-					loadCurrentTracks();
+					showsList = response.data;
+					populateShowsDropdown(showsList);
+					if (callback) callback();
 				} else {
 					$select.html('<option value="">Error loading shows</option>');
 				}
@@ -282,53 +303,80 @@ jQuery(document).ready(function($) {
 			});
 		}
 
-		function loadCurrentTracks() {
-			var $trackSelection = $modal.find('#track-selection');
-			var html = '';
-			var trackIndex = 0;
+		function populateShowsDropdown(shows) {
+			var $select = $modal.find('#target-show-select');
+			var options = '<option value="">-- Select a show --</option>';
 			
-			$list.find('.track-row').each(function() {
-				var $row = $(this);
-				var type = $row.find('.track-type').val();
-				var title = $row.find('.track-title-input').val();
-				var url = $row.find('.track-url-input').val();
-				var duration = $row.find('.track-duration-input').val();
-				
-				if (!title && type !== 'spacer') return; // Skip empty tracks
-				
-				var displayText = title || '(Untitled)';
-				if (duration) displayText += ' [' + duration + ']';
-				if (type === 'spacer') displayText = '📌 ' + displayText;
-				
-				html += `
-					<label style="display: block; padding: 5px; cursor: pointer; border-bottom: 1px solid #eee;">
-						<input type="checkbox" class="track-checkbox" data-index="${trackIndex}" style="margin-right: 8px;">
-						<span>${escapeHtml(displayText)}</span>
-					</label>
-				`;
-				trackIndex++;
+			$.each(shows, function(i, show) {
+				var statusBadge = show.status === 'draft' ? ' (Draft)' : '';
+				options += `<option value="${show.id}">${escapeHtml(show.title)} - ${show.date}${statusBadge}</option>`;
 			});
 			
-			if (html === '') {
-				html = '<p style="color: #666; font-style: italic;">No tracks to copy</p>';
-			}
-			
-			$trackSelection.html(html);
+			$select.html(options);
 		}
 
-		function copySelectedTracks() {
+		// Handle confirm button click
+		$modal.on('click', '#confirm-add-btn', function() {
+			var mode = $modal.data('mode');
+			
+			if (mode === 'single') {
+				addSingleTrackToShow();
+			} else if (mode === 'all') {
+				copyAllTracksToShow();
+			}
+		});
+
+		function addSingleTrackToShow() {
 			var targetPostId = $modal.find('#target-show-select').val();
 			if (!targetPostId) {
-				showStatus('Please select a target show', 'error');
+				showModalStatus('Please select a target show', 'error');
 				return;
 			}
 			
-			var selectedTracks = [];
-			$modal.find('#track-selection input[type="checkbox"]:checked').each(function() {
-				var index = $(this).data('index');
-				var $row = $list.find('.track-row').eq(index);
-				
-				selectedTracks.push({
+			var $row = $modal.data('row');
+			var track = {
+				type: $row.find('.track-type').val(),
+				track_title: $row.find('.track-title-input').val(),
+				track_url: $row.find('.track-url-input').val(),
+				duration: $row.find('.track-duration-input').val(),
+				link_to_section: $row.find('.link-to-section-checkbox').is(':checked') ? '1' : '0'
+			};
+			
+			var $btn = $modal.find('#confirm-add-btn');
+			$btn.prop('disabled', true).text('Adding...');
+			
+			$.post(tracklistSettings.ajax_url, {
+				action: 'add_single_track_to_show',
+				nonce: tracklistSettings.nonce,
+				target_post_id: targetPostId,
+				track: track
+			}).done(function(response) {
+				if (response.success) {
+					showModalStatus('Track added successfully!', 'success');
+					setTimeout(function() {
+						$modal.hide();
+					}, 1500);
+				} else {
+					showModalStatus('Error: ' + response.data.message, 'error');
+				}
+			}).fail(function() {
+				showModalStatus('Request failed. Please try again.', 'error');
+			}).always(function() {
+				$btn.prop('disabled', false).text('Add Track');
+			});
+		}
+
+		function copyAllTracksToShow() {
+			var targetPostId = $modal.find('#target-show-select').val();
+			if (!targetPostId) {
+				showModalStatus('Please select a target show', 'error');
+				return;
+			}
+			
+			var allTracks = [];
+			$list.find('.track-row').each(function() {
+				var $row = $(this);
+				allTracks.push({
 					type: $row.find('.track-type').val(),
 					track_title: $row.find('.track-title-input').val(),
 					track_url: $row.find('.track-url-input').val(),
@@ -337,37 +385,37 @@ jQuery(document).ready(function($) {
 				});
 			});
 			
-			if (selectedTracks.length === 0) {
-				showStatus('Please select at least one track', 'error');
+			if (allTracks.length === 0) {
+				showModalStatus('No tracks to copy', 'error');
 				return;
 			}
 			
-			var $btn = $modal.find('#copy-tracks-btn');
+			var $btn = $modal.find('#confirm-add-btn');
 			$btn.prop('disabled', true).text('Copying...');
 			
 			$.post(tracklistSettings.ajax_url, {
 				action: 'copy_tracks_to_show',
 				nonce: tracklistSettings.nonce,
 				target_post_id: targetPostId,
-				tracks: selectedTracks
+				tracks: allTracks
 			}).done(function(response) {
 				if (response.success) {
-					showStatus(`Successfully copied ${response.data.count} track(s)!`, 'success');
+					showModalStatus(`Successfully copied ${response.data.count} track(s)!`, 'success');
 					setTimeout(function() {
 						$modal.hide();
 					}, 2000);
 				} else {
-					showStatus('Error: ' + response.data.message, 'error');
+					showModalStatus('Error: ' + response.data.message, 'error');
 				}
 			}).fail(function() {
-				showStatus('Request failed. Please try again.', 'error');
+				showModalStatus('Request failed. Please try again.', 'error');
 			}).always(function() {
-				$btn.prop('disabled', false).text('Copy Selected Tracks');
+				$btn.prop('disabled', false).text('Copy All');
 			});
 		}
 
-		function showStatus(message, type) {
-			var $status = $modal.find('#copy-status');
+		function showModalStatus(message, type) {
+			var $status = $modal.find('#add-status');
 			var bgColor = type === 'success' ? '#d4edda' : '#f8d7da';
 			var textColor = type === 'success' ? '#155724' : '#721c24';
 			var borderColor = type === 'success' ? '#c3e6cb' : '#f5c6cb';
