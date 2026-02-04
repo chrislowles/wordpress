@@ -57,23 +57,27 @@ jQuery(document).ready(function($) {
 		function updateYouTubePlaylistLink() {
 			var videoIds = [];
 			var allYouTube = true;
-			var hasTracks = false;
+			var trackCount = 0;
 
 			$list.find('.track-row:not(.is-spacer)').each(function() {
 				var url = $(this).find('.track-url-input').val();
-				if (url) {
-					hasTracks = true;
+				// Only count tracks that have a URL
+				if (url && url.trim() !== '') {
+					trackCount++;
 					if (url.includes('youtube.com') || url.includes('youtu.be')) {
 						var match = url.match(/^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/);
 						var vid = (match && match[7].length == 11) ? match[7] : null;
-						if (vid) videoIds.push(vid);
+						if (vid) {
+							videoIds.push(vid);
+						}
 					} else {
 						allYouTube = false;
 					}
 				}
 			});
 
-			if (allYouTube && videoIds.length > 0 && hasTracks) {
+			// Show playlist if: all tracks with URLs are YouTube, we have at least one video, and we have at least one track
+			if (allYouTube && videoIds.length > 0 && trackCount > 0) {
 				var playlistUrl = `https://www.youtube.com/watch_videos?video_ids=${videoIds.join(',')}`;
 				var linkHtml = `<a href="${playlistUrl}" target="_blank" class="button">Play All (YT)</a>`;
 				$youtubeContainer.html(linkHtml);
