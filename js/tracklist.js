@@ -10,7 +10,6 @@ jQuery(document).ready(function($) {
 		var postId = $wrapper.data('post-id');
 		var $list = $wrapper.find('.tracklist-items');
 		var $durationDisplay = $wrapper.find('.total-duration-display');
-		var $youtubeContainer = $wrapper.find('.youtube-playlist-container');
 
 		// 1. Initialize Sortable
 		$list.sortable({
@@ -19,7 +18,6 @@ jQuery(document).ready(function($) {
 			axis: 'y',
 			update: function(event, ui) {
 				calculateTotalDuration();
-				updateYouTubePlaylistLink();
 				refreshInputNames();
 			}
 		});
@@ -53,40 +51,7 @@ jQuery(document).ready(function($) {
 			$durationDisplay.text(formatDuration(total));
 		}
 
-		// 4. HELPER: Update YouTube Link
-		function updateYouTubePlaylistLink() {
-			var videoIds = [];
-			var allYouTube = true;
-			var trackCount = 0;
-
-			$list.find('.track-row:not(.is-spacer)').each(function() {
-				var url = $(this).find('.track-url-input').val();
-				// Only count tracks that have a URL
-				if (url && url.trim() !== '') {
-					trackCount++;
-					if (url.includes('youtube.com') || url.includes('youtu.be')) {
-						var match = url.match(/^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/);
-						var vid = (match && match[7].length == 11) ? match[7] : null;
-						if (vid) {
-							videoIds.push(vid);
-						}
-					} else {
-						allYouTube = false;
-					}
-				}
-			});
-
-			// Show playlist if: all tracks with URLs are YouTube, we have at least one video, and we have at least one track
-			if (allYouTube && videoIds.length > 0 && trackCount > 0) {
-				var playlistUrl = `https://www.youtube.com/watch_videos?video_ids=${videoIds.join(',')}`;
-				var linkHtml = `<a href="${playlistUrl}" target="_blank" class="button">Play All (YT)</a>`;
-				$youtubeContainer.html(linkHtml);
-			} else {
-				$youtubeContainer.empty();
-			}
-		}
-
-		// 5. HELPER: Fetch Duration (API)
+		// 4. HELPER: Fetch Duration (API)
 		$wrapper.on('click', '.fetch-duration', function() {
 			var btn = $(this);
 			var row = btn.closest('.track-row');
@@ -118,7 +83,7 @@ jQuery(document).ready(function($) {
 			});
 		});
 
-		// 6. HELPER: Add Row
+		// 5. HELPER: Add Row
 		function addRow(type) {
 			var isSpacer = (type === 'spacer');
 			
@@ -154,17 +119,15 @@ jQuery(document).ready(function($) {
 		$wrapper.on('click', '.remove-track', function() {
 			$(this).closest('.track-row').remove();
 			calculateTotalDuration();
-			updateYouTubePlaylistLink();
 			refreshInputNames();
 		});
 
-		// 7. INPUT HANDLING
+		// 6. INPUT HANDLING
 		$wrapper.on('input change', 'input', function() {
 			calculateTotalDuration();
-			updateYouTubePlaylistLink();
 		});
 
-		// 8. HELPER: Re-index inputs
+		// 7. HELPER: Re-index inputs
 		function refreshInputNames() {
 			$list.find('.track-row').each(function(index) {
 				var row = $(this);
@@ -451,6 +414,5 @@ jQuery(document).ready(function($) {
 
 		// Initialize calculations
 		calculateTotalDuration();
-		updateYouTubePlaylistLink();
 	}
 });
