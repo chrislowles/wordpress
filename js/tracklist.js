@@ -142,26 +142,7 @@ jQuery(document).ready(function($) {
 		}
 
 		// =========================================================================
-		// INDIVIDUAL "ADD TO SHOW" FUNCTIONALITY
-		// =========================================================================
-		
-		$wrapper.on('click', '.add-to-show-btn', function(e) {
-			e.preventDefault();
-			var $row = $(this).closest('.track-row');
-			showAddToShowModal($row);
-		});
-
-		// =========================================================================
-		// BULK "COPY ALL TO SHOW" FUNCTIONALITY
-		// =========================================================================
-		
-		$wrapper.on('click', '.copy-all-to-show-btn', function(e) {
-			e.preventDefault();
-			showCopyAllToShowModal();
-		});
-
-		// =========================================================================
-		// SHARED MODAL SYSTEM
+		// MODAL SYSTEM - MOVED TO TOP LEVEL SCOPE
 		// =========================================================================
 		
 		var $modal = null;
@@ -197,23 +178,49 @@ jQuery(document).ready(function($) {
 			$('body').append($modal);
 			
 			// Close modal handlers
-			$modal.on('click', '.modal-close', function() {
-				$modal.hide();
+			$modal.on('click', '.modal-close', function(e) {
+				e.preventDefault();
+				hideModal();
 			});
 			
+			// Close on background click
 			$modal.on('click', function(e) {
 				if (e.target.id === 'add-to-show-modal') {
-					$modal.hide();
+					hideModal();
 				}
 			});
+			
+			// Handle confirm button click
+			$modal.on('click', '#confirm-add-btn', function(e) {
+				e.preventDefault();
+				var mode = $modal.data('mode');
+				
+				if (mode === 'single') {
+					addSingleTrackToShow();
+				} else if (mode === 'all') {
+					copyAllTracksToShow();
+				}
+			});
+		}
+
+		function hideModal() {
+			if ($modal) {
+				$modal.hide();
+				$modal.find('#add-status').hide();
+				$modal.removeData('row');
+				$modal.removeData('mode');
+			}
 		}
 
 		function showAddToShowModal($row) {
 			if (!$modal) createModal();
 			
+			// Reset status
+			$modal.find('#add-status').hide();
+			
 			// Update modal title
 			$modal.find('#modal-title').text('Add Track to Show');
-			$modal.find('#confirm-add-btn').text('Add Track');
+			$modal.find('#confirm-add-btn').text('Add Track').prop('disabled', false);
 			
 			// Store reference to the row
 			$modal.data('row', $row);
@@ -228,9 +235,12 @@ jQuery(document).ready(function($) {
 		function showCopyAllToShowModal() {
 			if (!$modal) createModal();
 			
+			// Reset status
+			$modal.find('#add-status').hide();
+			
 			// Update modal title
 			$modal.find('#modal-title').text('Copy All Tracks to Show');
-			$modal.find('#confirm-add-btn').text('Copy All');
+			$modal.find('#confirm-add-btn').text('Copy All').prop('disabled', false);
 			
 			// Clear row reference
 			$modal.removeData('row');
@@ -264,9 +274,11 @@ jQuery(document).ready(function($) {
 					if (callback) callback();
 				} else {
 					$select.html('<option value="">Error loading shows</option>');
+					console.error('Failed to load shows:', response);
 				}
-			}).fail(function() {
+			}).fail(function(jqXHR, textStatus, errorThrown) {
 				$select.html('<option value="">Error loading shows</option>');
+				console.error('AJAX error loading shows:', textStatus, errorThrown);
 			});
 		}
 
@@ -282,17 +294,6 @@ jQuery(document).ready(function($) {
 			$select.html(options);
 		}
 
-		// Handle confirm button click
-		$modal.on('click', '#confirm-add-btn', function() {
-			var mode = $modal.data('mode');
-			
-			if (mode === 'single') {
-				addSingleTrackToShow();
-			} else if (mode === 'all') {
-				copyAllTracksToShow();
-			}
-		});
-
 		function addSingleTrackToShow() {
 			var targetPostId = $modal.find('#target-show-select').val();
 			if (!targetPostId) {
@@ -301,13 +302,23 @@ jQuery(document).ready(function($) {
 			}
 			
 			var $row = $modal.data('row');
+			if (!$row || $row.length === 0) {
+				showModalStatus('Error: Track row not found', 'error');
+				return;
+			}
+			
 			var track = {
-				type: $row.find('.track-type').val(),
-				track_title: $row.find('.track-title-input').val(),
-				track_url: $row.find('.track-url-input').val(),
-				duration: $row.find('.track-duration-input').val(),
+				type: $row.find('.track-type').val() || 'track',
+				track_title: $row.find('.track-title-input').val() || '',
+				track_url: $row.find('.track-url-input').val() || '',
+				duration: $row.find('.track-duration-input').val() || '',
 				link_to_section: $row.find('.link-to-section-checkbox').is(':checked') ? '1' : '0'
 			};
+			
+			if (!track.track_title) {
+				showModalStatus('Track title is required', 'error');
+				return;
+			}
 			
 			var $btn = $modal.find('#confirm-add-btn');
 			$btn.prop('disabled', true).text('Adding...');
@@ -321,15 +332,16 @@ jQuery(document).ready(function($) {
 				if (response.success) {
 					showModalStatus('Track added successfully!', 'success');
 					setTimeout(function() {
-						$modal.hide();
+						hideModal();
 					}, 1500);
 				} else {
-					showModalStatus('Error: ' + response.data.message, 'error');
+					showModalStatus('Error: ' + (response.data.message || 'Unknown error'), 'error');
+					$btn.prop('disabled', false).text('Add Track');
 				}
-			}).fail(function() {
+			}).fail(function(jqXHR, textStatus, errorThrown) {
 				showModalStatus('Request failed. Please try again.', 'error');
-			}).always(function() {
 				$btn.prop('disabled', false).text('Add Track');
+				console.error('AJAX error adding track:', textStatus, errorThrown);
 			});
 		}
 
@@ -343,13 +355,18 @@ jQuery(document).ready(function($) {
 			var allTracks = [];
 			$list.find('.track-row').each(function() {
 				var $row = $(this);
-				allTracks.push({
-					type: $row.find('.track-type').val(),
-					track_title: $row.find('.track-title-input').val(),
-					track_url: $row.find('.track-url-input').val(),
-					duration: $row.find('.track-duration-input').val(),
-					link_to_section: $row.find('.link-to-section-checkbox').is(':checked') ? '1' : '0'
-				});
+				var title = $row.find('.track-title-input').val();
+				
+				// Only add tracks that have a title
+				if (title) {
+					allTracks.push({
+						type: $row.find('.track-type').val() || 'track',
+						track_title: title,
+						track_url: $row.find('.track-url-input').val() || '',
+						duration: $row.find('.track-duration-input').val() || '',
+						link_to_section: $row.find('.link-to-section-checkbox').is(':checked') ? '1' : '0'
+					});
+				}
 			});
 			
 			if (allTracks.length === 0) {
@@ -369,15 +386,16 @@ jQuery(document).ready(function($) {
 				if (response.success) {
 					showModalStatus(`Successfully copied ${response.data.count} track(s)!`, 'success');
 					setTimeout(function() {
-						$modal.hide();
+						hideModal();
 					}, 2000);
 				} else {
-					showModalStatus('Error: ' + response.data.message, 'error');
+					showModalStatus('Error: ' + (response.data.message || 'Unknown error'), 'error');
+					$btn.prop('disabled', false).text('Copy All');
 				}
-			}).fail(function() {
+			}).fail(function(jqXHR, textStatus, errorThrown) {
 				showModalStatus('Request failed. Please try again.', 'error');
-			}).always(function() {
 				$btn.prop('disabled', false).text('Copy All');
+				console.error('AJAX error copying tracks:', textStatus, errorThrown);
 			});
 		}
 
@@ -411,6 +429,23 @@ jQuery(document).ready(function($) {
 			};
 			return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
 		}
+
+		// =========================================================================
+		// BUTTON CLICK HANDLERS - ATTACHED WITH DELEGATION
+		// =========================================================================
+		
+		// Individual "Add to Show" button
+		$wrapper.on('click', '.add-to-show-btn', function(e) {
+			e.preventDefault();
+			var $row = $(this).closest('.track-row');
+			showAddToShowModal($row);
+		});
+
+		// Bulk "Copy All to Show" button
+		$wrapper.on('click', '.copy-all-to-show-btn', function(e) {
+			e.preventDefault();
+			showCopyAllToShowModal();
+		});
 
 		// Initialize calculations
 		calculateTotalDuration();
