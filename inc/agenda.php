@@ -43,9 +43,9 @@ class ChrisLowles_Agenda {
 
         wp_enqueue_script('agenda-js', get_stylesheet_directory_uri() . '/js/agenda.js', ['jquery', 'heartbeat'], '1.0.0', true);
         wp_localize_script('agenda-js', 'agendaSettings', [
-            'user_id' => get_current_user_id(),
+            'user_id'  => get_current_user_id(),
             'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce'   => wp_create_nonce('agenda_save_nonce')
+            'nonce'    => wp_create_nonce('agenda_save_nonce')
         ]);
     }
 
