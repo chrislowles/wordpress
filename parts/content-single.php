@@ -21,6 +21,8 @@
 		<div class="body-content">
 			<?php the_content(); ?>
 		</div>
-		<div class="links"><?php wp_link_pages(); ?></div>
+		<div class="links">
+			<?php wp_link_pages(); ?>
+		</div>
 	</div>
 </article>
