@@ -95,8 +95,6 @@ class ChrisLowles_Shows {
         $prefix = ($scope === 'global') ? 'global_tracklist' : 'tracklist';
         $wrapper_class = ($scope === 'global') ? 'tracklist-wrapper is-global' : 'tracklist-wrapper is-local';
         $disabled = $locked ? 'disabled' : '';
-        
-        // include get_stylesheet_directory() . '/parts/admin-tracklist-editor.php';
         ?>
         <div class="<?php echo esc_attr($wrapper_class); ?>" 
              data-scope="<?php echo esc_attr($scope); ?>" 
