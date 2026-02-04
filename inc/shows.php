@@ -111,7 +111,6 @@ class ChrisLowles_Shows {
                 <button type="button" class="add-track button">+ Track</button>
                 <button type="button" class="add-spacer button">+ Spacer</button>
                 <button type="button" class="copy-all-to-show-btn button">Copy All to Show</button>
-                <span class="youtube-playlist-container"></span>
             </div>
         </div>
         <?php
