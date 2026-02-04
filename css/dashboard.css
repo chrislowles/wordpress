@@ -17,7 +17,7 @@
 .tracklist-items {
 	container-type: inline-size;
 	container-name: tracklist;
-	width: 100%; /* Ensure it fills the wrapper */
+	width: 100%;
 }
 
 .track-row {
@@ -77,22 +77,19 @@
 	white-space: nowrap;
 }
 
-/* Copy All buttons - both to-global and to-local */
-.copy-all-to-global,
-.copy-all-to-local {
+/* Copy to Show button styling */
+.copy-to-show-btn {
 	background: #2271B1;
 	color: #FFF;
 	border-color: #2271B1;
 }
 
-.copy-all-to-global:hover,
-.copy-all-to-local:hover {
+.copy-to-show-btn:hover {
 	background: #135E96;
 	border-color: #135E96;
 }
 
-.copy-all-to-global:active,
-.copy-all-to-local:active {
+.copy-to-show-btn:active {
 	background: #0A4B78;
 	border-color: #0A4B78;
 }
@@ -116,12 +113,6 @@
 	cursor: pointer;
 }
 
-/* Global Controls (Save Button & Spinner) */
-.global-controls {
-	display: flex;
-	align-items: center;
-}
-
 /* The grey dotted box that appears when you are dragging an item */
 .placeholder-highlight {
 	border: 2px dashed #CCC;
@@ -137,25 +128,6 @@
 	font-weight: 600;
 	color: #2271B1;
 	font-family: monospace;
-}
-
-/* Tracklist Locking Overlay */
-.tracklist-lock-overlay {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background: rgba(255, 255, 255, 0.85);
-	z-index: 100;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	backdrop-filter: blur(1px);
-}
-
-.tracklist-lock-overlay.hidden {
-	display: none;
 }
 
 /* ==========================================================================
@@ -229,18 +201,13 @@
 		flex-basis: 100%;
 	}
 	
-	.track-row .transfer-track {
+	.track-row .fetch-duration {
 		order: 6;
 		flex-basis: 100%;
 	}
 	
-	.track-row .fetch-duration {
-		order: 7;
-		flex-basis: 100%;
-	}
-	
 	.track-row .remove-track {
-		order: 8;
+		order: 7;
 		flex-basis: 100%;
 	}
 	
