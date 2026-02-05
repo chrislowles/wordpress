@@ -279,3 +279,11 @@
 	align-items: center;
 	gap: 8px;
 }
+
+.notice p {
+	font-size: 17px;
+}
+
+.notice {
+	font-size: 15px;
+}
