@@ -1,9 +1,9 @@
 jQuery(document).ready(function($) {
-	
+
 	// Initialize tracklist editor
 	var $wrapper = $('.tracklist-wrapper');
 	if ($wrapper.length === 0) return;
-	
+
 	initTracklist($wrapper);
 
 	function initTracklist($wrapper) {
@@ -86,17 +86,13 @@ jQuery(document).ready(function($) {
 		// 5. HELPER: Add Row
 		function addRow(type) {
 			var isSpacer = (type === 'spacer');
-			
 			var html = `
 				<div class="track-row ${isSpacer ? 'is-spacer' : ''}">
 					<span class="drag-handle" title="Drag">|||</span>
 					<input type="hidden" name="tracklist[9999][type]" value="${type}" class="track-type" />
-					<input type="text" name="tracklist[9999][track_title]" class="track-title-input" 
-						   placeholder="${isSpacer ? 'Segment Title...' : 'Artist - Track'}" />
-					<input type="url" name="tracklist[9999][track_url]" class="track-url-input" 
-						   placeholder="https://..." style="${isSpacer ? 'display:none' : ''}" />
-					<input type="text" name="tracklist[9999][duration]" class="track-duration-input" 
-						   placeholder="3:45" style="width:60px; ${isSpacer ? 'display:none' : ''}" />
+					<input type="text" name="tracklist[9999][track_title]" class="track-title-input" placeholder="${isSpacer ? 'Segment Title...' : 'Artist - Track'}" />
+					<input type="url" name="tracklist[9999][track_url]" class="track-url-input" placeholder="https://..." style="${isSpacer ? 'display:none' : ''}" />
+					<input type="text" name="tracklist[9999][duration]" class="track-duration-input" placeholder="3:45" style="width:60px; ${isSpacer ? 'display:none' : ''}" />
 					<label class="link-checkbox-label" style="${isSpacer ? '' : 'display:none'}" title="Link this spacer to a section in the body content">
 						<input type="checkbox" name="tracklist[9999][link_to_section]" class="link-to-section-checkbox" value="1" />
 						Link
@@ -108,14 +104,13 @@ jQuery(document).ready(function($) {
 			`;
 			$list.append(html);
 			refreshInputNames();
-			
 			// Focus the title input of the newly added row
 			$list.children().last().find('.track-title-input').focus();
 		}
 
 		$wrapper.find('.add-track').click(function() { addRow('track'); });
 		$wrapper.find('.add-spacer').click(function() { addRow('spacer'); });
-		
+
 		$wrapper.on('click', '.remove-track', function() {
 			$(this).closest('.track-row').remove();
 			calculateTotalDuration();
@@ -144,7 +139,7 @@ jQuery(document).ready(function($) {
 		// =========================================================================
 		// MODAL SYSTEM - MOVED TO TOP LEVEL SCOPE
 		// =========================================================================
-		
+
 		var $modal = null;
 		var showsList = null;
 
@@ -156,45 +151,45 @@ jQuery(document).ready(function($) {
 							<h2 id="modal-title" style="margin: 0;">Add to Show</h2>
 							<button type="button" class="modal-close" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
 						</div>
-						
+
 						<div style="margin-bottom: 20px;">
 							<label style="display: block; margin-bottom: 5px; font-weight: 600;">Select Show:</label>
 							<select id="target-show-select" class="widefat" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
 								<option value="">Loading shows...</option>
 							</select>
 						</div>
-						
+
 						<div style="display: flex; gap: 10px; justify-content: flex-end;">
 							<button type="button" class="button modal-close">Cancel</button>
 							<button type="button" id="confirm-add-btn" class="button button-primary">Add</button>
+							<a class="button button-primary" href="/wp-admin/post-new.php?post_type=show">Create New Show</a>
 						</div>
-						
+
 						<div id="add-status" style="margin-top: 15px; padding: 10px; border-radius: 4px; display: none;"></div>
 					</div>
 				</div>
 			`;
-			
+
 			$modal = $(modalHtml);
 			$('body').append($modal);
-			
+
 			// Close modal handlers
 			$modal.on('click', '.modal-close', function(e) {
 				e.preventDefault();
 				hideModal();
 			});
-			
+
 			// Close on background click
 			$modal.on('click', function(e) {
 				if (e.target.id === 'add-to-show-modal') {
 					hideModal();
 				}
 			});
-			
+
 			// Handle confirm button click
 			$modal.on('click', '#confirm-add-btn', function(e) {
 				e.preventDefault();
 				var mode = $modal.data('mode');
-				
 				if (mode === 'single') {
 					addSingleTrackToShow();
 				} else if (mode === 'all') {
@@ -214,18 +209,18 @@ jQuery(document).ready(function($) {
 
 		function showAddToShowModal($row) {
 			if (!$modal) createModal();
-			
+
 			// Reset status
 			$modal.find('#add-status').hide();
-			
+
 			// Update modal title
 			$modal.find('#modal-title').text('Add Track to Show');
 			$modal.find('#confirm-add-btn').text('Add Track').prop('disabled', false);
-			
+
 			// Store reference to the row
 			$modal.data('row', $row);
 			$modal.data('mode', 'single');
-			
+
 			// Load shows and display modal
 			loadShowsList(function() {
 				$modal.show();
@@ -234,18 +229,18 @@ jQuery(document).ready(function($) {
 
 		function showCopyAllToShowModal() {
 			if (!$modal) createModal();
-			
+
 			// Reset status
 			$modal.find('#add-status').hide();
-			
+
 			// Update modal title
 			$modal.find('#modal-title').text('Copy All Tracks to Show');
 			$modal.find('#confirm-add-btn').text('Copy All').prop('disabled', false);
-			
+
 			// Clear row reference
 			$modal.removeData('row');
 			$modal.data('mode', 'all');
-			
+
 			// Load shows and display modal
 			loadShowsList(function() {
 				$modal.show();
@@ -255,7 +250,7 @@ jQuery(document).ready(function($) {
 		function loadShowsList(callback) {
 			var $select = $modal.find('#target-show-select');
 			$select.html('<option value="">Loading...</option>');
-			
+
 			// Return cached list if available
 			if (showsList !== null) {
 				populateShowsDropdown(showsList);
@@ -284,7 +279,7 @@ jQuery(document).ready(function($) {
 
 		function populateShowsDropdown(shows) {
 			var $select = $modal.find('#target-show-select');
-			var options = '<option value="">-- Select a show --</option>';
+			var options = '<option value="">Select a show...</option>';
 			
 			$.each(shows, function(i, show) {
 				var statusBadge = show.status === 'draft' ? ' (Draft)' : '';
@@ -316,13 +311,13 @@ jQuery(document).ready(function($) {
 			};
 			
 			if (!track.track_title) {
-				showModalStatus('Track title is required', 'error');
+				showModalStatus('Track title is required, give me something to work with at least.', 'error');
 				return;
 			}
 			
 			var $btn = $modal.find('#confirm-add-btn');
 			$btn.prop('disabled', true).text('Adding...');
-			
+
 			$.post(tracklistSettings.ajax_url, {
 				action: 'add_single_track_to_show',
 				nonce: tracklistSettings.nonce,
@@ -351,12 +346,12 @@ jQuery(document).ready(function($) {
 				showModalStatus('Please select a target show', 'error');
 				return;
 			}
-			
+
 			var allTracks = [];
 			$list.find('.track-row').each(function() {
 				var $row = $(this);
 				var title = $row.find('.track-title-input').val();
-				
+
 				// Only add tracks that have a title
 				if (title) {
 					allTracks.push({
@@ -368,15 +363,15 @@ jQuery(document).ready(function($) {
 					});
 				}
 			});
-			
+
 			if (allTracks.length === 0) {
-				showModalStatus('No tracks to copy', 'error');
+				showModalStatus('No tracks to copy, what are you trying to do here, exactly?', 'error');
 				return;
 			}
-			
+
 			var $btn = $modal.find('#confirm-add-btn');
 			$btn.prop('disabled', true).text('Copying...');
-			
+
 			$.post(tracklistSettings.ajax_url, {
 				action: 'copy_tracks_to_show',
 				nonce: tracklistSettings.nonce,
@@ -433,7 +428,7 @@ jQuery(document).ready(function($) {
 		// =========================================================================
 		// BUTTON CLICK HANDLERS - ATTACHED WITH DELEGATION
 		// =========================================================================
-		
+
 		// Individual "Add to Show" button
 		$wrapper.on('click', '.add-to-show-btn', function(e) {
 			e.preventDefault();
