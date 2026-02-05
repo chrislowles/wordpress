@@ -85,9 +85,7 @@ class ChrisLowles_Shows {
 	public function show_admin_notice() {
 		$screen = get_current_screen();
 		// Only show on Show post edit screens
-		if (!$screen || $screen->post_type !== 'show' || !in_array($screen->base, ['post', 'post-new'])) {
-			return;
-		}
+		if (!$screen || $screen->post_type !== 'show' || !in_array($screen->base, ['post', 'post-new'])) { return; }
 		?>
 		<div class="notice notice-info">
 			<p>
