@@ -92,8 +92,10 @@ class ChrisLowles_Shows {
 				<strong>Regarding Show Posts:</strong>
 				<div></div>
 				<ul>
-					<li>If you find that you need to push news items or tracklist items into next week, use the search function available in the archive view to see if the Show Post has already been made and add to that instead. There are (in development) controls to quickly add at least tracklist items into already made Show Posts within the edit screen, Show Posts are meant to be a more centralized format to organize the show and with no immediately identifiable information, it will be hard to reference if need be.</li>
-					<li>If you find any gaps when managing Show Posts, inform me (Chris :])</li>
+					<li>If you find that you need to push news items or tracklist items into next week, use the search function available in the archive view to see if the Show Post has already been made and add to that instead.</li>
+					<li>There are (in development) controls to quickly at least add tracklist items into already made Show Posts within the new/edit screen</li>
+					<li>Remember that Show Posts are meant to be a more centralized format to organize the show and with no immediately identifiable information, it will be hard to reference if need be.</li>
+					<li>If you find any gaps when managing Show Posts, inform me (Chris)</li>
 				</ul>
 			</p>
 		</div>
