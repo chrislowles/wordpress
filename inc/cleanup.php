@@ -15,6 +15,7 @@ class ChrisLowles_Cleanup {
         $this->disable_pages();
         $this->disable_widgets();
         $this->disable_appearance();
+        $this->disable_embeds();
 
         // Gutenberg (Currently disabled/commented out as per original file)
         // $this->disable_gutenberg();
@@ -174,6 +175,37 @@ class ChrisLowles_Cleanup {
 
         // Hide updates
         add_filter('pre_site_transient_update_themes', '__return_null');
+    }
+
+    /**
+     * Disable WordPress Auto-Embeds (oEmbed)
+     * Prevents URLs from being automatically converted to embedded media
+     */
+    private function disable_embeds() {
+        add_action('init', function() {
+            // Remove oEmbed discovery links from head
+            remove_action('wp_head', 'wp_oembed_add_discovery_links');
+            
+            // Disable oEmbed REST API route
+            remove_action('rest_api_init', 'wp_oembed_register_route');
+            
+            // Turn off oEmbed auto-discovery
+            add_filter('embed_oembed_discover', '__return_false');
+            
+            // Remove oEmbed JavaScript
+            remove_action('wp_head', 'wp_oembed_add_host_js');
+            
+            // Remove the oEmbed result filter
+            remove_filter('oembed_dataparse', 'wp_filter_oembed_result', 10);
+            
+            // Disable auto-embeds in content (this is the key one)
+            remove_filter('the_content', array($GLOBALS['wp_embed'], 'autoembed'), 8);
+        }, 9999);
+        
+        // Also remove from excerpt
+        add_action('init', function() {
+            remove_filter('the_excerpt', array($GLOBALS['wp_embed'], 'autoembed'), 8);
+        }, 9999);
     }
 
     /**
