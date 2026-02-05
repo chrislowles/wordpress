@@ -87,14 +87,15 @@ class ChrisLowles_Shows {
 		// Only show on Show post edit and archive view screens
 		if (!$screen || $screen->post_type !== 'show' || !in_array($screen->base, ['post', 'post-new', 'edit'])) { return; }
 		?>
-		<div class="notice notice-warning">
+		<div class="notice notice-warning is-dismissible">
 			<p>
-				<b>Regarding Show Posts:</b>
+				<b>Show Post Nagging:</b>
 				<div></div>
 				<ul>
-					<li>If you find that you need to push news items into next week, use the <b>search function</b> available in the <b>top right</b> of the archive "All Shows" view to see if the Show Post has already been made and add to that instead.</li>
-					<li>There are <b>(in development)</b> controls that as of right now allow you to at least add (either all at once or individually) tracklist items into already made Show Posts within the new/edit screen.</li>
-					<li>Remember that Show Posts are meant to be a centralized format to organize and if there is no immediately identifiable information, it will be hard to reference if need be, again refer to the first point so we don't end up with unorganized fluff.</li>
+					<li>When accessing the Show Posts dashboard at the station it is recommended to head directly to the <b>search feature</b> located to the top right so you can find the Show Post most relevant to you, avoid scrolling through the archive if you know you can just search it.</li>
+					<li>If you find that you need to push news items into next week, again use the <b>search function</b> to see if the Show Post has already been made and add to that instead.</li>
+					<li>There are <b>(in development)</b> controls in the tracklist metabox that as of right now allows you to at least add rows all at once or individually into already made Show Posts within the new/edit screen, there is also a link to create a new Show Post if one doesn't come up.</li>
+					<li>Remember that Show Posts are meant to be a centralized format to organize and if there is no immediately identifiable information, it will be hard to reference if need be, again refer to the first point so we don't end up with unorganized fluff, keep any extranious subsegments in Show Posts sections and mark accordingly in the tracklist timeline if need be.</li>
 					<li>If you find any gaps when managing Show Posts, inform me (Chris)</li>
 				</ul>
 			</p>
