@@ -13,6 +13,9 @@ class ChrisLowles_Shows {
 		// Meta Boxes
 		add_action('add_meta_boxes', [$this, 'add_meta_boxes']);
 		
+		// Admin Notice
+		add_action('admin_notices', [$this, 'show_admin_notice']);
+		
 		// Save Handlers
 		add_action('save_post_show', [$this, 'save_local_tracklist']);
 		
@@ -73,6 +76,29 @@ class ChrisLowles_Shows {
 			],
 			'rewrite' => true
 		]);
+	}
+
+	// =========================================================================
+	// ADMIN NOTICE
+	// =========================================================================
+
+	public function show_admin_notice() {
+		$screen = get_current_screen();
+		// Only show on Show post edit screens
+		if (!$screen || $screen->post_type !== 'show' || !in_array($screen->base, ['post', 'post-new'])) {
+			return;
+		}
+		?>
+		<div class="notice notice-info is-dismissible">
+			<p>
+				<strong>Show Post Notices:</strong>
+				<div></div>
+				<ul>
+					<li>If you find that you need to push news items or tracklist items into next week, check if the show post has already been made and add to that instead, there are (in development) controls to quickly add at least tracklist items into already made Show posts within the edit screen, Show posts are meant to be a more centralized format to organize the show and with no immediately identifiable information, it will be hard to reference if need be or when the archive is made public.</li>
+				</ul>
+			</p>
+		</div>
+		<?php
 	}
 
 	// =========================================================================
