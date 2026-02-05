@@ -40,9 +40,6 @@ add_action('admin_enqueue_scripts', function() {
 		array(),
 		'1.0.1'
 	);
-});
-
-add_action('wp_enqueue_scripts', function() {
 	wp_enqueue_style(
 		'google-fonts',
 		'https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap',
