@@ -30,25 +30,49 @@ class ChrisLowles_Shows {
 	}
 
 	public function register_post_type() {
-		register_post_type('show', array(
-			'labels' => array(
+		register_post_type('show', [
+			'label' => 'Shows',
+			'labels' => [
+				'menu_name' => 'Shows',
+				'name_admin_bar' => 'Show',
+				'add_new' => 'Add Show',
+				'add_new_item' => 'Add New Show',
+				'new_item' => 'New Show',
+				'edit_item' => 'Edit Show',
+				'view_item' => 'View Show',
+				'update_item' => 'View Show',
+				'all_items' => 'All Shows',
+				'search_items' => 'Search Shows',
+				'parent_item_colon' => 'Parent Show',
+				'not_found' => 'No shows found.',
+				'not_found_in_trash' => 'No shows found in Trash',
 				'name' => 'Shows',
 				'singular_name' => 'Show',
-				'menu_name' => 'Shows',
-				'all_items' => 'All Shows',
-				'add_new' => 'Add New',
-				'edit_item' => 'Edit Show',
-				'not_found' => 'No shows found.',
-			),
-			'public' => true,
-			'show_ui' => true,
-			'show_in_menu' => true,
-			'menu_icon' => 'dashicons-playlist-audio',
-			'supports' => array('title', 'editor', 'markup_markdown', 'thumbnail'),
-			'show_in_rest' => true,
-			'menu_position' => 21,
+			],
+			'public'              => true,
 			'exclude_from_search' => true,
-		));
+			'publicly_queryable'  => true,
+			'show_ui'             => true,
+			'show_in_nav_menus'   => true,
+			'show_in_admin_bar'   => true,
+			'show_in_rest'        => true,
+			'capability_type'     => 'post',
+			'hierarchical'        => false,
+			'has_archive'         => true,
+			'query_var'           => true,
+			'can_export'          => true,
+			'rewrite_no_front'    => false,
+			'show_in_menu'        => true,
+			'menu_position'       => 10,
+			'menu_icon'           => 'dashicons-playlist-audio',
+			'supports' => [
+				'title',
+				'editor',
+				'markup_markdown',
+				'thumbnail'
+			],
+			'rewrite' => true
+		]);
 	}
 
 	// =========================================================================
