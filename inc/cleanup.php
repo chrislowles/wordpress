@@ -132,7 +132,7 @@ class ChrisLowles_Cleanup {
         }, 999);
 
         // Disable auto-embeds for URLs on their own line
-        remove_filter( 'the_content', array( $GLOBALS['wp_embed'], 'autoembed' ), 8 );
+        remove_filter( 'the_content', array( $GLOBALS['wp_embed'], 'autoembed' ), 999 );
     }
 
     /**
