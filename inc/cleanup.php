@@ -15,7 +15,6 @@ class ChrisLowles_Cleanup {
         $this->disable_pages();
         $this->disable_widgets();
         $this->disable_appearance();
-        $this->disable_auto_oembeds();
 
         // Gutenberg (Currently disabled/commented out as per original file)
         // $this->disable_gutenberg();
@@ -183,16 +182,5 @@ class ChrisLowles_Cleanup {
     private function disable_gutenberg() {
          add_filter('use_widgets_block_editor', '__return_false');
          // add_filter('use_block_editor_for_post', '__return_false');
-    }
-
-    /**
-     * Disable Auto-OEmbeds (OEmbed)
-     * Prevents URLs on their own lines from turning into previews.
-     */
-    private function disable_auto_oembeds() {
-        add_action('init', function() {
-            // Remove the filter that converts URLs to embeds
-            remove_filter( 'the_content', array( $GLOBALS['wp_embed'], 'autoembed' ), 8 );
-        }, 9999);
     }
 }
