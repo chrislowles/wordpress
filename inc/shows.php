@@ -93,9 +93,9 @@ class ChrisLowles_Shows {
 				<div></div>
 				<ul>
 					<li>When accessing the Show Posts Dashboard at the station it is recommended to head directly to the <b>search feature</b> located to the top right so you can find the Show Post most relevant to you, avoid scrolling through the archive if you know you can just search it.</li>
-					<li>If you find that you need to push news items into next week, again use the <b>search function</b> to see if the Show Post has already been made and add to that instead.</li>
-					<li>There are <b>(in development)</b> controls in the tracklist metabox that as of right now allows you to at least add rows all at once or individually into already made Show Posts within the new/edit screen, there is also a link to create a new Show Post if one doesn't come up, search from the archive view in another tab just in case.</li>
-					<li>Show Posts are meant to be a centralized format to organize, you can include unlinked subheaders under segments in Show Posts as we don't have character limits.</li>
+					<li>If you find that you need to push news items into next week, first open the acrhive view in a new tab and use the <b>search function</b> to see if the Show Post has already been made and add to that instead.</li>
+					<li>There are <b>(in development)</b> controls in the tracklist metabox that as of right now allows you to add rows all at once or individually into already made Show Posts within the new/edit screen, there is also a link in these modals to create a new Show Post if one doesn't come up, search from the archive view in another tab just in case.</li>
+					<li>Show Posts are meant to be a centralized format to organize, you can include unlinked subheaders under segments in Show Posts as we don't have character limits, go crazy (but keep it organized at least, for my sanity)</li>
 					<li>If you find any gaps when managing Show Posts, inform me (Chris)</li>
 				</ul>
 			</p>
