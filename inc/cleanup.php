@@ -130,6 +130,9 @@ class ChrisLowles_Cleanup {
             $wp_registered_sidebars = array();
             unregister_widget('WP_Widget_Recent_Comments');
         }, 999);
+
+        // Disable auto-embeds for URLs on their own line
+        remove_filter( 'the_content', array( $GLOBALS['wp_embed'], 'autoembed' ), 8 );
     }
 
     /**
