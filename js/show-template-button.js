@@ -10,10 +10,7 @@ jQuery(document).ready(function($) {
 		type: 'button',
 		class: 'button button-secondary',
 		id: 'load-show-template',
-		text: 'Load Template',
-		css: {
-			marginLeft: '10px'
-		}
+		text: 'Load Template'
 	});
 
 	// Insert the button next to the title field
