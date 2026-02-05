@@ -1,6 +1,11 @@
 /* TODO: comprehensive dark mode css for all dashboard UI elements with fallbacks */
 /* @media (prefers-color-scheme: dark) {} */
 
+html, body {
+	font-family: "Lexend", sans-serif;
+	font-optical-sizing: auto;
+}
+
 #wp-content-editor-container {
 	padding-top: 0;
 }
