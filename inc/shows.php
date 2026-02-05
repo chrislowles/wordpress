@@ -87,7 +87,7 @@ class ChrisLowles_Shows {
 		// Only show on Show post edit screens
 		if (!$screen || $screen->post_type !== 'show' || !in_array($screen->base, ['post', 'post-new'])) { return; }
 		?>
-		<div class="notice notice-info">
+		<div class="notice notice-warning">
 			<p>
 				<b>Regarding Show Posts:</b>
 				<div></div>
