@@ -22,22 +22,30 @@ new ChrisLowles_Agenda();
 
 // 5. General Theme Setup
 add_action('after_setup_theme', function() {
-    add_theme_support('title-tag');
-    add_theme_support('post-thumbnails');
-    add_theme_support('html5', array('search-form', 'gallery', 'caption'));
-    register_nav_menus(array('main-menu' => esc_html__('Main Menu', 'blankslate')));
+	add_theme_support('title-tag');
+	add_theme_support('post-thumbnails');
+	add_theme_support('html5', array('search-form', 'gallery', 'caption'));
+	register_nav_menus(array('main-menu' => esc_html__('Main Menu', 'blankslate')));
 });
 
 // 6. Admin Styles & Dark Mode
 add_action('admin_head', function() {
-    echo '<meta name="color-scheme" content="light dark" />';
+	echo '<meta name="color-scheme" content="light dark" />';
 });
 
 add_action('admin_enqueue_scripts', function() {
-    wp_enqueue_style(
-        'dashboard-css',
-        get_stylesheet_directory_uri() . '/css/dashboard.css',
-        array(),
-        '1.0.1'
-    );
+	wp_enqueue_style(
+		'dashboard-css',
+		get_stylesheet_directory_uri() . '/css/dashboard.css',
+		array(),
+		'1.0.1'
+	);
+});
+
+add_action('wp_enqueue_scripts', function() {
+	wp_enqueue_style(
+		'google-fonts',
+		'https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap',
+ 		false
+	);
 });
