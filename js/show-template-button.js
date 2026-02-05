@@ -25,11 +25,11 @@ jQuery(document).ready(function($) {
 	// Handle button click
 	$templateButton.on('click', function(e) {
 		e.preventDefault();
-		
+
 		var $titleField = $('#title');
 		var editor = getEditor();
 		var currentBody = getEditorContent(editor);
-		
+
 		// Check if there is existing content to warn the user
 		var hasContent = $titleField.val().trim() !== '' || currentBody.trim() !== '';
 		
