@@ -87,7 +87,7 @@ class ChrisLowles_Shows {
 		// Only show on Show post edit and archive view screens
 		if (!$screen || $screen->post_type !== 'show' || !in_array($screen->base, ['post', 'post-new', 'edit'])) { return; }
 		?>
-		<div class="notice notice-warning is-dismissible">
+		<div class="notice nagging is-dismissible">
 			<p>
 				<b>Show Post Nagging:</b>
 				<div></div>
