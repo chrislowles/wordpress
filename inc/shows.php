@@ -89,10 +89,10 @@ class ChrisLowles_Shows {
 		?>
 		<div class="notice notice-info">
 			<p>
-				<strong>Regarding Show Posts:</strong>
+				<b>Regarding Show Posts:</b>
 				<div></div>
 				<ul>
-					<li>If you find that you need to push news items or tracklist items into next week, use the search function available in the archive view "All Shows" to see if the Show Post has already been made and add to that instead.</li>
+					<li>If you find that you need to push <b>news</b> or <b>tracklist</b> items into next week, use the search function available in the archive view "All Shows" to see if the Show Post has already been made and add to that instead.</li>
 					<li>There are (in development) controls to at least add (either all at once or individually) tracklist items into already made Show Posts within the new/edit screen.</li>
 					<li>Remember that Show Posts are meant to be a more centralized format to organize and if there is no immediately identifiable information, it will be hard to reference if need be, again refer to the first point so we don't end up with unorganized fluff.</li>
 					<li>If you find any gaps when managing Show Posts, inform me (Chris)</li>
