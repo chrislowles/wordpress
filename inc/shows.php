@@ -347,7 +347,7 @@ class ChrisLowles_Shows {
 			// body template contents
 			wp_localize_script('show-template-button', 'showTemplate', [
 				'title' => "Chris & Jesse: " . date('F j Y'),
-				'body' => "### In The Cinema\n[*What's On at Huski Pics?*](https://huskipics.com.au/movies/now-showing/)\n* []()\n\n### The Pin Drop\n[*YouTube global music top 10*](https://charts.youtube.com/charts/TopSongs/global/weekly)\n*Chris' personal picks last week*\n* []()\n\n### Walking on Thin Ice\n* []()\n\n### One Up P1\n* []()\n\n### One Up P2\n* []()"
+				'body' => "### In The Cinema\n[*What's On at Huski Pics?*](https://huskipics.com.au/movies/now-showing/)\n\n### The Pin Drop\n[*YouTube global music top 10*](https://charts.youtube.com/charts/TopSongs/global/weekly)\n*Chris' personal picks last week*\n\n### Walking on Thin Ice\n\n### One Up"
 			]);
 		}
 	}
