@@ -343,11 +343,17 @@ class ChrisLowles_Shows {
 		// 2. Template Button JS
 		if ($is_show_edit) {
 			// adds the button
-			wp_enqueue_script('show-template-button', get_stylesheet_directory_uri() . '/js/show-template-button.js', ['jquery'], '1.0.0', true);
+			wp_enqueue_script('show-template-button', get_stylesheet_directory_uri() . '/js/show-template-button.js', ['jquery'], '1.0.1', true);
 			// body template contents
 			wp_localize_script('show-template-button', 'showTemplate', [
 				'title' => "Chris & Jesse: " . date('F j Y'),
-				'body' => "### In The Cinema\n[*What's On at Huski Pics?*](https://huskipics.com.au/movies/now-showing/)\n[*Global box office top 10 (replace placeholder link with latest headline)*](https://www.screendaily.com/box-office/box-office-reports/international)\n\n### The Pin Drop\n[*YouTube global music top 10*](https://charts.youtube.com/charts/TopSongs/global/weekly)\n*Chris' personal picks last week*\n\n### Walking on Thin Ice\n\n### One Up"
+				'body' => "### In The Cinema\n[*What's On at Huski Pics?*](https://huskipics.com.au/movies/now-showing/)\n[*Global box office top 10 (replace placeholder link with latest headline)*](https://www.screendaily.com/box-office/box-office-reports/international)\n\n### The Pin Drop\n[*YouTube global music top 10*](https://charts.youtube.com/charts/TopSongs/global/weekly)\n*Chris' personal picks last week*\n\n### Walking on Thin Ice\n\n### One Up",
+				'spacers' => [
+					'In The Cinema',
+					'The Pin Drop',
+					'Walking on Thin Ice',
+					'One Up'
+				]
 			]);
 		}
 	}
