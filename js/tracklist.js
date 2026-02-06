@@ -92,7 +92,7 @@ jQuery(document).ready(function($) {
 					<input type="hidden" name="tracklist[9999][type]" value="${type}" class="item-type" />
 					<input type="text" name="tracklist[9999][title]" class="item-title-input" placeholder="${isSpacer ? 'Segment Title...' : 'Artist - Track'}" />
 					<input type="url" name="tracklist[9999][url]" class="item-url-input" placeholder="https://..." style="${isSpacer ? 'display:none' : ''}" />
-					<input type="text" name="tracklist[9999][duration]" class="item-duration-input" placeholder="3:45" style="width:60px; ${isSpacer ? 'display:none' : ''}" />
+					<input type="text" name="tracklist[9999][duration]" class="item-duration-input" placeholder="3:45" style="${isSpacer ? 'display:none' : ''}" />
 					<label class="link-checkbox-label" style="${isSpacer ? '' : 'display:none'}" title="Link this spacer to a section in the body content">
 						<input type="checkbox" name="tracklist[9999][link_to_section]" class="link-to-section-checkbox" value="1" />
 						Link
