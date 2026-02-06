@@ -31,7 +31,7 @@ jQuery(document).ready(function($) {
 		var hasContent = $titleField.val().trim() !== '' || currentBody.trim() !== '';
 		
 		if (hasContent) {
-			if (!confirm('This will replace the current title and content. Continue?')) {
+			if (!confirm('This will replace the current title, content, and tracklist. Continue?')) {
 				return;
 			}
 		}
@@ -42,12 +42,85 @@ jQuery(document).ready(function($) {
 		// Set the body content
 		setEditorContent(editor, showTemplate.body);
 		
+		// Add spacer rows to tracklist
+		addTemplateSpacers();
+		
 		// Visual feedback
 		$templateButton.text('Template Loaded').prop('disabled', true);
 		setTimeout(function() {
 			$templateButton.text('Load Template').prop('disabled', false);
 		}, 2000);
 	});
+
+	/**
+	 * Add pre-header linked Spacer rows to the tracklist
+	 */
+	function addTemplateSpacers() {
+		var $tracklistWrapper = $('.tracklist-wrapper');
+		if ($tracklistWrapper.length === 0) {
+			console.warn('Tracklist wrapper not found');
+			return;
+		}
+
+		var $tracklistItems = $tracklistWrapper.find('.tracklist-items');
+		
+		// Clear existing tracklist if user confirmed
+		$tracklistItems.empty();
+		
+		// Add spacers for each section
+		if (typeof showTemplate.spacers !== 'undefined' && showTemplate.spacers.length > 0) {
+			$.each(showTemplate.spacers, function(index, spacerTitle) {
+				addSpacerRow($tracklistItems, spacerTitle, index);
+			});
+			
+			// Trigger refresh of input names and calculations
+			// These functions are defined in tracklist.js
+			if (typeof window.refreshTracklistInputNames === 'function') {
+				window.refreshTracklistInputNames();
+			}
+			if (typeof window.calculateTracklistDuration === 'function') {
+				window.calculateTracklistDuration();
+			}
+		}
+	}
+
+	/**
+	 * Add a single spacer row to the tracklist
+	 */
+	function addSpacerRow($container, title, index) {
+		var html = `
+			<div class="track-row is-spacer">
+				<span class="drag-handle" title="Drag">|||</span>
+				<input type="hidden" name="tracklist[${index}][type]" value="spacer" class="track-type" />
+				<input type="text" name="tracklist[${index}][track_title]" class="track-title-input" placeholder="Segment Title..." value="${escapeHtml(title)}" />
+				<input type="url" name="tracklist[${index}][track_url]" class="track-url-input" placeholder="https://..." style="display:none" />
+				<input type="text" name="tracklist[${index}][duration]" class="track-duration-input" placeholder="3:45" style="width:60px; display:none" />
+				<label class="link-checkbox-label" title="Link this spacer to a section in the body content">
+					<input type="checkbox" name="tracklist[${index}][link_to_section]" class="link-to-section-checkbox" value="1" checked />
+					Link
+				</label>
+				<button type="button" class="fetch-duration button" style="display:none">Fetch</button>
+				<button type="button" class="add-to-show-btn button">Add to Show</button>
+				<button type="button" class="remove-track button">Delete</button>
+			</div>
+		`;
+		$container.append(html);
+	}
+
+	/**
+	 * Escape HTML to prevent XSS
+	 */
+	function escapeHtml(text) {
+		if (!text) return '';
+		var map = {
+			'&': '&amp;',
+			'<': '&lt;',
+			'>': '&gt;',
+			'"': '&quot;',
+			"'": '&#039;'
+		};
+		return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
+	}
 
 	/**
 	 * Robustly find the Editor Instance
