@@ -54,7 +54,7 @@ jQuery(document).ready(function($) {
 
 	/**
 	 * Add pre-header linked Spacer rows to the tracklist
-	 * Preserves existing tracks - only adds spacers at the beginning
+	 * Preserves existing items - only adds spacers at the beginning
 	 */
 	function addTemplateSpacers() {
 		var $tracklistWrapper = $('.tracklist-wrapper');
@@ -84,19 +84,19 @@ jQuery(document).ready(function($) {
 	 */
 	function addSpacerRow($container, title) {
 		var html = `
-			<div class="track-row is-spacer">
+			<div class="tracklist-row is-spacer">
 				<span class="drag-handle" title="Drag">|||</span>
-				<input type="hidden" name="tracklist[0][type]" value="spacer" class="row-type" />
-				<input type="text" name="tracklist[0][title]" class="row-title-input" placeholder="Segment Title..." value="${escapeHtml(title)}" />
-				<input type="url" name="tracklist[0][url]" class="row-url-input" placeholder="https://..." style="display:none" />
-				<input type="text" name="tracklist[0][duration]" class="row-duration-input" placeholder="3:45" style="width:60px; display:none" />
+				<input type="hidden" name="tracklist[0][type]" value="spacer" class="item-type" />
+				<input type="text" name="tracklist[0][title]" class="item-title-input" placeholder="Segment Title..." value="${escapeHtml(title)}" />
+				<input type="url" name="tracklist[0][url]" class="item-url-input" placeholder="https://..." style="display:none" />
+				<input type="text" name="tracklist[0][duration]" class="item-duration-input" placeholder="3:45" style="width:60px; display:none" />
 				<label class="link-checkbox-label" title="Link this spacer to a section in the body content">
 					<input type="checkbox" name="tracklist[0][link_to_section]" class="link-to-section-checkbox" value="1" checked />
 					Link
 				</label>
 				<button type="button" class="fetch-duration button" style="display:none">Fetch</button>
 				<button type="button" class="add-to-show-btn button">Add to Show</button>
-				<button type="button" class="remove-track button">Delete</button>
+				<button type="button" class="remove-item button">Delete</button>
 			</div>
 		`;
 		$container.prepend(html);
@@ -110,7 +110,7 @@ jQuery(document).ready(function($) {
 		// These functions may be in the tracklist.js scope
 		// We'll trigger them manually by finding and re-indexing all inputs
 		var $tracklistItems = $('.tracklist-items');
-		$tracklistItems.find('.track-row').each(function(index) {
+		$tracklistItems.find('.tracklist-row').each(function(index) {
 			var $row = $(this);
 			$row.find('input, select, textarea').each(function() {
 				var name = $(this).attr('name');
@@ -123,8 +123,8 @@ jQuery(document).ready(function($) {
 		
 		// Recalculate total duration
 		var total = 0;
-		$tracklistItems.find('.track-row:not(.is-spacer)').each(function() {
-			var val = $(this).find('.row-duration-input').val();
+		$tracklistItems.find('.tracklist-row:not(.is-spacer)').each(function() {
+			var val = $(this).find('.item-duration-input').val();
 			if (val) {
 				var seconds = parseToSeconds(val);
 				total += seconds;
