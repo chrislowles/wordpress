@@ -43,23 +43,23 @@ html, body {
 	border: 2px solid #72AEE6;
 }
 
-.track-row.is-spacer .track-title-input {
+.track-row.is-spacer .row-title-input {
 	font-weight: bold;
 }
 
-.track-row .track-title-input {
+.track-row .row-title-input {
 	flex: 1 1 250px;
 	min-width: 150px;
 }
 
-.track-row .track-duration-input {
+.track-row .row-duration-input {
 	width: 60px;
 	text-align: center;
 	font-family: monospace;
 	flex-shrink: 0;
 }
 
-.track-row .track-url-input {
+.track-row .row-url-input {
 	flex: 1 1 250px;
 	min-width: 150px;
 }
@@ -185,18 +185,18 @@ html, body {
 		touch-action: none;
 	}
 	
-	.track-row .track-title-input {
+	.track-row .row-title-input {
 		order: 2;
 		flex-basis: calc(100% - 50px); /* Account for drag handle width */
 	}
 	
 	/* Full width inputs and buttons below */
-	.track-row .track-url-input {
+	.track-row .row-url-input {
 		order: 3;
 		flex-basis: 100%;
 	}
 	
-	.track-row .track-duration-input {
+	.track-row .row-duration-input {
 		order: 4;
 		flex-basis: 100%;
 	}
