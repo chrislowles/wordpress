@@ -89,7 +89,7 @@ jQuery(document).ready(function($) {
 				<input type="hidden" name="tracklist[0][type]" value="spacer" class="item-type" />
 				<input type="text" name="tracklist[0][title]" class="item-title-input" placeholder="Segment Title..." value="${escapeHtml(title)}" />
 				<input type="url" name="tracklist[0][url]" class="item-url-input" placeholder="https://..." style="display:none" />
-				<input type="text" name="tracklist[0][duration]" class="item-duration-input" placeholder="3:45" style="width:60px; display:none" />
+				<input type="text" name="tracklist[0][duration]" class="item-duration-input" placeholder="3:45" style="display:none" />
 				<label class="link-checkbox-label" title="Link this spacer to a section in the body content">
 					<input type="checkbox" name="tracklist[0][link_to_section]" class="link-to-section-checkbox" value="1" checked />
 					Link
