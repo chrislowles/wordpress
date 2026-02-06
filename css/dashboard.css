@@ -136,8 +136,8 @@ html, body {
 }
 
 /* ==========================================================================
-   STICKY SCROLLABLE CONTROLS BAR
-   ========================================================================== 
+	STICKY SCROLLABLE CONTROLS BAR
+	========================================================================== 
 */
 .tracklist-controls {
 	position: sticky;
@@ -297,4 +297,7 @@ html, body {
 
 .notice.nagging {
 	border: 2px solid red;
+	position: sticky !important;
+	top: 32px !important;
+	z-index: 100000 !important;
 }
