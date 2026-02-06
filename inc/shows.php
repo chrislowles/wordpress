@@ -1,8 +1,7 @@
 <?php
 /**
  * Class: Shows Manager
- * Handles the 'Show' Custom Post Type, Tracklists, 
- * and Cross-Post Transfer functionality.
+ * Handles the 'Show' Custom Post Type, Tracklists, and Cross-Post Transfer functionality.
  */
 class ChrisLowles_Shows {
 
@@ -52,22 +51,22 @@ class ChrisLowles_Shows {
 				'name' => 'Shows',
 				'singular_name' => 'Show',
 			],
-			'public'              => true,
+			'public' => true,
 			'exclude_from_search' => true,
-			'publicly_queryable'  => true,
-			'show_ui'             => true,
-			'show_in_nav_menus'   => true,
-			'show_in_admin_bar'   => true,
-			'show_in_rest'        => true,
-			'capability_type'     => 'post',
-			'hierarchical'        => false,
-			'has_archive'         => true,
-			'query_var'           => true,
-			'can_export'          => true,
-			'rewrite_no_front'    => false,
-			'show_in_menu'        => true,
-			'menu_position'       => 10,
-			'menu_icon'           => 'dashicons-playlist-audio',
+			'publicly_queryable' => true,
+			'show_ui' => true,
+			'show_in_nav_menus' => true,
+			'show_in_admin_bar' => true,
+			'show_in_rest' => true,
+			'capability_type' => 'post',
+			'hierarchical' => false,
+			'has_archive' => true,
+			'query_var' => true,
+			'can_export' => true,
+			'rewrite_no_front' => false,
+			'show_in_menu' => true,
+			'menu_position' => 10,
+			'menu_icon' => 'dashicons-playlist-audio',
 			'supports' => [
 				'title',
 				'editor',
@@ -79,7 +78,7 @@ class ChrisLowles_Shows {
 	}
 
 	// =========================================================================
-	// ADMIN NOTICE
+	// COMMON ADMIN NOTICE FOR EDITORS
 	// =========================================================================
 
 	public function show_admin_notice() {
@@ -347,11 +346,11 @@ class ChrisLowles_Shows {
 			// body template contents
 			wp_localize_script('show-template-button', 'showTemplate', [
 				'title' => "Chris & Jesse: " . date('F j Y'),
-				'body' => "### In The Cinema\n[*What's On at Huski Pics?*](https://huskipics.com.au/movies/now-showing/)\n[*Global box office top 10 (replace placeholder link with latest headline)*](https://www.screendaily.com/box-office/box-office-reports/international)\n\n### The Pin Drop\n[*YouTube global music top 10*](https://charts.youtube.com/charts/TopSongs/global/weekly)\n*Chris' personal picks last week*\n\n### Walking on Thin Ice\n\n### One Up",
+				'body' => "### In The Cinema\n[*What's On at Huski Pics?*](https://huskipics.com.au/movies/now-showing/)\n[*Global box office top 10 (replace placeholder link with latest headline)*](https://www.screendaily.com/box-office/box-office-reports/international)\n\n### The Pin Drop\n[*YouTube global music top 10*](https://charts.youtube.com/charts/TopSongs/global/weekly)\n*Chris' personal picks last week*\n\n### Walking On Thin Ice\n\n### One Up",
 				'spacers' => [
 					'In The Cinema',
 					'The Pin Drop',
-					'Walking on Thin Ice',
+					'Walking On Thin Ice',
 					'One Up'
 				]
 			]);
