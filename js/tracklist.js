@@ -45,7 +45,7 @@ jQuery(document).ready(function($) {
 		function calculateTotalDuration() {
 			var total = 0;
 			$list.find('.track-row:not(.is-spacer)').each(function() {
-				var val = $(this).find('.track-duration-input').val();
+				var val = $(this).find('.row-duration-input').val();
 				total += parseToSeconds(val);
 			});
 			$durationDisplay.text(formatDuration(total));
@@ -55,9 +55,9 @@ jQuery(document).ready(function($) {
 		$wrapper.on('click', '.fetch-duration', function() {
 			var btn = $(this);
 			var row = btn.closest('.track-row');
-			var url = row.find('.track-url-input').val();
-			var durInput = row.find('.track-duration-input');
-			var titleInput = row.find('.track-title-input');
+			var url = row.find('.row-url-input').val();
+			var durInput = row.find('.row-duration-input');
+			var titleInput = row.find('.row-title-input');
 
 			if (!url) return alert('Enter URL first');
 			
@@ -89,10 +89,10 @@ jQuery(document).ready(function($) {
 			var html = `
 				<div class="track-row ${isSpacer ? 'is-spacer' : ''}">
 					<span class="drag-handle" title="Drag">|||</span>
-					<input type="hidden" name="tracklist[9999][type]" value="${type}" class="track-type" />
-					<input type="text" name="tracklist[9999][track_title]" class="track-title-input" placeholder="${isSpacer ? 'Segment Title...' : 'Artist - Track'}" />
-					<input type="url" name="tracklist[9999][track_url]" class="track-url-input" placeholder="https://..." style="${isSpacer ? 'display:none' : ''}" />
-					<input type="text" name="tracklist[9999][duration]" class="track-duration-input" placeholder="3:45" style="width:60px; ${isSpacer ? 'display:none' : ''}" />
+					<input type="hidden" name="tracklist[9999][type]" value="${type}" class="row-type" />
+					<input type="text" name="tracklist[9999][title]" class="row-title-input" placeholder="${isSpacer ? 'Segment Title...' : 'Artist - Track'}" />
+					<input type="url" name="tracklist[9999][url]" class="row-url-input" placeholder="https://..." style="${isSpacer ? 'display:none' : ''}" />
+					<input type="text" name="tracklist[9999][duration]" class="row-duration-input" placeholder="3:45" style="width:60px; ${isSpacer ? 'display:none' : ''}" />
 					<label class="link-checkbox-label" style="${isSpacer ? '' : 'display:none'}" title="Link this spacer to a section in the body content">
 						<input type="checkbox" name="tracklist[9999][link_to_section]" class="link-to-section-checkbox" value="1" />
 						Link
@@ -105,7 +105,7 @@ jQuery(document).ready(function($) {
 			$list.append(html);
 			refreshInputNames();
 			// Focus the title input of the newly added row
-			$list.children().last().find('.track-title-input').focus();
+			$list.children().last().find('.row-title-input').focus();
 		}
 
 		$wrapper.find('.add-track').click(function() { addRow('track'); });
@@ -302,15 +302,16 @@ jQuery(document).ready(function($) {
 				return;
 			}
 			
+			// Use generic field names
 			var track = {
-				type: $row.find('.track-type').val() || 'track',
-				track_title: $row.find('.track-title-input').val() || '',
-				track_url: $row.find('.track-url-input').val() || '',
-				duration: $row.find('.track-duration-input').val() || '',
+				type: $row.find('.row-type').val() || 'track',
+				title: $row.find('.row-title-input').val() || '',
+				url: $row.find('.row-url-input').val() || '',
+				duration: $row.find('.row-duration-input').val() || '',
 				link_to_section: $row.find('.link-to-section-checkbox').is(':checked') ? '1' : '0'
 			};
 			
-			if (!track.track_title) {
+			if (!track.title) {
 				showModalStatus('Track title is required, give me something to work with at least.', 'error');
 				return;
 			}
@@ -350,15 +351,16 @@ jQuery(document).ready(function($) {
 			var allTracks = [];
 			$list.find('.track-row').each(function() {
 				var $row = $(this);
-				var title = $row.find('.track-title-input').val();
+				var title = $row.find('.row-title-input').val();
 
 				// Only add tracks that have a title
 				if (title) {
+					// Use generic field names
 					allTracks.push({
-						type: $row.find('.track-type').val() || 'track',
-						track_title: title,
-						track_url: $row.find('.track-url-input').val() || '',
-						duration: $row.find('.track-duration-input').val() || '',
+						type: $row.find('.row-type').val() || 'track',
+						title: title,
+						url: $row.find('.row-url-input').val() || '',
+						duration: $row.find('.row-duration-input').val() || '',
 						link_to_section: $row.find('.link-to-section-checkbox').is(':checked') ? '1' : '0'
 					});
 				}
