@@ -1,7 +1,7 @@
 <?php
 /**
  * Class: Shows Manager
- * Handles the 'Show' Custom Post Type, Tracklists, and Cross-Post Transfer functionality.
+ * Handles the 'Show' Custom Post Type, Tracklists, Cross-Post Transfer functionality and Passive migration to generic row inner fields.
  * 
  * REFACTORED: Uses generic field names and terminology for all row types
  * - Old: track_title, track_url, duration
@@ -32,7 +32,7 @@ class ChrisLowles_Shows {
 		// Assets & Template Button
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_assets'], 20);
 		
-		// Frontend Formatting (Auto IDs)
+		// Frontend Formatting for "Linked" Spacer Rows (Auto IDs)
 		add_filter('the_content', [$this, 'auto_id_headings'], 10);
 	}
 
@@ -148,13 +148,13 @@ class ChrisLowles_Shows {
 				<b>Show Post Nagging:</b>
 				<div></div>
 				<ul>
-					<li><a title="Click 'Load Template'">Title Formatting Example:</a> Chris & Jesse: [long-month] [non-zero-leading-day-of-the-month] [four-digit-year] ([optional-show-theme])</li>
-					<li>When accessing the Show Posts Dashboard at the station it is recommended to head directly to the <b>search function</b> located to the top right so you can find the Show Post most relevant to you, avoid scrolling through the archive if you know you can just search it.</li>
-					<li>If you find that you need to push news items into next week, first open the archive view in a new tab and use the <b>search function</b> to see if the Show Post has already been made and add to that instead.</li>
-					<li>There are <b>(in development)</b> controls in the tracklist metabox that as of right now allows you to add rows all at once or individually into already made Show Posts within the new/edit screen, there is also a link in these modals to create a new Show Post if one doesn't come up, search from the archive view in another tab just in case.</li>
-					<li>When publishing aired shows, if you find that you're not sure of what to do inform me (Chris) on the relevant channels</li>
-					<li>Show Posts are meant to be a centralized format to organize, you can include unlinked subheaders under segments in Show Posts as we don't have character limits, go crazy (but keep it organized at least, for my sanity)</li>
-					<li>If you find any gaps when managing Show Posts, inform me (Chris)</li>
+					<li><a title="Click 'Load Template'">Title Formatting Example:</a> Chris & Jesse: [full-length-month] [non-zero-leading-day-of-the-month] [four-digit-year] ([optional-show-theme])</li>
+					<li>When accessing the Show Posts Dashboard at the station it is recommended to head directly to the <b>search function</b> located below this notice so you can find the Show Post most relevant to you, avoid scrolling through the archive if you know you can just search it.</li>
+					<li>If you find that you need to push news items into next week, open the archive "All Shows" view in a new tab and use the <b>search function</b> to see if the Show Post has already been made and add to that instead.</li>
+					<li>There are <b>(in development)</b> controls in the tracklist metabox that as of right now allow you to add rows all at once or individually into already made Show Posts within the new/edit screen, there is also a link in these modals to create a new Show Post if one doesn't come up, again search from the archive view in another tab just in case.</li>
+					<li>When publishing aired shows, if you find that you're not sure of what to do inform me (Chris) on the relevant channels.</li>
+					<li>Show Posts are meant to be a centralized format to organize, you can include unlinked subheaders under linked segments in Show Posts as we don't have character limits, go crazy (but keep it organized at least, for my sanity)</li>
+					<li>If you find any gaps in the flow of managing Show Posts, inform me (Chris)</li>
 				</ul>
 			</p>
 		</div>
@@ -195,25 +195,16 @@ class ChrisLowles_Shows {
 					 $link = $item['link_to_section'] ?? false;
 				?>
 				<div class="tracklist-row <?php echo $type === 'spacer' ? 'is-spacer' : ''; ?>">
-
 					<span class="drag-handle">|||</span>
-
 					<input type="hidden" name="tracklist[<?php echo $i; ?>][type]" value="<?php echo esc_attr($type); ?>" class="item-type">
-
-					<input type="text" name="tracklist[<?php echo $i; ?>][title]" value="<?php echo esc_attr($title); ?>" class="item-title-input" placeholder="<?php echo $type === 'spacer' ? 'Segment Title...' : 'Title'; ?>">
-					
+					<input type="text" name="tracklist[<?php echo $i; ?>][title]" value="<?php echo esc_attr($title); ?>" class="item-title-input" placeholder="<?php echo $type === 'spacer' ? 'Segment Title...' : 'Artist - Title'; ?>">
 					<input type="url" name="tracklist[<?php echo $i; ?>][url]" value="<?php echo esc_attr($url); ?>" class="item-url-input" style="<?php echo $type === 'spacer' ? 'display:none' : ''; ?>" placeholder="URL">
-					
-					<input type="text" name="tracklist[<?php echo $i; ?>][duration]" value="<?php echo esc_attr($dur); ?>" class="item-duration-input" style="width:60px;<?php echo $type === 'spacer' ? 'display:none' : ''; ?>" placeholder="0:00">
-					
+					<input type="text" name="tracklist[<?php echo $i; ?>][duration]" value="<?php echo esc_attr($dur); ?>" class="item-duration-input" style="<?php echo $type === 'spacer' ? 'display:none' : ''; ?>" placeholder="0:00">
 					<label class="link-checkbox-label" style="<?php echo $type === 'spacer' ? '' : 'display:none'; ?>">
-						<input type="checkbox" name="tracklist[<?php echo $i; ?>][link_to_section]" value="1" <?php checked($link); ?> class="link-to-section-checkbox"> Link
+						<input type="checkbox" name="tracklist[<?php echo $i; ?>][link_to_section]" value="1" <?php checked($link); ?> class="link-to-section-checkbox">Link
 					</label>
-
 					<button type="button" class="fetch-duration button" style="<?php echo $type === 'spacer' ? 'display:none' : ''; ?>">Fetch</button>
-
 					<button type="button" class="add-to-show-btn button">Add to Show</button>
-
 					<button type="button" class="remove-item button">Delete</button>
 				</div>
 				<?php endforeach; ?>
