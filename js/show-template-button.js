@@ -31,7 +31,7 @@ jQuery(document).ready(function($) {
 		var hasContent = $titleField.val().trim() !== '' || currentBody.trim() !== '';
 		
 		if (hasContent) {
-			if (!confirm('This will replace the current title, content, and tracklist. Continue?')) {
+			if (!confirm('This will replace the current title and content. Continue?')) {
 				return;
 			}
 		}
@@ -42,7 +42,7 @@ jQuery(document).ready(function($) {
 		// Set the body content
 		setEditorContent(editor, showTemplate.body);
 		
-		// Add spacer rows to tracklist
+		// Add spacer rows to tracklist (preserves existing tracks)
 		addTemplateSpacers();
 		
 		// Visual feedback
@@ -54,6 +54,7 @@ jQuery(document).ready(function($) {
 
 	/**
 	 * Add pre-header linked Spacer rows to the tracklist
+	 * Preserves existing tracks - only adds spacers at the beginning
 	 */
 	function addTemplateSpacers() {
 		var $tracklistWrapper = $('.tracklist-wrapper');
@@ -64,39 +65,32 @@ jQuery(document).ready(function($) {
 
 		var $tracklistItems = $tracklistWrapper.find('.tracklist-items');
 		
-		// Clear existing tracklist if user confirmed
-		$tracklistItems.empty();
-		
-		// Add spacers for each section
+		// Add spacers at the beginning (prepend instead of clearing and adding)
 		if (typeof showTemplate.spacers !== 'undefined' && showTemplate.spacers.length > 0) {
-			$.each(showTemplate.spacers, function(index, spacerTitle) {
-				addSpacerRow($tracklistItems, spacerTitle, index);
-			});
+			// Add spacers in reverse order since we're prepending
+			for (var i = showTemplate.spacers.length - 1; i >= 0; i--) {
+				addSpacerRow($tracklistItems, showTemplate.spacers[i]);
+			}
 			
 			// Trigger refresh of input names and calculations
-			// These functions are defined in tracklist.js
-			if (typeof window.refreshTracklistInputNames === 'function') {
-				window.refreshTracklistInputNames();
-			}
-			if (typeof window.calculateTracklistDuration === 'function') {
-				window.calculateTracklistDuration();
-			}
+			refreshTracklistState();
 		}
 	}
 
 	/**
 	 * Add a single spacer row to the tracklist
+	 * Prepends to the beginning of the tracklist
 	 */
-	function addSpacerRow($container, title, index) {
+	function addSpacerRow($container, title) {
 		var html = `
 			<div class="track-row is-spacer">
 				<span class="drag-handle" title="Drag">|||</span>
-				<input type="hidden" name="tracklist[${index}][type]" value="spacer" class="track-type" />
-				<input type="text" name="tracklist[${index}][track_title]" class="track-title-input" placeholder="Segment Title..." value="${escapeHtml(title)}" />
-				<input type="url" name="tracklist[${index}][track_url]" class="track-url-input" placeholder="https://..." style="display:none" />
-				<input type="text" name="tracklist[${index}][duration]" class="track-duration-input" placeholder="3:45" style="width:60px; display:none" />
+				<input type="hidden" name="tracklist[0][type]" value="spacer" class="track-type" />
+				<input type="text" name="tracklist[0][track_title]" class="track-title-input" placeholder="Segment Title..." value="${escapeHtml(title)}" />
+				<input type="url" name="tracklist[0][track_url]" class="track-url-input" placeholder="https://..." style="display:none" />
+				<input type="text" name="tracklist[0][duration]" class="track-duration-input" placeholder="3:45" style="width:60px; display:none" />
 				<label class="link-checkbox-label" title="Link this spacer to a section in the body content">
-					<input type="checkbox" name="tracklist[${index}][link_to_section]" class="link-to-section-checkbox" value="1" checked />
+					<input type="checkbox" name="tracklist[0][link_to_section]" class="link-to-section-checkbox" value="1" checked />
 					Link
 				</label>
 				<button type="button" class="fetch-duration button" style="display:none">Fetch</button>
@@ -104,7 +98,62 @@ jQuery(document).ready(function($) {
 				<button type="button" class="remove-track button">Delete</button>
 			</div>
 		`;
-		$container.append(html);
+		$container.prepend(html);
+	}
+
+	/**
+	 * Refresh tracklist state after adding spacers
+	 * Triggers the functions defined in tracklist.js to update input names and durations
+	 */
+	function refreshTracklistState() {
+		// These functions may be in the tracklist.js scope
+		// We'll trigger them manually by finding and re-indexing all inputs
+		var $tracklistItems = $('.tracklist-items');
+		$tracklistItems.find('.track-row').each(function(index) {
+			var $row = $(this);
+			$row.find('input, select, textarea').each(function() {
+				var name = $(this).attr('name');
+				if (name) {
+					var newName = name.replace(/\[\d+\]/, '[' + index + ']');
+					$(this).attr('name', newName);
+				}
+			});
+		});
+		
+		// Recalculate total duration
+		var total = 0;
+		$tracklistItems.find('.track-row:not(.is-spacer)').each(function() {
+			var val = $(this).find('.track-duration-input').val();
+			if (val) {
+				var seconds = parseToSeconds(val);
+				total += seconds;
+			}
+		});
+		$('.total-duration-display').text(formatDuration(total));
+	}
+
+	/**
+	 * Parse duration string to seconds
+	 */
+	function parseToSeconds(duration) {
+		if (!duration) return 0;
+		duration = duration.toString().trim();
+		if (duration.includes(':')) {
+			var parts = duration.split(':');
+			var mins = parseInt(parts[0]) || 0;
+			var secs = parseInt(parts[1]) || 0;
+			return (mins * 60) + secs;
+		}
+		return parseInt(duration) || 0;
+	}
+
+	/**
+	 * Format seconds to MM:SS
+	 */
+	function formatDuration(totalSeconds) {
+		var mins = Math.floor(totalSeconds / 60);
+		var secs = totalSeconds % 60;
+		return mins + ':' + (secs < 10 ? '0' : '') + secs;
 	}
 
 	/**
