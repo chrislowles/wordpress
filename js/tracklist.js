@@ -328,7 +328,7 @@ jQuery(document).ready(function($) {
 					showModalStatus('Track added successfully!', 'success');
 					setTimeout(function() {
 						hideModal();
-					}, 1500);
+					}, 1100);
 				} else {
 					showModalStatus('Error: ' + (response.data.message || 'Unknown error'), 'error');
 					$btn.prop('disabled', false).text('Add Track');
@@ -382,7 +382,7 @@ jQuery(document).ready(function($) {
 					showModalStatus(`Successfully copied ${response.data.count} track(s)!`, 'success');
 					setTimeout(function() {
 						hideModal();
-					}, 2000);
+					}, 1100);
 				} else {
 					showModalStatus('Error: ' + (response.data.message || 'Unknown error'), 'error');
 					$btn.prop('disabled', false).text('Copy All');
@@ -409,7 +409,7 @@ jQuery(document).ready(function($) {
 			if (type === 'success') {
 				setTimeout(function() {
 					$status.fadeOut();
-				}, 3000);
+				}, 1100);
 			}
 		}
 
