@@ -297,7 +297,7 @@ html, body {
 
 .notice.nagging {
 	border: 2px solid red;
-	position: sticky !important;
+	/*position: sticky !important;
 	top: 32px !important;
-	z-index: 100000 !important;
+	z-index: 100000 !important;*/
 }
