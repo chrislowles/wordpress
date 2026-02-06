@@ -25,7 +25,7 @@ html, body {
 	width: 100%;
 }
 
-.track-row {
+.tracklist-row {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 10px;
@@ -38,28 +38,28 @@ html, body {
 }
 
 /* Style specifically for the Spacer rows */
-.track-row.is-spacer {
+.tracklist-row.is-spacer {
 	background: #F0F0F1;
 	border: 2px solid #72AEE6;
 }
 
-.track-row.is-spacer .row-title-input {
+.tracklist-row.is-spacer .item-title-input {
 	font-weight: bold;
 }
 
-.track-row .row-title-input {
+.tracklist-row .item-title-input {
 	flex: 1 1 250px;
 	min-width: 150px;
 }
 
-.track-row .row-duration-input {
+.tracklist-row .item-duration-input {
 	width: 60px;
 	text-align: center;
 	font-family: monospace;
 	flex-shrink: 0;
 }
 
-.track-row .row-url-input {
+.tracklist-row .item-url-input {
 	flex: 1 1 250px;
 	min-width: 150px;
 }
@@ -77,7 +77,7 @@ html, body {
 }
 
 /* Buttons */
-.track-row .button {
+.tracklist-row .button {
 	flex-shrink: 0;
 	white-space: nowrap;
 }
@@ -172,52 +172,52 @@ html, body {
 
 /* Mobile responsive adjustments - using container queries */
 @container (max-width: 1024px) {
-	.track-row {
+	.tracklist-row {
 		gap: 8px;
 		padding: 8px;
 	}
 	
-	/* Drag handle stays with track title */
-	.track-row .drag-handle {
+	/* Drag handle stays with item title */
+	.tracklist-row .drag-handle {
 		order: 1;
 		font-size: 24px;
 		padding: 0 8px;
 		touch-action: none;
 	}
 	
-	.track-row .row-title-input {
+	.tracklist-row .item-title-input {
 		order: 2;
 		flex-basis: calc(100% - 50px); /* Account for drag handle width */
 	}
 	
 	/* Full width inputs and buttons below */
-	.track-row .row-url-input {
+	.tracklist-row .item-url-input {
 		order: 3;
 		flex-basis: 100%;
 	}
 	
-	.track-row .row-duration-input {
+	.tracklist-row .item-duration-input {
 		order: 4;
 		flex-basis: 100%;
 	}
 	
-	.track-row .link-checkbox-label {
+	.tracklist-row .link-checkbox-label {
 		order: 5;
 		flex-basis: 100%;
 	}
 	
-	.track-row .fetch-duration {
+	.tracklist-row .fetch-duration {
 		order: 6;
 		flex-basis: 100%;
 	}
 	
-	.track-row .remove-track {
+	.tracklist-row .remove-item {
 		order: 7;
 		flex-basis: 100%;
 	}
 	
 	/* Smaller buttons on mobile */
-	.track-row .button {
+	.tracklist-row .button {
 		font-size: 12px;
 		padding: 8px;
 		height: auto;
