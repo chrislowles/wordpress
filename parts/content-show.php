@@ -29,9 +29,10 @@
 				<ul>
 					<?php foreach ($tracklist as $track): 
 						$type = $track['type'] ?? 'track';
-						$title = $track['track_title'] ?? '';
+						// Support both old and new field names during migration
+						$title = $track['title'] ?? $track['track_title'] ?? '';
 						$duration = $track['duration'] ?? '';
-						$url = $track['track_url'] ?? '';
+						$url = $track['url'] ?? $track['track_url'] ?? '';
 						$link_to_section = $track['link_to_section'] ?? false;
 					?>
 						<?php if ($type === 'spacer'): ?>
