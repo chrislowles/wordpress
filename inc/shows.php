@@ -3,7 +3,7 @@
  * Class: Shows Manager
  * Handles the 'Show' Custom Post Type, Tracklists, and Cross-Post Transfer functionality.
  * 
- * REFACTORED: Uses generic field names for all row types
+ * REFACTORED: Uses generic field names and terminology for all row types
  * - Old: track_title, track_url, duration
  * - New: title, url, duration
  * - Migration: Automatically converts old format to new on save
@@ -21,13 +21,13 @@ class ChrisLowles_Shows {
 		add_action('admin_notices', [$this, 'show_admin_notice']);
 		
 		// Save Handlers
-		add_action('save_post_show', [$this, 'save_local_tracklist']);
+		add_action('save_post_show', [$this, 'save_tracklist']);
 		
 		// AJAX Handlers for cross-post transfer
 		add_action('wp_ajax_get_show_posts', [$this, 'ajax_get_show_posts']);
 		add_action('wp_ajax_get_show_tracklist', [$this, 'ajax_get_show_tracklist']);
-		add_action('wp_ajax_copy_tracks_to_show', [$this, 'ajax_copy_tracks_to_show']);
-		add_action('wp_ajax_add_single_track_to_show', [$this, 'ajax_add_single_track_to_show']);
+		add_action('wp_ajax_copy_items_to_show', [$this, 'ajax_copy_items_to_show']);
+		add_action('wp_ajax_add_single_item_to_show', [$this, 'ajax_add_single_item_to_show']);
 		
 		// Assets & Template Button
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_assets'], 20);
@@ -93,11 +93,11 @@ class ChrisLowles_Shows {
 	 * 
 	 * This preserves backwards compatibility while transitioning to generic names
 	 */
-	private function migrate_tracklist_data($tracks) {
-		if (!is_array($tracks)) return [];
+	private function migrate_tracklist_data($items) {
+		if (!is_array($items)) return [];
 		
 		$migrated = [];
-		foreach ($tracks as $item) {
+		foreach ($items as $item) {
 			// Start with a clean item
 			$new_item = [];
 			
@@ -167,10 +167,10 @@ class ChrisLowles_Shows {
 
 	public function add_meta_boxes() {
 		// Local Tracklist (Main Editor)
-		add_meta_box('tracklist_meta_box', 'Show Tracklist', [$this, 'render_local_metabox'], 'show', 'normal', 'high');
+		add_meta_box('tracklist_meta_box', 'Show Tracklist', [$this, 'render_tracklist_metabox'], 'show', 'normal', 'high');
 	}
 
-	public function render_local_metabox($post) {
+	public function render_tracklist_metabox($post) {
 		$tracklist = get_post_meta($post->ID, 'tracklist', true) ?: [];
 		// Migrate old data on load
 		$tracklist = $this->migrate_tracklist_data($tracklist);
@@ -182,29 +182,29 @@ class ChrisLowles_Shows {
 	 * Render Tracklist Editor HTML
 	 * Now uses generic field names: title, url, duration
 	 */
-	private function render_editor_html($tracks, $post_id) {
-		$tracks = is_array($tracks) ? $tracks : [];
+	private function render_editor_html($items, $post_id) {
+		$items = is_array($items) ? $items : [];
 		?>
 		<div class="tracklist-wrapper" data-post-id="<?php echo esc_attr($post_id); ?>" style="position: relative;">
 			<div class="tracklist-items">
-				<?php foreach ($tracks as $i => $item): 
+				<?php foreach ($items as $i => $item): 
 					 $type = $item['type'] ?? 'track';
 					 $title = $item['title'] ?? '';
 					 $url = $item['url'] ?? '';
 					 $dur = $item['duration'] ?? '';
 					 $link = $item['link_to_section'] ?? false;
 				?>
-				<div class="track-row <?php echo $type === 'spacer' ? 'is-spacer' : ''; ?>">
+				<div class="tracklist-row <?php echo $type === 'spacer' ? 'is-spacer' : ''; ?>">
 
 					<span class="drag-handle">|||</span>
 
-					<input type="hidden" name="tracklist[<?php echo $i; ?>][type]" value="<?php echo esc_attr($type); ?>" class="row-type">
+					<input type="hidden" name="tracklist[<?php echo $i; ?>][type]" value="<?php echo esc_attr($type); ?>" class="item-type">
 
-					<input type="text" name="tracklist[<?php echo $i; ?>][title]" value="<?php echo esc_attr($title); ?>" class="row-title-input" placeholder="<?php echo $type === 'spacer' ? 'Segment Title...' : 'Title'; ?>">
+					<input type="text" name="tracklist[<?php echo $i; ?>][title]" value="<?php echo esc_attr($title); ?>" class="item-title-input" placeholder="<?php echo $type === 'spacer' ? 'Segment Title...' : 'Title'; ?>">
 					
-					<input type="url" name="tracklist[<?php echo $i; ?>][url]" value="<?php echo esc_attr($url); ?>" class="row-url-input" style="<?php echo $type === 'spacer' ? 'display:none' : ''; ?>" placeholder="URL">
+					<input type="url" name="tracklist[<?php echo $i; ?>][url]" value="<?php echo esc_attr($url); ?>" class="item-url-input" style="<?php echo $type === 'spacer' ? 'display:none' : ''; ?>" placeholder="URL">
 					
-					<input type="text" name="tracklist[<?php echo $i; ?>][duration]" value="<?php echo esc_attr($dur); ?>" class="row-duration-input" style="width:60px;<?php echo $type === 'spacer' ? 'display:none' : ''; ?>" placeholder="0:00">
+					<input type="text" name="tracklist[<?php echo $i; ?>][duration]" value="<?php echo esc_attr($dur); ?>" class="item-duration-input" style="width:60px;<?php echo $type === 'spacer' ? 'display:none' : ''; ?>" placeholder="0:00">
 					
 					<label class="link-checkbox-label" style="<?php echo $type === 'spacer' ? '' : 'display:none'; ?>">
 						<input type="checkbox" name="tracklist[<?php echo $i; ?>][link_to_section]" value="1" <?php checked($link); ?> class="link-to-section-checkbox"> Link
@@ -214,7 +214,7 @@ class ChrisLowles_Shows {
 
 					<button type="button" class="add-to-show-btn button">Add to Show</button>
 
-					<button type="button" class="remove-track button">Delete</button>
+					<button type="button" class="remove-item button">Delete</button>
 				</div>
 				<?php endforeach; ?>
 			</div>
@@ -233,13 +233,13 @@ class ChrisLowles_Shows {
 	// SAVING & AJAX
 	// =========================================================================
 
-	public function save_local_tracklist($post_id) {
+	public function save_tracklist($post_id) {
 		if (!isset($_POST['tracklist_meta_nonce']) || !wp_verify_nonce($_POST['tracklist_meta_nonce'], 'save_tracklist_meta')) return;
 		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
 		if (!current_user_can('edit_post', $post_id)) return;
 
 		if (isset($_POST['tracklist']) && is_array($_POST['tracklist'])) {
-			$sanitized = $this->sanitize_tracks($_POST['tracklist']);
+			$sanitized = $this->sanitize_items($_POST['tracklist']);
 			update_post_meta($post_id, 'tracklist', $sanitized);
 		} else {
 			delete_post_meta($post_id, 'tracklist');
@@ -301,13 +301,13 @@ class ChrisLowles_Shows {
 	}
 
 	/**
-	 * AJAX: Copy all tracks to another show
+	 * AJAX: Copy all items to another show
 	 */
-	public function ajax_copy_tracks_to_show() {
+	public function ajax_copy_items_to_show() {
 		check_ajax_referer('tracklist_nonce', 'nonce');
 		
 		$target_post_id = isset($_POST['target_post_id']) ? intval($_POST['target_post_id']) : 0;
-		$tracks = isset($_POST['tracks']) ? $_POST['tracks'] : array();
+		$items = isset($_POST['items']) ? $_POST['items'] : array();
 		
 		if (!$target_post_id || get_post_type($target_post_id) !== 'show') {
 			wp_send_json_error(array('message' => 'Invalid target post'));
@@ -322,27 +322,27 @@ class ChrisLowles_Shows {
 		$existing_tracklist = is_array($existing_tracklist) ? $existing_tracklist : array();
 		$existing_tracklist = $this->migrate_tracklist_data($existing_tracklist);
 		
-		// Sanitize and append new tracks
-		$new_tracks = $this->sanitize_tracks($tracks);
-		$updated_tracklist = array_merge($existing_tracklist, $new_tracks);
+		// Sanitize and append new items
+		$new_items = $this->sanitize_items($items);
+		$updated_tracklist = array_merge($existing_tracklist, $new_items);
 		
 		// Save
 		update_post_meta($target_post_id, 'tracklist', $updated_tracklist);
 		
 		wp_send_json_success(array(
-			'message' => 'Tracks copied successfully',
-			'count' => count($new_tracks)
+			'message' => 'Items copied successfully',
+			'count' => count($new_items)
 		));
 	}
 
 	/**
-	 * AJAX: Add a single track to another show
+	 * AJAX: Add a single item to another show
 	 */
-	public function ajax_add_single_track_to_show() {
+	public function ajax_add_single_item_to_show() {
 		check_ajax_referer('tracklist_nonce', 'nonce');
 
 		$target_post_id = isset($_POST['target_post_id']) ? intval($_POST['target_post_id']) : 0;
-		$track = isset($_POST['track']) ? $_POST['track'] : array();
+		$item = isset($_POST['item']) ? $_POST['item'] : array();
 
 		if (!$target_post_id || get_post_type($target_post_id) !== 'show') {
 			wp_send_json_error(array('message' => 'Invalid target post'));
@@ -357,53 +357,53 @@ class ChrisLowles_Shows {
 		$existing_tracklist = is_array($existing_tracklist) ? $existing_tracklist : array();
 		$existing_tracklist = $this->migrate_tracklist_data($existing_tracklist);
 
-		// Sanitize and append single track
-		$sanitized_tracks = $this->sanitize_tracks(array($track));
-		if (empty($sanitized_tracks)) {
-			wp_send_json_error(array('message' => 'Invalid track data'));
+		// Sanitize and append single item
+		$sanitized_items = $this->sanitize_items(array($item));
+		if (empty($sanitized_items)) {
+			wp_send_json_error(array('message' => 'Invalid item data'));
 		}
 
-		$existing_tracklist[] = $sanitized_tracks[0];
+		$existing_tracklist[] = $sanitized_items[0];
 		
 		// Save
 		update_post_meta($target_post_id, 'tracklist', $existing_tracklist);
 
 		wp_send_json_success(array(
-			'message' => 'Track added successfully'
+			'message' => 'Item added successfully'
 		));
 	}
 
 	/**
-	 * Sanitize tracks with new generic field names
+	 * Sanitize items with new generic field names
 	 */
-	private function sanitize_tracks($tracks) {
+	private function sanitize_items($items) {
 		$clean = [];
-		foreach ($tracks as $t) {
+		foreach ($items as $item) {
 			// Get title from either old or new field name
 			$title = '';
-			if (isset($t['title'])) {
-				$title = $t['title'];
-			} elseif (isset($t['track_title'])) {
-				$title = $t['track_title'];
+			if (isset($item['title'])) {
+				$title = $item['title'];
+			} elseif (isset($item['track_title'])) {
+				$title = $item['track_title'];
 			}
 			
 			// Skip empty rows (except spacers can be empty)
-			if (empty($title) && ($t['type'] ?? 'track') !== 'spacer') continue;
+			if (empty($title) && ($item['type'] ?? 'track') !== 'spacer') continue;
 			
 			// Get URL from either old or new field name
 			$url = '';
-			if (isset($t['url'])) {
-				$url = $t['url'];
-			} elseif (isset($t['track_url'])) {
-				$url = $t['track_url'];
+			if (isset($item['url'])) {
+				$url = $item['url'];
+			} elseif (isset($item['track_url'])) {
+				$url = $item['track_url'];
 			}
 			
 			$clean[] = [
-				'type' => sanitize_text_field($t['type'] ?? 'track'),
+				'type' => sanitize_text_field($item['type'] ?? 'track'),
 				'title' => sanitize_text_field($title),
-				'duration' => sanitize_text_field($t['duration'] ?? ''),
+				'duration' => sanitize_text_field($item['duration'] ?? ''),
 				'url' => esc_url_raw($url),
-				'link_to_section' => isset($t['link_to_section']) && $t['link_to_section'] == '1',
+				'link_to_section' => isset($item['link_to_section']) && $item['link_to_section'] == '1',
 			];
 		}
 		return $clean;
@@ -418,7 +418,7 @@ class ChrisLowles_Shows {
 
 		// 1. Tracklist JS
 		if ($is_show_edit) {
-			wp_enqueue_script('tracklist-js', get_theme_file_uri() . '/js/tracklist.js', ['jquery', 'jquery-ui-sortable'], '6.0.0', true);
+			wp_enqueue_script('tracklist-js', get_theme_file_uri() . '/js/tracklist.js', ['jquery', 'jquery-ui-sortable'], '7.0.0', true);
 			wp_localize_script('tracklist-js', 'tracklistSettings', [
 				'ajax_url' => admin_url('admin-ajax.php'),
 				'nonce' => wp_create_nonce('tracklist_nonce'),
@@ -429,7 +429,7 @@ class ChrisLowles_Shows {
 		// 2. Template Button JS
 		if ($is_show_edit) {
 			// adds the button
-			wp_enqueue_script('show-template-button', get_stylesheet_directory_uri() . '/js/show-template-button.js', ['jquery'], '2.0.0', true);
+			wp_enqueue_script('show-template-button', get_stylesheet_directory_uri() . '/js/show-template-button.js', ['jquery'], '3.0.0', true);
 			// body template contents
 			wp_localize_script('show-template-button', 'showTemplate', [
 				'title' => "Chris & Jesse: " . date('F j Y'),
