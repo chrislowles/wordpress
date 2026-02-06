@@ -80,15 +80,16 @@ jQuery(document).ready(function($) {
 	/**
 	 * Add a single spacer row to the tracklist
 	 * Prepends to the beginning of the tracklist
+	 * Uses generic field names: title, url, duration
 	 */
 	function addSpacerRow($container, title) {
 		var html = `
 			<div class="track-row is-spacer">
 				<span class="drag-handle" title="Drag">|||</span>
-				<input type="hidden" name="tracklist[0][type]" value="spacer" class="track-type" />
-				<input type="text" name="tracklist[0][track_title]" class="track-title-input" placeholder="Segment Title..." value="${escapeHtml(title)}" />
-				<input type="url" name="tracklist[0][track_url]" class="track-url-input" placeholder="https://..." style="display:none" />
-				<input type="text" name="tracklist[0][duration]" class="track-duration-input" placeholder="3:45" style="width:60px; display:none" />
+				<input type="hidden" name="tracklist[0][type]" value="spacer" class="row-type" />
+				<input type="text" name="tracklist[0][title]" class="row-title-input" placeholder="Segment Title..." value="${escapeHtml(title)}" />
+				<input type="url" name="tracklist[0][url]" class="row-url-input" placeholder="https://..." style="display:none" />
+				<input type="text" name="tracklist[0][duration]" class="row-duration-input" placeholder="3:45" style="width:60px; display:none" />
 				<label class="link-checkbox-label" title="Link this spacer to a section in the body content">
 					<input type="checkbox" name="tracklist[0][link_to_section]" class="link-to-section-checkbox" value="1" checked />
 					Link
@@ -123,7 +124,7 @@ jQuery(document).ready(function($) {
 		// Recalculate total duration
 		var total = 0;
 		$tracklistItems.find('.track-row:not(.is-spacer)').each(function() {
-			var val = $(this).find('.track-duration-input').val();
+			var val = $(this).find('.row-duration-input').val();
 			if (val) {
 				var seconds = parseToSeconds(val);
 				total += seconds;
