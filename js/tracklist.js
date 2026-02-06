@@ -160,9 +160,9 @@ jQuery(document).ready(function($) {
 						</div>
 
 						<div style="display: flex; gap: 10px; justify-content: flex-end;">
-							<button type="button" class="button modal-close">Cancel</button>
-							<button type="button" id="confirm-add-btn" class="button button-primary">Add</button>
-							<a class="button button-primary" href="/wp-admin/post-new.php?post_type=show">Create New Show</a>
+							<a class="button modal-close">Cancel</a>
+							<a class="button modal-close button-primary" id="confirm-add-btn">Add</a>
+							<a class="button modal-close button-primary" href="/wp-admin/post-new.php?post_type=show" target="_blank">Create New Show</a>
 						</div>
 
 						<div id="add-status" style="margin-top: 15px; padding: 10px; border-radius: 4px; display: none;"></div>
