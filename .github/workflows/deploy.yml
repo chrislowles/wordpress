@@ -13,15 +13,16 @@ jobs:
     - name: Get latest code
       uses: actions/checkout@v4
 
-    - name: Sync files
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+    - name: Sync files with retry
+      uses: nick-fields/retry@v3
       with:
-        server: ${{ secrets.FTP_SERVER }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        server-dir: ./wp-content/themes/child/
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/node_modules/**
-          .github/**
+        timeout_minutes: 10
+        max_attempts: 3
+        retry_wait_seconds: 120
+        command: |
+          npx @samkirkland/ftp-deploy@latest \
+            --server "${{ secrets.FTP_SERVER }}" \
+            --username "${{ secrets.FTP_USERNAME }}" \
+            --password "${{ secrets.FTP_PASSWORD }}" \
+            --server-dir "./wp-content/themes/child/" \
+            --exclude "**/.git*" "**/.git*/**" "**/node_modules/**" ".github/**"
