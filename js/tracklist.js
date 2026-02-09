@@ -22,23 +22,44 @@ jQuery(document).ready(function($) {
 			}
 		});
 
-		// 2. HELPER: Parse Duration
+		// 2. HELPER: Parse Duration (supports HH:MM:SS, MM:SS, and plain seconds)
 		function parseToSeconds(duration) {
 			if (!duration) return 0;
 			duration = duration.toString().trim();
+			
 			if (duration.includes(':')) {
-				var parts = duration.split(':');
-				var mins = parseInt(parts[0]) || 0;
-				var secs = parseInt(parts[1]) || 0;
-				return (mins * 60) + secs;
+				var parts = duration.split(':').map(function(p) { return parseInt(p) || 0; });
+				
+				if (parts.length === 3) {
+					// HH:MM:SS format
+					return (parts[0] * 3600) + (parts[1] * 60) + parts[2];
+				} else if (parts.length === 2) {
+					// MM:SS format
+					return (parts[0] * 60) + parts[1];
+				} else if (parts.length === 1) {
+					// Just seconds
+					return parts[0];
+				}
 			}
+			
+			// Plain number (seconds)
 			return parseInt(duration) || 0;
 		}
 
 		function formatDuration(totalSeconds) {
-			var mins = Math.floor(totalSeconds / 60);
+			var hours = Math.floor(totalSeconds / 3600);
+			var mins = Math.floor((totalSeconds % 3600) / 60);
 			var secs = totalSeconds % 60;
-			return mins + ':' + (secs < 10 ? '0' : '') + secs;
+			
+			if (hours > 0) {
+				// HH:MM:SS format
+				return hours + ':' + 
+					(mins < 10 ? '0' : '') + mins + ':' + 
+					(secs < 10 ? '0' : '') + secs;
+			} else {
+				// MM:SS format
+				return mins + ':' + (secs < 10 ? '0' : '') + secs;
+			}
 		}
 
 		// 3. HELPER: Calculate Total
