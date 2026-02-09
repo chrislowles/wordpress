@@ -20,7 +20,11 @@ new ChrisLowles_Redirects();
 require get_stylesheet_directory() . '/inc/agenda.php';
 new ChrisLowles_Agenda();
 
-// 5. General Theme Setup
+// 5. Post Update Notifier (all post types)
+require get_stylesheet_directory() . '/inc/post-update-notifier.php';
+new ChrisLowles_PostUpdateNotifier();
+
+// 6. General Theme Setup
 add_action('after_setup_theme', function() {
 	add_theme_support('title-tag');
 	add_theme_support('post-thumbnails');
@@ -28,7 +32,7 @@ add_action('after_setup_theme', function() {
 	register_nav_menus(array('main-menu' => esc_html__('Main Menu', 'blankslate')));
 });
 
-// 6. Admin Styles & Dark Mode
+// 7. Admin Styles & Dark Mode
 add_action('admin_head', function() {
 	echo '<meta name="color-scheme" content="light dark" />';
 });
