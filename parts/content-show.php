@@ -68,7 +68,7 @@
 			</div>
 		<?php endif; ?>
 		<div class="body-content">
-			<?php the_content(); ?>
+			<?php nl2br(the_content()); ?>
 		</div>
 		<div class="links"><?php wp_link_pages(); ?></div>
 	</div>
