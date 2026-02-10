@@ -29,13 +29,13 @@ html {
 	-webkit-tap-highlight-color: transparent;
 }
 
-.body-content ul > br:first-child {
+/*.body-content ul > br:first-child {
   display: none;
 }
 
 .body-content ul > br:last-child {
   display: none;
-}
+}*/
 
 .tracklist-display .track-item.type-spacer {
 	margin: 3px 0 2px;
