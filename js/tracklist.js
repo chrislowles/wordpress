@@ -462,7 +462,7 @@ jQuery(document).ready(function($) {
 		// Bulk "Copy All to Show" button
 		$wrapper.on('click', '.copy-all-to-show-btn', function(e) {
 			e.preventDefault();
-			copyAllItemsToShow();
+			showCopyAllModal(); // opens modal so user can select a target show first
 		});
 
 		// Initialize calculations
