@@ -211,8 +211,14 @@ html, body {
 		flex-basis: 100%;
 	}
 	
-	.tracklist-row .remove-item {
+  .tracklist-row .add-to-show-btn {
 		order: 7;
+		flex-basis: 100%;
+	}
+
+	
+	.tracklist-row .remove-item {
+		order: 8;
 		flex-basis: 100%;
 	}
 	
