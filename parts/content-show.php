@@ -69,8 +69,8 @@
 		<?php endif; ?>
 		<div class="body-content">
 			<?php
-				the_content();
-				// echo nl2br(apply_filters('the_content', get_the_content()));
+				// the_content();
+				echo nl2div(apply_filters('the_content', get_the_content()));
 			?>
 		</div>
 		<div class="links"><?php wp_link_pages(); ?></div>

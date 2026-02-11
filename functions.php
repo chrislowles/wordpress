@@ -50,3 +50,16 @@ add_action('admin_enqueue_scripts', function() {
  		false
 	);
 });
+
+function nl2div($text) {
+    // Split text by newlines
+    $lines = explode("\n", $text);
+    
+    // Wrap each line in a div
+    $wrapped = array_map(function($line) {
+        return '<div>' . trim($line) . '</div>';
+    }, $lines);
+    
+    // Join back together
+    return implode("\n", $wrapped);
+}
