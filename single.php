@@ -9,6 +9,6 @@
 		?>
 	<?php endwhile; endif; ?>
 	<footer>
-		<?php get_template_part( 'nav', 'below-single' ); ?>
+		<?php get_template_part( 'parts/nav', 'below-single' ); ?>
 	</footer>
 <?php get_footer(); ?>
