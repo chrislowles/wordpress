@@ -5,25 +5,20 @@
 ?>
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 	<header>
-		<h2 class="entry-title">
+		<h2>
 			<a href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>"><?php the_title(); ?></a>
 		</h2>
-		<?php // get_template_part('parts/entry-meta-show'); ?>
+		<?php // get_template_part( 'parts/entry', 'meta-show' ); ?>
 	</header>
-	<div class="entry content">
+	<div class="entry">
 		<div class="thumbnail">
 			<?php if (has_post_thumbnail()): ?>
-				<a class="thumbnail-link" href="<?php the_post_thumbnail_url('full'); ?>" title="<?php $attachment_id = get_post_thumbnail_id($post->ID); the_title_attribute(array('post' => get_post($attachment_id))); ?>">
-					<?php the_post_thumbnail('full', array('itemprop' => 'image')); ?>
+				<a class="thumbnail-link" href="<?php the_post_thumbnail_url( 'full' ); ?>" title="<?php $attachment_id = get_post_thumbnail_id( $post->ID ); the_title_attribute( array( 'post' => get_post($attachment_id ) ) ); ?>">
+					<?php the_post_thumbnail( 'full'/*, array('itemprop' => 'image')*/); ?>
 				</a>
 			<?php endif; ?>
 		</div>
-		<?php
-		// 1. Retrieve the Tracklist Data
-		$tracklist = get_post_meta($post->ID, 'tracklist', true);
-		
-		// 2. The Simple Array Loop
-		if (is_array($tracklist) && !empty($tracklist)): ?>
+		<?php $tracklist = get_post_meta($post->ID, 'tracklist', true); if (is_array($tracklist) && !empty($tracklist)): ?>
 			<div class="tracklist-display">
 				<h3>Tracklist / Timeline</h3>
 				<ul>
@@ -38,27 +33,27 @@
 						<?php if ($type === 'spacer'): ?>
 							<li class="track-item type-spacer">
 								<?php if ($link_to_section): ?>
-									<a href="#<?php echo esc_attr(sanitize_title($title)); ?>">
-										<?php echo esc_html($title); ?>
+									<a href="#<?php echo esc_attr( sanitize_title( $title ) ); ?>">
+										<?php echo esc_html( $title ); ?>
 									</a>
 								<?php else: ?>
-									<?php echo esc_html($title); ?>
+									<?php echo esc_html( $title ); ?>
 								<?php endif; ?>
 							</li>
 						<?php else: ?>
 							<li class="track-item type-track">
 								<span class="track-title">
-									<?php if (!empty($url)): ?>
-										<a href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer">
-											<?php echo esc_html($title); ?>
+									<?php if ( !empty( $url ) ): ?>
+										<a href="<?php echo esc_url( $url ); ?>" target="_blank" rel="noopener noreferrer">
+											<?php echo esc_html( $title ); ?>
 										</a>
 									<?php else: ?>
-										<?php echo esc_html($title); ?>
+										<?php echo esc_html( $title ); ?>
 									<?php endif; ?>
 								</span>
-								<?php if (!empty($duration)): ?>
+								<?php if ( !empty( $duration ) ): ?>
 									<span class="track-duration">
-										[<?php echo esc_html($duration); ?>]
+										[<?php echo esc_html( $duration ); ?>]
 									</span>
 								<?php endif; ?>
 							</li>
@@ -67,12 +62,14 @@
 				</ul>
 			</div>
 		<?php endif; ?>
-		<div class="body-content">
+		<div class="content">
 			<?php
 				// the_content();
 				echo nl2div(apply_filters('the_content', get_the_content()));
 			?>
 		</div>
-		<div class="links"><?php wp_link_pages(); ?></div>
+		<div class="links">
+			<?php wp_link_pages(); ?>
+		</div>
 	</div>
 </article>
