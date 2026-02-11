@@ -31,18 +31,14 @@ jQuery(document).ready(function($) {
 				var parts = duration.split(':').map(function(p) { return parseInt(p) || 0; });
 				
 				if (parts.length === 3) {
-					// HH:MM:SS format
 					return (parts[0] * 3600) + (parts[1] * 60) + parts[2];
 				} else if (parts.length === 2) {
-					// MM:SS format
 					return (parts[0] * 60) + parts[1];
 				} else if (parts.length === 1) {
-					// Just seconds
 					return parts[0];
 				}
 			}
 			
-			// Plain number (seconds)
 			return parseInt(duration) || 0;
 		}
 
@@ -52,12 +48,10 @@ jQuery(document).ready(function($) {
 			var secs = totalSeconds % 60;
 			
 			if (hours > 0) {
-				// HH:MM:SS format
 				return hours + ':' + 
 					(mins < 10 ? '0' : '') + mins + ':' + 
 					(secs < 10 ? '0' : '') + secs;
 			} else {
-				// MM:SS format
 				return mins + ':' + (secs < 10 ? '0' : '') + secs;
 			}
 		}
@@ -125,7 +119,6 @@ jQuery(document).ready(function($) {
 			`;
 			$list.append(html);
 			refreshInputNames();
-			// Focus the title input of the newly added row
 			$list.children().last().find('.item-title-input').focus();
 		}
 
@@ -162,7 +155,9 @@ jQuery(document).ready(function($) {
 		// =========================================================================
 
 		var $modal = null;
-		var showsList = null;
+		var showsList = null;  // Full cached list from server
+		var selectedShowId = null;
+		var selectedShowTitle = null;
 
 		function createModal() {
 			var modalHtml = `
@@ -173,17 +168,34 @@ jQuery(document).ready(function($) {
 							<button type="button" class="modal-close" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
 						</div>
 
-						<div style="margin-bottom: 20px;">
-							<label style="display: block; margin-bottom: 5px; font-weight: 600;">Select Show:</label>
-							<select id="target-show-select" class="widefat" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-								<option value="">Loading shows...</option>
-							</select>
+						<div style="margin-bottom: 20px; position: relative;">
+							<label style="display: block; margin-bottom: 5px; font-weight: 600;">Search Shows:</label>
+							<input
+								type="text"
+								id="show-search-input"
+								class="widefat"
+								placeholder="Type to search..."
+								autocomplete="off"
+								style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"
+							/>
+							<ul
+								id="show-search-results"
+								style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ddd; border-top: none; border-radius: 0 0 4px 4px; margin: 0; padding: 0; list-style: none; max-height: 220px; overflow-y: auto; z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.08);"
+							></ul>
+						</div>
+
+						<div
+							id="show-selected-display"
+							style="display: none; margin-bottom: 16px; padding: 8px 12px; background: #f0f6fc; border: 1px solid #72aee6; border-radius: 4px; font-size: 13px; display: flex; align-items: center; justify-content: space-between;"
+						>
+							<span id="show-selected-label" style="font-weight: 600; color: #2271b1;"></span>
+							<button type="button" id="show-selected-clear" style="background: none; border: none; cursor: pointer; color: #999; font-size: 16px; padding: 0 0 0 8px;" title="Clear selection">&times;</button>
 						</div>
 
 						<div style="display: flex; gap: 10px; justify-content: flex-end;">
 							<a class="button modal-close">Cancel</a>
-							<a class="button modal-close button-primary" id="confirm-add-btn">Add</a>
-							<a class="button modal-close button-primary" href="/wp-admin/post-new.php?post_type=show" target="_blank">Create New Show</a>
+							<a class="button button-primary" id="confirm-add-btn" style="pointer-events: none; opacity: 0.5;">Add</a>
+							<a class="button button-primary" href="/wp-admin/post-new.php?post_type=show" target="_blank">Create New Show</a>
 						</div>
 
 						<div id="add-status" style="margin-top: 15px; padding: 10px; border-radius: 4px; display: none;"></div>
@@ -207,9 +219,35 @@ jQuery(document).ready(function($) {
 				}
 			});
 
+			// Search input: filter the cached list
+			$modal.on('input', '#show-search-input', function() {
+				var query = $(this).val().trim().toLowerCase();
+				renderSearchResults(query);
+			});
+
+			// Hide results when clicking outside the search area
+			$(document).on('click.showSearch', function(e) {
+				if (!$(e.target).closest('#show-search-input, #show-search-results').length) {
+					$modal.find('#show-search-results').hide();
+				}
+			});
+
+			// Re-show results on focus if there's a query
+			$modal.on('focus', '#show-search-input', function() {
+				var query = $(this).val().trim().toLowerCase();
+				if (query.length > 0) renderSearchResults(query);
+			});
+
+			// Clear selection
+			$modal.on('click', '#show-selected-clear', function() {
+				clearSelection();
+				$modal.find('#show-search-input').val('').focus();
+			});
+
 			// Handle confirm button click
 			$modal.on('click', '#confirm-add-btn', function(e) {
 				e.preventDefault();
+				if (!selectedShowId) return;
 				var mode = $modal.data('mode');
 				if (mode === 'single') {
 					addSingleItemToShow();
@@ -219,66 +257,133 @@ jQuery(document).ready(function($) {
 			});
 		}
 
+		/**
+		 * Render filtered search results into the dropdown list
+		 */
+		function renderSearchResults(query) {
+			if (!showsList) return;
+
+			var $results = $modal.find('#show-search-results');
+			$results.empty();
+
+			if (query.length === 0) {
+				$results.hide();
+				return;
+			}
+
+			var filtered = showsList.filter(function(show) {
+				return show.title.toLowerCase().includes(query) || show.date.includes(query);
+			});
+
+			if (filtered.length === 0) {
+				$results.append(
+					$('<li>').text('No shows found').css({
+						padding: '8px 12px',
+						color: '#999',
+						fontStyle: 'italic',
+						fontSize: '13px'
+					})
+				);
+			} else {
+				filtered.forEach(function(show) {
+					var statusBadge = show.status === 'draft' ? ' — Draft' : '';
+					var $item = $('<li>').css({
+						padding: '8px 12px',
+						cursor: 'pointer',
+						fontSize: '13px',
+						borderBottom: '1px solid #f0f0f0'
+					}).html(
+						'<strong>' + escapeHtml(show.title) + '</strong>' +
+						'<span style="color:#999; margin-left: 6px;">' + escapeHtml(show.date) + escapeHtml(statusBadge) + '</span>'
+					).on('mouseenter', function() {
+						$(this).css('background', '#f0f6fc');
+					}).on('mouseleave', function() {
+						$(this).css('background', '');
+					}).on('click', function() {
+						selectShow(show.id, show.title);
+					});
+					$results.append($item);
+				});
+			}
+
+			$results.show();
+		}
+
+		/**
+		 * Commit a show selection
+		 */
+		function selectShow(id, title) {
+			selectedShowId = id;
+			selectedShowTitle = title;
+
+			// Update UI
+			$modal.find('#show-search-input').val('');
+			$modal.find('#show-search-results').hide();
+			$modal.find('#show-selected-label').text(title);
+			$modal.find('#show-selected-display').css('display', 'flex');
+
+			// Enable confirm button
+			$modal.find('#confirm-add-btn').css({ 'pointer-events': '', 'opacity': '' });
+		}
+
+		/**
+		 * Clear the current selection
+		 */
+		function clearSelection() {
+			selectedShowId = null;
+			selectedShowTitle = null;
+			$modal.find('#show-selected-display').hide();
+			$modal.find('#confirm-add-btn').css({ 'pointer-events': 'none', 'opacity': '0.5' });
+		}
+
 		function hideModal() {
 			if ($modal) {
 				$modal.hide();
 				$modal.find('#add-status').hide();
+				$modal.find('#show-search-input').val('');
+				$modal.find('#show-search-results').hide();
 				$modal.removeData('row');
 				$modal.removeData('mode');
+				clearSelection();
 			}
 		}
 
-		function showAddItemModal($row) {
+		function openModal(mode, $row) {
 			if (!$modal) createModal();
 
-			// Reset status
+			// Reset
 			$modal.find('#add-status').hide();
+			clearSelection();
+			$modal.find('#show-search-input').val('');
+			$modal.find('#show-search-results').hide();
 
-			// Update modal title
-			$modal.find('#modal-title').text('Add Item to Show');
-			$modal.find('#confirm-add-btn').text('Add Item').prop('disabled', false);
+			// Configure for mode
+			if (mode === 'single') {
+				$modal.find('#modal-title').text('Add Item to Show');
+				$modal.find('#confirm-add-btn').text('Add Item');
+				$modal.data('row', $row);
+			} else {
+				$modal.find('#modal-title').text('Copy All Items to Show');
+				$modal.find('#confirm-add-btn').text('Copy All');
+				$modal.removeData('row');
+			}
+			$modal.data('mode', mode);
 
-			// Store reference to the row
-			$modal.data('row', $row);
-			$modal.data('mode', 'single');
-
-			// Load shows and display modal
+			// Pre-load the shows list silently so search is instant
 			loadShowsList(function() {
 				$modal.show();
-			});
-		}
-
-		function showCopyAllModal() {
-			if (!$modal) createModal();
-
-			// Reset status
-			$modal.find('#add-status').hide();
-
-			// Update modal title
-			$modal.find('#modal-title').text('Copy All Items to Show');
-			$modal.find('#confirm-add-btn').text('Copy All').prop('disabled', false);
-
-			// Clear row reference
-			$modal.removeData('row');
-			$modal.data('mode', 'all');
-
-			// Load shows and display modal
-			loadShowsList(function() {
-				$modal.show();
+				// Auto-focus search
+				setTimeout(function() { $modal.find('#show-search-input').focus(); }, 50);
 			});
 		}
 
 		function loadShowsList(callback) {
-			var $select = $modal.find('#target-show-select');
-			$select.html('<option value="">Loading...</option>');
-
 			// Return cached list if available
 			if (showsList !== null) {
-				populateShowsDropdown(showsList);
 				if (callback) callback();
 				return;
 			}
-			
+
 			$.post(tracklistSettings.ajax_url, {
 				action: 'get_show_posts',
 				nonce: tracklistSettings.nonce,
@@ -286,44 +391,29 @@ jQuery(document).ready(function($) {
 			}).done(function(response) {
 				if (response.success) {
 					showsList = response.data;
-					populateShowsDropdown(showsList);
 					if (callback) callback();
 				} else {
-					$select.html('<option value="">Error loading shows</option>');
 					console.error('Failed to load shows:', response);
+					if (callback) callback(); // Still open modal, search will show nothing
 				}
 			}).fail(function(jqXHR, textStatus, errorThrown) {
-				$select.html('<option value="">Error loading shows</option>');
 				console.error('AJAX error loading shows:', textStatus, errorThrown);
+				if (callback) callback();
 			});
-		}
-
-		function populateShowsDropdown(shows) {
-			var $select = $modal.find('#target-show-select');
-			var options = '<option value="">Select a show...</option>';
-			
-			$.each(shows, function(i, show) {
-				var statusBadge = show.status === 'draft' ? ' (Draft)' : '';
-				options += `<option value="${show.id}">${escapeHtml(show.title)} - ${show.date}${statusBadge}</option>`;
-			});
-			
-			$select.html(options);
 		}
 
 		function addSingleItemToShow() {
-			var targetPostId = $modal.find('#target-show-select').val();
-			if (!targetPostId) {
-				showModalStatus('Please select a target show', 'error');
+			if (!selectedShowId) {
+				showModalStatus('Please select a target show.', 'error');
 				return;
 			}
 			
 			var $row = $modal.data('row');
 			if (!$row || $row.length === 0) {
-				showModalStatus('Error: Row not found', 'error');
+				showModalStatus('Error: Row not found.', 'error');
 				return;
 			}
 			
-			// Use generic field names
 			var item = {
 				type: $row.find('.item-type').val() || 'track',
 				title: $row.find('.item-title-input').val() || '',
@@ -343,14 +433,12 @@ jQuery(document).ready(function($) {
 			$.post(tracklistSettings.ajax_url, {
 				action: 'add_single_item_to_show',
 				nonce: tracklistSettings.nonce,
-				target_post_id: targetPostId,
+				target_post_id: selectedShowId,
 				item: item
 			}).done(function(response) {
 				if (response.success) {
 					showModalStatus('Item added successfully!', 'success');
-					setTimeout(function() {
-						hideModal();
-					}, 1100);
+					setTimeout(function() { hideModal(); }, 1100);
 				} else {
 					showModalStatus('Error: ' + (response.data.message || 'Unknown error'), 'error');
 					$btn.prop('disabled', false).text('Add Item');
@@ -363,9 +451,8 @@ jQuery(document).ready(function($) {
 		}
 
 		function copyAllItemsToShow() {
-			var targetPostId = $modal.find('#target-show-select').val();
-			if (!targetPostId) {
-				showModalStatus('Please select a target show', 'error');
+			if (!selectedShowId) {
+				showModalStatus('Please select a target show.', 'error');
 				return;
 			}
 
@@ -373,10 +460,7 @@ jQuery(document).ready(function($) {
 			$list.find('.tracklist-row').each(function() {
 				var $row = $(this);
 				var title = $row.find('.item-title-input').val();
-
-				// Only add items that have a title
 				if (title) {
-					// Use generic field names
 					allItems.push({
 						type: $row.find('.item-type').val() || 'track',
 						title: title,
@@ -398,14 +482,12 @@ jQuery(document).ready(function($) {
 			$.post(tracklistSettings.ajax_url, {
 				action: 'copy_items_to_show',
 				nonce: tracklistSettings.nonce,
-				target_post_id: targetPostId,
+				target_post_id: selectedShowId,
 				items: allItems
 			}).done(function(response) {
 				if (response.success) {
 					showModalStatus(`Successfully copied ${response.data.count} item(s)!`, 'success');
-					setTimeout(function() {
-						hideModal();
-					}, 1100);
+					setTimeout(function() { hideModal(); }, 1100);
 				} else {
 					showModalStatus('Error: ' + (response.data.message || 'Unknown error'), 'error');
 					$btn.prop('disabled', false).text('Copy All');
@@ -430,9 +512,7 @@ jQuery(document).ready(function($) {
 			}).html(message).show();
 			
 			if (type === 'success') {
-				setTimeout(function() {
-					$status.fadeOut();
-				}, 1100);
+				setTimeout(function() { $status.fadeOut(); }, 1100);
 			}
 		}
 
@@ -456,13 +536,13 @@ jQuery(document).ready(function($) {
 		$wrapper.on('click', '.add-to-show-btn', function(e) {
 			e.preventDefault();
 			var $row = $(this).closest('.tracklist-row');
-			showAddItemModal($row);
+			openModal('single', $row);
 		});
 
 		// Bulk "Copy All to Show" button
 		$wrapper.on('click', '.copy-all-to-show-btn', function(e) {
 			e.preventDefault();
-			showCopyAllModal(); // opens modal so user can select a target show first
+			openModal('all');
 		});
 
 		// Initialize calculations
