@@ -307,5 +307,14 @@ html, body {
 
 .notice.nagging details summary {
   font-weight: bold;
-  padding: 9px 0;
+  padding: 10px 0;
+}
+
+.notice.nagging details:not([open]) summary {
+  padding-top: 9px;
+	padding-bottom: 9px;
+}
+
+.notice.nagging details[open] summary {
+	padding-bottom: unset;
 }
