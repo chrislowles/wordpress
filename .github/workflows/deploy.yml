@@ -11,16 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Get latest code
-      uses: actions/checkout@latest
+      uses: actions/checkout@v6.0.2
 
     - name: Sync files with retry
-      uses: nick-fields/retry@latest
+      uses: nick-fields/retry@v3.0.2
       with:
         timeout_minutes: 10
         max_attempts: 5
         retry_wait_seconds: 60
         command: |
-          npx @samkirkland/ftp-deploy@latest \
+          npx @samkirkland/ftp-deploy@1.2.5 \
             --server "${{ secrets.FTP_SERVER }}" \
             --username "${{ secrets.FTP_USERNAME }}" \
             --password "${{ secrets.FTP_PASSWORD }}" \
