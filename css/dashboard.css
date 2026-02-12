@@ -296,7 +296,9 @@ html, body {
 	line-height: 1.41 !important;
 	border: 2px solid red;
 	/*position: sticky !important;
-	top: 32px !important;
+	top: calc(32px + 10px) !important;
+	max-height: calc(100vh - 100px);
+	overflow-y: auto;
 	z-index: 100000 !important;*/
 }
 
@@ -306,15 +308,18 @@ html, body {
 }
 
 .notice.nagging details summary {
-  font-weight: bold;
-  padding: 10px 0;
+	font-weight: bold;
 }
 
 .notice.nagging details:not([open]) summary {
-  padding-top: 9px;
-	padding-bottom: 9px;
+	padding: 8px 0;
 }
 
 .notice.nagging details[open] summary {
-	padding-bottom: unset;
+	padding: 8px 0 0;
+}
+
+.notice.nagging details[open] ul {
+	list-style: disc;
+	margin: 15px 15px;
 }
