@@ -240,7 +240,8 @@ class ChrisLowles_Shows {
 	/**
 	 * Auto-fetch titles for bare URLs in post content
 	 * Runs on save_post_show hook with priority 20 (after main save)
-	 * Uses noembed service to fetch page titles and converts bare URLs to formatted markdown links
+	 * Uses noembed service to fetch page titles and converts bare URLs to markdown links
+	 * Works for both drafts and published posts
 	 */
 	public function auto_fetch_link_titles($post_id, $post) {
 		// Avoid infinite loops and unnecessary processing
@@ -248,6 +249,9 @@ class ChrisLowles_Shows {
 		if (wp_is_post_revision($post_id)) return;
 		if (wp_is_post_autosave($post_id)) return;
 		if (!current_user_can('edit_post', $post_id)) return;
+		
+		// Process all post statuses (draft, publish, pending, etc.)
+		// No status check needed - we want to process everything
 		
 		// Only process if content exists
 		$content = $post->post_content;
