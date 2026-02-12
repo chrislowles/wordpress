@@ -22,7 +22,6 @@ class ChrisLowles_Shows {
 		
 		// Save Handlers
 		add_action('save_post_show', [$this, 'save_tracklist']);
-		add_action('save_post_show', [$this, 'auto_fetch_link_titles'], 20, 2);
 		
 		// AJAX Handlers for cross-post transfer
 		add_action('wp_ajax_get_show_posts', [$this, 'ajax_get_show_posts']);
@@ -234,88 +233,6 @@ class ChrisLowles_Shows {
 			update_post_meta($post_id, 'tracklist', $sanitized);
 		} else {
 			delete_post_meta($post_id, 'tracklist');
-		}
-	}
-
-	/**
-	 * Auto-fetch titles for bare URLs in post content
-	 * Runs on save_post_show hook with priority 20 (after main save)
-	 * Uses noembed service to fetch page titles and converts bare URLs to markdown links
-	 * Works for both drafts and published posts
-	 */
-	public function auto_fetch_link_titles($post_id, $post) {
-		// Avoid infinite loops and unnecessary processing
-		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
-		if (wp_is_post_revision($post_id)) return;
-		if (wp_is_post_autosave($post_id)) return;
-		if (!current_user_can('edit_post', $post_id)) return;
-		
-		// Process all post statuses (draft, publish, pending, etc.)
-		// No status check needed - we want to process everything
-		
-		// Only process if content exists
-		$content = $post->post_content;
-		if (empty($content)) return;
-		
-		// Find bare URLs (not already in markdown link syntax)
-		// Pattern matches URLs not preceded by ]( which indicates they're part of [text](url)
-		$pattern = '/(?<!\]\()https?:\/\/[^\s\)<>]+/i';
-		
-		preg_match_all($pattern, $content, $matches);
-		
-		if (empty($matches[0])) return;
-		
-		$updated_content = $content;
-		$replacements = [];
-		
-		// Fetch metadata for each URL
-		foreach (array_unique($matches[0]) as $url) {
-			// Build noembed API URL
-			$api_url = add_query_arg('url', urlencode($url), 'https://noembed.com/embed');
-			
-			// Fetch metadata with timeout
-			$response = wp_remote_get($api_url, [
-				'timeout' => 5,
-				'sslverify' => true
-			]);
-			
-			// Skip on error
-			if (is_wp_error($response)) {
-				continue;
-			}
-			
-			// Parse response
-			$body = wp_remote_retrieve_body($response);
-			$data = json_decode($body, true);
-			
-			// If we got a title, prepare replacement
-			if (!empty($data['title'])) {
-				$title = sanitize_text_field($data['title']);
-				// Create markdown link: [title](url)
-				$replacements[$url] = '[' . $title . '](' . $url . ')';
-			}
-		}
-		
-		// Apply replacements if we have any
-		if (!empty($replacements)) {
-			foreach ($replacements as $url => $markdown_link) {
-				$updated_content = str_replace($url, $markdown_link, $updated_content);
-			}
-			
-			// Only update if content actually changed
-			if ($updated_content !== $content) {
-				// Unhook to prevent infinite loop
-				remove_action('save_post_show', [$this, 'auto_fetch_link_titles'], 20);
-				
-				// Update post content
-				wp_update_post([
-					'ID' => $post_id,
-					'post_content' => $updated_content
-				], true, false);
-				
-				// Re-hook for future saves
-				add_action('save_post_show', [$this, 'auto_fetch_link_titles'], 20, 2);
-			}
 		}
 	}
 
