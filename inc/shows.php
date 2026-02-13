@@ -242,8 +242,15 @@ class ChrisLowles_Shows {
 	 * Runs on save_post_show hook with priority 20 (after main save)
 	 * Fetches page HTML and extracts title from meta tags or <title> element
 	 * Works for both drafts and published posts
+	 * Only runs if user confirmed via the JavaScript dialog
 	 */
 	public function auto_fetch_link_titles($post_id, $post) {
+		// Check if user wants to fetch titles (set by JavaScript)
+		if (empty($_POST['fetch_link_titles'])) {
+			error_log('Skipping auto fetch: user did not confirm');
+			return;
+		}
+		
 		error_log('=== AUTO FETCH LINK TITLES STARTED for post ' . $post_id . ' ===');
 		
 		// Avoid infinite loops and unnecessary processing
@@ -264,9 +271,6 @@ class ChrisLowles_Shows {
 			return;
 		}
 		
-		// Process all post statuses (draft, publish, pending, etc.)
-		// No status check needed - we want to process everything
-		
 		// Only process if content exists
 		$content = $post->post_content;
 		error_log('Content length: ' . strlen($content));
@@ -277,17 +281,18 @@ class ChrisLowles_Shows {
 		}
 		
 		// Find bare URLs (not already in markdown link syntax)
-		// Pattern matches URLs not preceded by ]( which indicates they're part of [text](url)
-		$pattern = '/(?<!\]\()https?:\/\/[^\s\)<>]+/i';
+		// Improved pattern to catch more URL variations including Reddit
+		// Matches URLs not inside markdown links [text](url) or after ]( 
+		$pattern = '/(?<!\]\()\b(https?:\/\/[^\s\)\]<>"\']+)/i';
 		
 		preg_match_all($pattern, $content, $matches);
 		
-		error_log('URLs found: ' . count($matches[0]));
-		if (!empty($matches[0])) {
-			error_log('URLs: ' . print_r(array_unique($matches[0]), true));
+		error_log('URLs found: ' . count($matches[1]));
+		if (!empty($matches[1])) {
+			error_log('URLs: ' . print_r(array_unique($matches[1]), true));
 		}
 		
-		if (empty($matches[0])) {
+		if (empty($matches[1])) {
 			error_log('No bare URLs found, exiting');
 			return;
 		}
@@ -296,13 +301,17 @@ class ChrisLowles_Shows {
 		$replacements = [];
 		
 		// Fetch metadata for each URL
-		foreach (array_unique($matches[0]) as $url) {
+		foreach (array_unique($matches[1]) as $url) {
+			// Clean up URL (remove trailing punctuation that might have been caught)
+			$url = rtrim($url, '.,;:!?)');
+			
 			error_log('Processing URL: ' . $url);
 			
 			// Fetch the page HTML
 			$response = wp_remote_get($url, [
 				'timeout' => 10,
 				'sslverify' => true,
+				'redirection' => 5,
 				'user-agent' => 'Mozilla/5.0 (compatible; WordPress/' . get_bloginfo('version') . '; +' . home_url() . ')'
 			]);
 			
@@ -608,6 +617,11 @@ class ChrisLowles_Shows {
 					'One Up'
 				]
 			]);
+		}
+		
+		// 3. Fetch Link Titles confirmation JS
+		if ($is_show_edit) {
+			wp_enqueue_script('fetch-link-titles', get_stylesheet_directory_uri() . '/js/fetch-link-titles.js', ['jquery'], '1.0.0', true);
 		}
 	}
 
