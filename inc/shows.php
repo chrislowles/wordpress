@@ -22,6 +22,7 @@ class ChrisLowles_Shows {
 		
 		// Save Handlers
 		add_action('save_post_show', [$this, 'save_tracklist']);
+		add_action('save_post_show', [$this, 'auto_fetch_link_titles'], 20, 2);
 		
 		// AJAX Handlers for cross-post transfer
 		add_action('wp_ajax_get_show_posts', [$this, 'ajax_get_show_posts']);
@@ -234,6 +235,182 @@ class ChrisLowles_Shows {
 		} else {
 			delete_post_meta($post_id, 'tracklist');
 		}
+	}
+
+	/**
+	 * Auto-fetch titles for bare URLs in post content
+	 * Runs on save_post_show hook with priority 20 (after main save)
+	 * Fetches page HTML and extracts title from meta tags or <title> element
+	 * Works for both drafts and published posts
+	 */
+	public function auto_fetch_link_titles($post_id, $post) {
+		error_log('=== AUTO FETCH LINK TITLES STARTED for post ' . $post_id . ' ===');
+		
+		// Avoid infinite loops and unnecessary processing
+		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+			error_log('Skipping: DOING_AUTOSAVE');
+			return;
+		}
+		if (wp_is_post_revision($post_id)) {
+			error_log('Skipping: is revision');
+			return;
+		}
+		if (wp_is_post_autosave($post_id)) {
+			error_log('Skipping: is autosave');
+			return;
+		}
+		if (!current_user_can('edit_post', $post_id)) {
+			error_log('Skipping: no edit permission');
+			return;
+		}
+		
+		// Process all post statuses (draft, publish, pending, etc.)
+		// No status check needed - we want to process everything
+		
+		// Only process if content exists
+		$content = $post->post_content;
+		error_log('Content length: ' . strlen($content));
+		
+		if (empty($content)) {
+			error_log('Skipping: empty content');
+			return;
+		}
+		
+		// Find bare URLs (not already in markdown link syntax)
+		// Pattern matches URLs not preceded by ]( which indicates they're part of [text](url)
+		$pattern = '/(?<!\]\()https?:\/\/[^\s\)<>]+/i';
+		
+		preg_match_all($pattern, $content, $matches);
+		
+		error_log('URLs found: ' . count($matches[0]));
+		if (!empty($matches[0])) {
+			error_log('URLs: ' . print_r(array_unique($matches[0]), true));
+		}
+		
+		if (empty($matches[0])) {
+			error_log('No bare URLs found, exiting');
+			return;
+		}
+		
+		$updated_content = $content;
+		$replacements = [];
+		
+		// Fetch metadata for each URL
+		foreach (array_unique($matches[0]) as $url) {
+			error_log('Processing URL: ' . $url);
+			
+			// Fetch the page HTML
+			$response = wp_remote_get($url, [
+				'timeout' => 10,
+				'sslverify' => true,
+				'user-agent' => 'Mozilla/5.0 (compatible; WordPress/' . get_bloginfo('version') . '; +' . home_url() . ')'
+			]);
+			
+			// Skip on error
+			if (is_wp_error($response)) {
+				error_log('WP Error: ' . $response->get_error_message());
+				continue;
+			}
+			
+			$response_code = wp_remote_retrieve_response_code($response);
+			error_log('Response code: ' . $response_code);
+			
+			if ($response_code !== 200) {
+				error_log('Non-200 response, skipping');
+				continue;
+			}
+			
+			// Get the HTML body
+			$html = wp_remote_retrieve_body($response);
+			
+			// Extract title using meta tags or <title> element
+			$title = $this->extract_title_from_html($html);
+			
+			if (!empty($title)) {
+				error_log('Title found: ' . $title);
+				// Create markdown link: [title](url)
+				$replacements[$url] = '[' . $title . '](' . $url . ')';
+			} else {
+				error_log('No title found in HTML');
+			}
+		}
+		
+		error_log('Total replacements to make: ' . count($replacements));
+		
+		// Apply replacements if we have any
+		if (!empty($replacements)) {
+			foreach ($replacements as $url => $markdown_link) {
+				$updated_content = str_replace($url, $markdown_link, $updated_content);
+				error_log('Replaced: ' . $url . ' -> ' . $markdown_link);
+			}
+			
+			// Only update if content actually changed
+			if ($updated_content !== $content) {
+				error_log('Content changed, updating post');
+				
+				// Unhook to prevent infinite loop
+				remove_action('save_post_show', [$this, 'auto_fetch_link_titles'], 20);
+				
+				// Update post content
+				$result = wp_update_post([
+					'ID' => $post_id,
+					'post_content' => $updated_content
+				], true);
+				
+				if (is_wp_error($result)) {
+					error_log('Update failed: ' . $result->get_error_message());
+				} else {
+					error_log('Update successful, post ID: ' . $result);
+				}
+				
+				// Re-hook for future saves
+				add_action('save_post_show', [$this, 'auto_fetch_link_titles'], 20, 2);
+			} else {
+				error_log('Content unchanged after replacements');
+			}
+		} else {
+			error_log('No replacements to apply');
+		}
+		
+		error_log('=== AUTO FETCH LINK TITLES FINISHED ===');
+	}
+
+	/**
+	 * Extract page title from HTML
+	 * Tries Open Graph, Twitter Cards, then <title> tag
+	 * 
+	 * @param string $html The HTML content
+	 * @return string|null The extracted title, or null if not found
+	 */
+	private function extract_title_from_html($html) {
+		if (empty($html)) return null;
+		
+		// Try Open Graph title first (most reliable for social sharing)
+		if (preg_match('/<meta\s+property=["\']og:title["\']\s+content=["\'](.*?)["\']/i', $html, $matches)) {
+			return html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+		}
+		
+		// Try Twitter Card title
+		if (preg_match('/<meta\s+name=["\']twitter:title["\']\s+content=["\'](.*?)["\']/i', $html, $matches)) {
+			return html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+		}
+		
+		// Try reversed attribute order for Open Graph (some sites do this)
+		if (preg_match('/<meta\s+content=["\'](.*?)["\']\s+property=["\']og:title["\']/i', $html, $matches)) {
+			return html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+		}
+		
+		// Try reversed attribute order for Twitter Card
+		if (preg_match('/<meta\s+content=["\'](.*?)["\']\s+name=["\']twitter:title["\']/i', $html, $matches)) {
+			return html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+		}
+		
+		// Fallback to <title> tag
+		if (preg_match('/<title>(.*?)<\/title>/is', $html, $matches)) {
+			return html_entity_decode(trim($matches[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+		}
+		
+		return null;
 	}
 
 	/**
