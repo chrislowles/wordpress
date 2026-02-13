@@ -243,69 +243,63 @@ class ChrisLowles_Shows {
 	 * Fetches page HTML and extracts title from meta tags or <title> element
 	 * Works for both drafts and published posts
 	 * Only runs if user confirmed via the JavaScript dialog
+	 * Skips known-problematic domains and fails silently
 	 */
 	public function auto_fetch_link_titles($post_id, $post) {
 		// Check if user wants to fetch titles (set by JavaScript)
 		if (empty($_POST['fetch_link_titles'])) {
-			error_log('Skipping auto fetch: user did not confirm');
 			return;
 		}
-		
-		error_log('=== AUTO FETCH LINK TITLES STARTED for post ' . $post_id . ' ===');
 		
 		// Avoid infinite loops and unnecessary processing
-		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
-			error_log('Skipping: DOING_AUTOSAVE');
-			return;
-		}
-		if (wp_is_post_revision($post_id)) {
-			error_log('Skipping: is revision');
-			return;
-		}
-		if (wp_is_post_autosave($post_id)) {
-			error_log('Skipping: is autosave');
-			return;
-		}
-		if (!current_user_can('edit_post', $post_id)) {
-			error_log('Skipping: no edit permission');
-			return;
-		}
+		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+		if (wp_is_post_revision($post_id)) return;
+		if (wp_is_post_autosave($post_id)) return;
+		if (!current_user_can('edit_post', $post_id)) return;
 		
 		// Only process if content exists
 		$content = $post->post_content;
-		error_log('Content length: ' . strlen($content));
-		
-		if (empty($content)) {
-			error_log('Skipping: empty content');
-			return;
-		}
+		if (empty($content)) return;
 		
 		// Find bare URLs (not already in markdown link syntax)
-		// Improved pattern to catch more URL variations including Reddit
-		// Matches URLs not inside markdown links [text](url) or after ]( 
+		// Improved pattern to catch more URL variations
 		$pattern = '/(?<!\]\()\b(https?:\/\/[^\s\)\]<>"\']+)/i';
 		
 		preg_match_all($pattern, $content, $matches);
 		
-		error_log('URLs found: ' . count($matches[1]));
-		if (!empty($matches[1])) {
-			error_log('URLs: ' . print_r(array_unique($matches[1]), true));
-		}
-		
-		if (empty($matches[1])) {
-			error_log('No bare URLs found, exiting');
-			return;
-		}
+		if (empty($matches[1])) return;
 		
 		$updated_content = $content;
 		$replacements = [];
+		
+		// Domains known to be problematic or that block scraping
+		$skip_domains = [
+			'reddit.com',
+			'www.reddit.com',
+			'old.reddit.com',
+			'twitter.com',
+			'x.com',
+			'instagram.com',
+			'facebook.com',
+			'tiktok.com',
+			'linkedin.com',
+			'pinterest.com'
+		];
 		
 		// Fetch metadata for each URL
 		foreach (array_unique($matches[1]) as $url) {
 			// Clean up URL (remove trailing punctuation that might have been caught)
 			$url = rtrim($url, '.,;:!?)');
 			
-			error_log('Processing URL: ' . $url);
+			// Check if domain should be skipped
+			$parsed_url = parse_url($url);
+			if (!isset($parsed_url['host'])) continue;
+			
+			$host = strtolower($parsed_url['host']);
+			if (in_array($host, $skip_domains)) {
+				// Silently skip problematic domains
+				continue;
+			}
 			
 			// Fetch the page HTML
 			$response = wp_remote_get($url, [
@@ -315,19 +309,13 @@ class ChrisLowles_Shows {
 				'user-agent' => 'Mozilla/5.0 (compatible; WordPress/' . get_bloginfo('version') . '; +' . home_url() . ')'
 			]);
 			
-			// Skip on error
-			if (is_wp_error($response)) {
-				error_log('WP Error: ' . $response->get_error_message());
-				continue;
-			}
+			// Fail silently on error
+			if (is_wp_error($response)) continue;
 			
 			$response_code = wp_remote_retrieve_response_code($response);
-			error_log('Response code: ' . $response_code);
 			
-			if ($response_code !== 200) {
-				error_log('Non-200 response, skipping');
-				continue;
-			}
+			// Only process successful responses
+			if ($response_code !== 200) continue;
 			
 			// Get the HTML body
 			$html = wp_remote_retrieve_body($response);
@@ -335,53 +323,35 @@ class ChrisLowles_Shows {
 			// Extract title using meta tags or <title> element
 			$title = $this->extract_title_from_html($html);
 			
+			// Only add replacement if we successfully got a title
 			if (!empty($title)) {
-				error_log('Title found: ' . $title);
 				// Create markdown link: [title](url)
 				$replacements[$url] = '[' . $title . '](' . $url . ')';
-			} else {
-				error_log('No title found in HTML');
 			}
+			// Silently skip if no title found
 		}
-		
-		error_log('Total replacements to make: ' . count($replacements));
 		
 		// Apply replacements if we have any
 		if (!empty($replacements)) {
 			foreach ($replacements as $url => $markdown_link) {
 				$updated_content = str_replace($url, $markdown_link, $updated_content);
-				error_log('Replaced: ' . $url . ' -> ' . $markdown_link);
 			}
 			
 			// Only update if content actually changed
 			if ($updated_content !== $content) {
-				error_log('Content changed, updating post');
-				
 				// Unhook to prevent infinite loop
 				remove_action('save_post_show', [$this, 'auto_fetch_link_titles'], 20);
 				
 				// Update post content
-				$result = wp_update_post([
+				wp_update_post([
 					'ID' => $post_id,
 					'post_content' => $updated_content
 				], true);
 				
-				if (is_wp_error($result)) {
-					error_log('Update failed: ' . $result->get_error_message());
-				} else {
-					error_log('Update successful, post ID: ' . $result);
-				}
-				
 				// Re-hook for future saves
 				add_action('save_post_show', [$this, 'auto_fetch_link_titles'], 20, 2);
-			} else {
-				error_log('Content unchanged after replacements');
 			}
-		} else {
-			error_log('No replacements to apply');
 		}
-		
-		error_log('=== AUTO FETCH LINK TITLES FINISHED ===');
 	}
 
 	/**
