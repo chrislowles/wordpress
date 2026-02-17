@@ -22,6 +22,7 @@ class ChrisLowles_Shows {
 		
 		// Save Handlers
 		add_action('save_post_show', [$this, 'save_tracklist']);
+		add_action('save_post_show', [$this, 'save_airing_date']);
 		add_action('save_post_show', [$this, 'auto_fetch_link_titles'], 20, 2);
 		
 		// AJAX Handlers for cross-post transfer
@@ -32,6 +33,12 @@ class ChrisLowles_Shows {
 		
 		// Assets & Template Button
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_assets'], 20);
+
+		// Admin Columns — Airing Date
+		add_filter('manage_show_posts_columns',       [$this, 'airing_date_column_header']);
+		add_action('manage_show_posts_custom_column', [$this, 'airing_date_column_content'], 10, 2);
+		add_filter('manage_edit-show_sortable_columns', [$this, 'airing_date_sortable_column']);
+		add_action('pre_get_posts',                   [$this, 'airing_date_orderby']);
 		
 		// Frontend Formatting for "Linked" Spacer Rows (Auto IDs)
 		add_filter('the_content', [$this, 'auto_id_headings'], 10);
@@ -169,7 +176,125 @@ class ChrisLowles_Shows {
 	public function add_meta_boxes() {
 		// Local Tracklist (Main Editor)
 		add_meta_box('tracklist_meta_box', 'Show Tracklist', [$this, 'render_tracklist_metabox'], 'show', 'normal', 'high');
+
+		// Expected Airing Date (Sidebar)
+		add_meta_box('show_airing_date', 'Expected Airing Date', [$this, 'render_airing_date_metabox'], 'show', 'side', 'high');
 	}
+
+	// -------------------------------------------------------------------------
+	// Airing Date Metabox
+	// -------------------------------------------------------------------------
+
+	public function render_airing_date_metabox($post) {
+		wp_nonce_field('save_airing_date_meta', 'airing_date_meta_nonce');
+		$airing_date = get_post_meta($post->ID, '_show_airing_date', true);
+		?>
+		<p style="margin: 0 0 8px;">
+			<label for="show_airing_date" style="display:block; margin-bottom:4px; font-weight:600;">Date &amp; Time</label>
+			<input
+				type="datetime-local"
+				id="show_airing_date"
+				name="show_airing_date"
+				value="<?php echo esc_attr($airing_date); ?>"
+				style="width:100%;"
+			/>
+		</p>
+		<p style="margin:0; color:#646970; font-size:11px;">
+			Set this to when the episode is expected to finish airing so the post goes live at the right time.
+		</p>
+		<?php
+	}
+
+	public function save_airing_date($post_id) {
+		if (!isset($_POST['airing_date_meta_nonce']) || !wp_verify_nonce($_POST['airing_date_meta_nonce'], 'save_airing_date_meta')) return;
+		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+		if (!current_user_can('edit_post', $post_id)) return;
+
+		if (!empty($_POST['show_airing_date'])) {
+			// Sanitize as a datetime string (YYYY-MM-DDTHH:MM from datetime-local input)
+			$raw = sanitize_text_field($_POST['show_airing_date']);
+			// Validate it looks like a datetime-local value before saving
+			if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', $raw)) {
+				update_post_meta($post_id, '_show_airing_date', $raw);
+			}
+		} else {
+			delete_post_meta($post_id, '_show_airing_date');
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Airing Date Admin Columns
+	// -------------------------------------------------------------------------
+
+	public function airing_date_column_header($columns) {
+		// Insert after the title column
+		$new = [];
+		foreach ($columns as $key => $label) {
+			$new[$key] = $label;
+			if ($key === 'title') {
+				$new['show_airing_date'] = 'Airs';
+			}
+		}
+		return $new;
+	}
+
+	public function airing_date_column_content($column, $post_id) {
+		if ($column !== 'show_airing_date') return;
+
+		$airing_date = get_post_meta($post_id, '_show_airing_date', true);
+
+		if (empty($airing_date)) {
+			echo '<span style="color:#a7aaad;">—</span>';
+			return;
+		}
+
+		// Parse the stored datetime-local string (YYYY-MM-DDTHH:MM)
+		$timestamp = strtotime($airing_date);
+		if (!$timestamp) {
+			echo '<span style="color:#a7aaad;">—</span>';
+			return;
+		}
+
+		$now       = current_time('timestamp');
+		$diff      = $timestamp - $now;
+		$formatted = date_i18n('D j M, g:ia', $timestamp);
+
+		// Colour-code: overdue = red, within 24h = amber, future = default
+		if ($diff < 0) {
+			$colour = '#d63638'; // WP error red — overdue
+			$title  = 'Overdue';
+		} elseif ($diff < DAY_IN_SECONDS) {
+			$colour = '#dba617'; // WP warning amber — airing soon
+			$title  = 'Airing soon';
+		} else {
+			$colour = '#1d2327';
+			$title  = '';
+		}
+
+		printf(
+			'<span style="color:%s; white-space:nowrap;" title="%s">%s</span>',
+			esc_attr($colour),
+			esc_attr($title),
+			esc_html($formatted)
+		);
+	}
+
+	public function airing_date_sortable_column($columns) {
+		$columns['show_airing_date'] = 'show_airing_date';
+		return $columns;
+	}
+
+	public function airing_date_orderby($query) {
+		if (!is_admin() || !$query->is_main_query()) return;
+		if ($query->get('orderby') === 'show_airing_date') {
+			$query->set('meta_key', '_show_airing_date');
+			$query->set('orderby', 'meta_value');
+		}
+	}
+
+	// =========================================================================
+	// TRACKLIST METABOX
+	// =========================================================================
 
 	public function render_tracklist_metabox($post) {
 		$tracklist = get_post_meta($post->ID, 'tracklist', true) ?: [];
