@@ -263,13 +263,13 @@ class ChrisLowles_Shows {
 
 		// Determine label and colour
 		if ($diff < 0) {
-			$label        = 'Overdue';
+			$label = 'Overdue';
 			$label_colour = '#D63638'; // WP error red
 		} elseif ($diff < DAY_IN_SECONDS) {
-			$label        = 'Airing soon';
+			$label = 'Airing soon';
 			$label_colour = '#DBA617'; // WP warning amber
 		} else {
-			$label        = 'Confirmed';
+			$label = 'Confirmed';
 			$label_colour = '#646970'; // WP muted grey — matches built-in label style
 		}
 
@@ -338,7 +338,6 @@ class ChrisLowles_Shows {
 				</div>
 				<?php endforeach; ?>
 			</div>
-			
 			<div class="tracklist-controls">
 				<span class="total-duration-display">0:00</span>
 				<button type="button" class="add-track button">+ Track</button>
@@ -379,7 +378,7 @@ class ChrisLowles_Shows {
 		if (empty($_POST['fetch_link_titles'])) {
 			return;
 		}
-		
+
 		// Avoid infinite loops and unnecessary processing
 		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
 		if (wp_is_post_revision($post_id)) return;
@@ -414,22 +413,22 @@ class ChrisLowles_Shows {
 			'linkedin.com',
 			'pinterest.com'
 		];
-		
+
 		// Fetch metadata for each URL
 		foreach (array_unique($matches[1]) as $url) {
 			// Clean up URL (remove trailing punctuation that might have been caught)
 			$url = rtrim($url, '.,;:!?)');
-			
+
 			// Check if domain should be skipped
 			$parsed_url = parse_url($url);
 			if (!isset($parsed_url['host'])) continue;
-			
+
 			$host = strtolower($parsed_url['host']);
 			if (in_array($host, $skip_domains)) {
 				// Silently skip problematic domains
 				continue;
 			}
-			
+
 			// Fetch the page HTML
 			$response = wp_remote_get($url, [
 				'timeout' => 10,
@@ -437,21 +436,21 @@ class ChrisLowles_Shows {
 				'redirection' => 5,
 				'user-agent' => 'Mozilla/5.0 (compatible; WordPress/' . get_bloginfo('version') . '; +' . home_url() . ')'
 			]);
-			
+
 			// Fail silently on error
 			if (is_wp_error($response)) continue;
-			
+
 			$response_code = wp_remote_retrieve_response_code($response);
-			
+
 			// Only process successful responses
 			if ($response_code !== 200) continue;
-			
+
 			// Get the HTML body
 			$html = wp_remote_retrieve_body($response);
-			
+
 			// Extract title using meta tags or <title> element
 			$title = $this->extract_title_from_html($html);
-			
+
 			// Only add replacement if we successfully got a title
 			if (!empty($title)) {
 				// Create markdown link: [title](url)
@@ -465,18 +464,18 @@ class ChrisLowles_Shows {
 			foreach ($replacements as $url => $markdown_link) {
 				$updated_content = str_replace($url, $markdown_link, $updated_content);
 			}
-			
+
 			// Only update if content actually changed
 			if ($updated_content !== $content) {
 				// Unhook to prevent infinite loop
 				remove_action('save_post_show', [$this, 'auto_fetch_link_titles'], 20);
-				
+
 				// Update post content
 				wp_update_post([
 					'ID' => $post_id,
 					'post_content' => $updated_content
 				], true);
-				
+
 				// Re-hook for future saves
 				add_action('save_post_show', [$this, 'auto_fetch_link_titles'], 20, 2);
 			}
@@ -492,32 +491,32 @@ class ChrisLowles_Shows {
 	 */
 	private function extract_title_from_html($html) {
 		if (empty($html)) return null;
-		
+
 		// Try Open Graph title first (most reliable for social sharing)
 		if (preg_match('/<meta\s+property=["\']og:title["\']\s+content=["\'](.*?)["\']/i', $html, $matches)) {
 			return html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
 		}
-		
+
 		// Try Twitter Card title
 		if (preg_match('/<meta\s+name=["\']twitter:title["\']\s+content=["\'](.*?)["\']/i', $html, $matches)) {
 			return html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
 		}
-		
+
 		// Try reversed attribute order for Open Graph (some sites do this)
 		if (preg_match('/<meta\s+content=["\'](.*?)["\']\s+property=["\']og:title["\']/i', $html, $matches)) {
 			return html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
 		}
-		
+
 		// Try reversed attribute order for Twitter Card
 		if (preg_match('/<meta\s+content=["\'](.*?)["\']\s+name=["\']twitter:title["\']/i', $html, $matches)) {
 			return html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
 		}
-		
+
 		// Fallback to <title> tag
 		if (preg_match('/<title>(.*?)<\/title>/is', $html, $matches)) {
 			return html_entity_decode(trim($matches[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 		}
-		
+
 		return null;
 	}
 
@@ -526,9 +525,9 @@ class ChrisLowles_Shows {
 	 */
 	public function ajax_get_show_posts() {
 		check_ajax_referer('tracklist_nonce', 'nonce');
-		
+
 		$current_post_id = isset($_POST['current_post_id']) ? intval($_POST['current_post_id']) : 0;
-		
+
 		$args = array(
 			'post_type' => 'show',
 			'posts_per_page' => -1,
@@ -537,10 +536,10 @@ class ChrisLowles_Shows {
 			'post_status' => array('publish', 'draft'),
 			'post__not_in' => array($current_post_id) // Exclude current post
 		);
-		
+
 		$posts = get_posts($args);
 		$result = array();
-		
+
 		foreach ($posts as $post) {
 			$result[] = array(
 				'id' => $post->ID,
@@ -549,7 +548,7 @@ class ChrisLowles_Shows {
 				'date' => get_the_date('Y-m-d', $post->ID)
 			);
 		}
-		
+
 		wp_send_json_success($result);
 	}
 
@@ -559,19 +558,19 @@ class ChrisLowles_Shows {
 	 */
 	public function ajax_get_show_tracklist() {
 		check_ajax_referer('tracklist_nonce', 'nonce');
-		
+
 		$post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
-		
+
 		if (!$post_id || get_post_type($post_id) !== 'show') {
 			wp_send_json_error(array('message' => 'Invalid post ID'));
 		}
-		
+
 		$tracklist = get_post_meta($post_id, 'tracklist', true);
 		$tracklist = is_array($tracklist) ? $tracklist : array();
-		
+
 		// Migrate before sending
 		$tracklist = $this->migrate_tracklist_data($tracklist);
-		
+
 		wp_send_json_success($tracklist);
 	}
 
@@ -583,27 +582,27 @@ class ChrisLowles_Shows {
 		
 		$target_post_id = isset($_POST['target_post_id']) ? intval($_POST['target_post_id']) : 0;
 		$items = isset($_POST['items']) ? $_POST['items'] : array();
-		
+
 		if (!$target_post_id || get_post_type($target_post_id) !== 'show') {
 			wp_send_json_error(array('message' => 'Invalid target post'));
 		}
-		
+
 		if (!current_user_can('edit_post', $target_post_id)) {
 			wp_send_json_error(array('message' => 'You do not have permission to edit this show'));
 		}
-		
+
 		// Get existing tracklist and migrate it
 		$existing_tracklist = get_post_meta($target_post_id, 'tracklist', true);
 		$existing_tracklist = is_array($existing_tracklist) ? $existing_tracklist : array();
 		$existing_tracklist = $this->migrate_tracklist_data($existing_tracklist);
-		
+
 		// Sanitize and append new items
 		$new_items = $this->sanitize_items($items);
 		$updated_tracklist = array_merge($existing_tracklist, $new_items);
-		
+
 		// Save
 		update_post_meta($target_post_id, 'tracklist', $updated_tracklist);
-		
+
 		wp_send_json_success(array(
 			'message' => 'Items copied successfully',
 			'count' => count($new_items)
@@ -639,7 +638,7 @@ class ChrisLowles_Shows {
 		}
 
 		$existing_tracklist[] = $sanitized_items[0];
-		
+
 		// Save
 		update_post_meta($target_post_id, 'tracklist', $existing_tracklist);
 
@@ -661,10 +660,10 @@ class ChrisLowles_Shows {
 			} elseif (isset($item['track_title'])) {
 				$title = $item['track_title'];
 			}
-			
+
 			// Skip empty rows (except spacers can be empty)
 			if (empty($title) && ($item['type'] ?? 'track') !== 'spacer') continue;
-			
+
 			// Get URL from either old or new field name
 			$url = '';
 			if (isset($item['url'])) {
@@ -672,7 +671,7 @@ class ChrisLowles_Shows {
 			} elseif (isset($item['track_url'])) {
 				$url = $item['track_url'];
 			}
-			
+
 			$clean[] = [
 				'type' => sanitize_text_field($item['type'] ?? 'track'),
 				'title' => sanitize_text_field($title),
@@ -717,7 +716,7 @@ class ChrisLowles_Shows {
 				]
 			]);
 		}
-		
+
 		// 3. Fetch Link Titles confirmation JS
 		if ($is_show_edit) {
 			wp_enqueue_script('fetch-link-titles', get_stylesheet_directory_uri() . '/js/fetch-link-titles.js', ['jquery'], '1.0.0', true);
@@ -726,7 +725,7 @@ class ChrisLowles_Shows {
 
 	public function auto_id_headings($content) {
 		if (!is_singular('show') || is_admin()) return $content;
-		
+
 		$dom = new DOMDocument();
 		libxml_use_internal_errors(true);
 		$dom->loadHTML('<?xml encoding="utf-8" ?>' . $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
