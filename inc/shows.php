@@ -255,26 +255,29 @@ class ChrisLowles_Shows {
 			return;
 		}
 
-		$now       = current_time('timestamp');
-		$diff      = $timestamp - $now;
-		$formatted = date_i18n('D j M, g:ia', $timestamp);
+		$now  = current_time('timestamp');
+		$diff = $timestamp - $now;
 
-		// Colour-code: overdue = red, within 24h = amber, future = default
+		// Format: 2026/02/18 at 7:26 am  (matches WP built-in date column style)
+		$formatted = date_i18n('Y/m/d \a\t g:i a', $timestamp);
+
+		// Determine label and colour
 		if ($diff < 0) {
-			$colour = '#d63638'; // WP error red — overdue
-			$title  = 'Overdue';
+			$label        = 'Overdue';
+			$label_colour = '#d63638'; // WP error red
 		} elseif ($diff < DAY_IN_SECONDS) {
-			$colour = '#dba617'; // WP warning amber — airing soon
-			$title  = 'Airing soon';
+			$label        = 'Airing soon';
+			$label_colour = '#dba617'; // WP warning amber
 		} else {
-			$colour = '#1d2327';
-			$title  = '';
+			$label        = 'Scheduled';
+			$label_colour = '#646970'; // WP muted grey — matches built-in label style
 		}
 
 		printf(
-			'<span style="color:%s; white-space:nowrap;" title="%s">%s</span>',
-			esc_attr($colour),
-			esc_attr($title),
+			'<span style="display:block; color:%1$s; font-size:13px; margin-bottom:1px;">%2$s</span>' .
+			'<span style="display:block; color:#1d2327; white-space:nowrap;">%3$s</span>',
+			esc_attr($label_colour),
+			esc_html($label),
 			esc_html($formatted)
 		);
 	}
