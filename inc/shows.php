@@ -264,12 +264,12 @@ class ChrisLowles_Shows {
 		// Determine label and colour
 		if ($diff < 0) {
 			$label        = 'Overdue';
-			$label_colour = '#d63638'; // WP error red
+			$label_colour = '#D63638'; // WP error red
 		} elseif ($diff < DAY_IN_SECONDS) {
 			$label        = 'Airing soon';
-			$label_colour = '#dba617'; // WP warning amber
+			$label_colour = '#DBA617'; // WP warning amber
 		} else {
-			$label        = 'Scheduled';
+			$label        = 'Confirmed';
 			$label_colour = '#646970'; // WP muted grey — matches built-in label style
 		}
 
