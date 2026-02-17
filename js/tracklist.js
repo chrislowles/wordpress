@@ -1,551 +1,416 @@
-jQuery(document).ready(function($) {
+jQuery(document).ready(function ($) {
 
-	// Initialize tracklist editor
-	var $wrapper = $('.tracklist-wrapper');
-	if ($wrapper.length === 0) return;
+    var $wrapper = $('.tracklist-wrapper');
+    if ($wrapper.length === 0) return;
 
-	initTracklist($wrapper);
+    // Shared utilities provided by utils.js
+    var parseToSeconds  = ThemeUtils.parseToSeconds;
+    var formatDuration  = ThemeUtils.formatDuration;
+    var escapeHtml      = ThemeUtils.escapeHtml;
 
-	function initTracklist($wrapper) {
-		var postId = $wrapper.data('post-id');
-		var $list = $wrapper.find('.tracklist-items');
-		var $durationDisplay = $wrapper.find('.total-duration-display');
+    initTracklist($wrapper);
 
-		// 1. Initialize Sortable
-		$list.sortable({
-			handle: '.drag-handle',
-			placeholder: 'placeholder-highlight',
-			axis: 'y',
-			update: function(event, ui) {
-				calculateTotalDuration();
-				refreshInputNames();
-			}
-		});
+    function initTracklist($wrapper) {
+        var postId          = $wrapper.data('post-id');
+        var $list           = $wrapper.find('.tracklist-items');
+        var $durationDisplay = $wrapper.find('.total-duration-display');
 
-		// 2. HELPER: Parse Duration (supports HH:MM:SS, MM:SS, and plain seconds)
-		function parseToSeconds(duration) {
-			if (!duration) return 0;
-			duration = duration.toString().trim();
-			
-			if (duration.includes(':')) {
-				var parts = duration.split(':').map(function(p) { return parseInt(p) || 0; });
-				
-				if (parts.length === 3) {
-					return (parts[0] * 3600) + (parts[1] * 60) + parts[2];
-				} else if (parts.length === 2) {
-					return (parts[0] * 60) + parts[1];
-				} else if (parts.length === 1) {
-					return parts[0];
-				}
-			}
-			
-			return parseInt(duration) || 0;
-		}
+        // =====================================================================
+        // 1. SORTABLE
+        // =====================================================================
 
-		function formatDuration(totalSeconds) {
-			var hours = Math.floor(totalSeconds / 3600);
-			var mins = Math.floor((totalSeconds % 3600) / 60);
-			var secs = totalSeconds % 60;
-			
-			if (hours > 0) {
-				return hours + ':' + 
-					(mins < 10 ? '0' : '') + mins + ':' + 
-					(secs < 10 ? '0' : '') + secs;
-			} else {
-				return mins + ':' + (secs < 10 ? '0' : '') + secs;
-			}
-		}
+        $list.sortable({
+            handle: '.drag-handle',
+            placeholder: 'placeholder-highlight',
+            axis: 'y',
+            update: function () {
+                calculateTotalDuration();
+                refreshInputNames();
+            }
+        });
 
-		// 3. HELPER: Calculate Total
-		function calculateTotalDuration() {
-			var total = 0;
-			$list.find('.tracklist-row:not(.is-spacer)').each(function() {
-				var val = $(this).find('.item-duration-input').val();
-				total += parseToSeconds(val);
-			});
-			$durationDisplay.text(formatDuration(total));
-		}
+        // =====================================================================
+        // 2. DURATION HELPERS
+        // =====================================================================
 
-		// 4. HELPER: Fetch Duration (API)
-		$wrapper.on('click', '.fetch-duration', function() {
-			var btn = $(this);
-			var row = btn.closest('.tracklist-row');
-			var url = row.find('.item-url-input').val();
-			var durInput = row.find('.item-duration-input');
-			var titleInput = row.find('.item-title-input');
+        function calculateTotalDuration() {
+            var total = 0;
+            $list.find('.tracklist-row:not(.is-spacer)').each(function () {
+                total += parseToSeconds($(this).find('.item-duration-input').val());
+            });
+            $durationDisplay.text(formatDuration(total));
+        }
 
-			if (!url) return alert('Enter URL first');
-			
-			btn.prop('disabled', true).text('...');
+        function refreshInputNames() {
+            $list.find('.tracklist-row').each(function (index) {
+                $(this).find('input, select, textarea').each(function () {
+                    var name = $(this).attr('name');
+                    if (name) $(this).attr('name', name.replace(/\[\d+\]/, '[' + index + ']'));
+                });
+            });
+        }
 
-			$.ajax({
-				url: 'https://noembed.com/embed',
-				data: { url: url },
-				dataType: 'json',
-				success: function(data) {
-					if (data.duration) {
-						durInput.val(formatDuration(data.duration));
-						calculateTotalDuration();
-					}
-					if (data.title) {
-						titleInput.val(data.title);
-					}
-					btn.prop('disabled', false).text('Fetch');
-				},
-				error: function() {
-					btn.prop('disabled', false).text('Err');
-				}
-			});
-		});
+        // Expose to show-template-button.js so it can trigger a re-index after
+        // prepending spacer rows without duplicating this logic.
+        window.TracklistRefresh = {
+            inputs:   refreshInputNames,
+            duration: calculateTotalDuration
+        };
 
-		// 5. HELPER: Add Row
-		function addRow(type) {
-			var isSpacer = (type === 'spacer');
-			var html = `
-				<div class="tracklist-row ${isSpacer ? 'is-spacer' : ''}">
-					<span class="drag-handle" title="Drag">|||</span>
-					<input type="hidden" name="tracklist[9999][type]" value="${type}" class="item-type" />
-					<input type="text" name="tracklist[9999][title]" class="item-title-input" placeholder="${isSpacer ? 'Segment Title...' : 'Artist - Track'}" />
-					<input type="url" name="tracklist[9999][url]" class="item-url-input" placeholder="https://..." style="${isSpacer ? 'display:none' : ''}" />
-					<input type="text" name="tracklist[9999][duration]" class="item-duration-input" placeholder="3:45" style="${isSpacer ? 'display:none' : ''}" />
-					<label class="link-checkbox-label" style="${isSpacer ? '' : 'display:none'}" title="Link this spacer to a section in the body content">
-						<input type="checkbox" name="tracklist[9999][link_to_section]" class="link-to-section-checkbox" value="1" />
-						Link
-					</label>
-					<button type="button" class="fetch-duration button" style="${isSpacer ? 'display:none' : ''}">Fetch</button>
-					<button type="button" class="add-to-show-btn button">Add to Show</button>
-					<button type="button" class="remove-item button">Delete</button>
-				</div>
-			`;
-			$list.append(html);
-			refreshInputNames();
-			$list.children().last().find('.item-title-input').focus();
-		}
+        // =====================================================================
+        // 3. FETCH DURATION (noembed API)
+        // =====================================================================
 
-		$wrapper.find('.add-track').click(function() { addRow('track'); });
-		$wrapper.find('.add-spacer').click(function() { addRow('spacer'); });
+        $wrapper.on('click', '.fetch-duration', function () {
+            var $btn      = $(this);
+            var $row      = $btn.closest('.tracklist-row');
+            var url       = $row.find('.item-url-input').val();
+            var $durInput = $row.find('.item-duration-input');
+            var $titleInput = $row.find('.item-title-input');
 
-		$wrapper.on('click', '.remove-item', function() {
-			$(this).closest('.tracklist-row').remove();
-			calculateTotalDuration();
-			refreshInputNames();
-		});
+            if (!url) return alert('Enter URL first');
 
-		// 6. INPUT HANDLING
-		$wrapper.on('input change', 'input', function() {
-			calculateTotalDuration();
-		});
+            $btn.prop('disabled', true).text('...');
 
-		// 7. HELPER: Re-index inputs
-		function refreshInputNames() {
-			$list.find('.tracklist-row').each(function(index) {
-				var row = $(this);
-				row.find('input, select, textarea').each(function() {
-					var name = $(this).attr('name');
-					if (name) {
-						var newName = name.replace(/\[\d+\]/, '[' + index + ']');
-						$(this).attr('name', newName);
-					}
-				});
-			});
-		}
+            $.ajax({
+                url: 'https://noembed.com/embed',
+                data: { url: url },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.duration) { $durInput.val(formatDuration(data.duration)); calculateTotalDuration(); }
+                    if (data.title)    { $titleInput.val(data.title); }
+                    $btn.prop('disabled', false).text('Fetch');
+                },
+                error: function () {
+                    $btn.prop('disabled', false).text('Err');
+                }
+            });
+        });
 
-		// =========================================================================
-		// MODAL SYSTEM
-		// =========================================================================
+        // =====================================================================
+        // 4. ADD / REMOVE ROWS
+        // CSS in dashboard.css handles visibility of track-only and spacer-only
+        // elements via the .is-spacer class; no inline styles needed here.
+        // =====================================================================
 
-		var $modal = null;
-		var showsList = null;  // Full cached list from server
-		var selectedShowId = null;
-		var selectedShowTitle = null;
+        function addRow(type) {
+            var isSpacer = (type === 'spacer');
+            var html = `
+                <div class="tracklist-row ${isSpacer ? 'is-spacer' : ''}">
+                    <span class="drag-handle" title="Drag">|||</span>
+                    <input type="hidden" name="tracklist[9999][type]" value="${type}" class="item-type" />
+                    <input type="text" name="tracklist[9999][title]" class="item-title-input" placeholder="${isSpacer ? 'Segment Title...' : 'Artist - Track'}" />
+                    <input type="url" name="tracklist[9999][url]" class="item-url-input" placeholder="https://..." />
+                    <input type="text" name="tracklist[9999][duration]" class="item-duration-input" placeholder="3:45" />
+                    <label class="link-checkbox-label" title="Link this spacer to a section in the body content">
+                        <input type="checkbox" name="tracklist[9999][link_to_section]" class="link-to-section-checkbox" value="1" />
+                        Link
+                    </label>
+                    <button type="button" class="fetch-duration button">Fetch</button>
+                    <button type="button" class="add-to-show-btn button">Add to Show</button>
+                    <button type="button" class="remove-item button">Delete</button>
+                </div>
+            `;
+            $list.append(html);
+            refreshInputNames();
+            $list.children().last().find('.item-title-input').focus();
+        }
 
-		function createModal() {
-			var modalHtml = `
-				<div id="add-to-show-modal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
-					<div style="background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 8px; width: 80%; max-width: 600px; max-height: 70vh; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-						<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
-							<h2 id="modal-title" style="margin: 0;">Add to Show</h2>
-							<button type="button" class="modal-close" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
-						</div>
+        $wrapper.find('.add-track').on('click', function () { addRow('track'); });
+        $wrapper.find('.add-spacer').on('click', function () { addRow('spacer'); });
 
-						<div style="margin-bottom: 20px; position: relative;">
-							<label style="display: block; margin-bottom: 5px; font-weight: 600;">Search Shows:</label>
-							<input
-								type="text"
-								id="show-search-input"
-								class="widefat"
-								placeholder="Type to search..."
-								autocomplete="off"
-								style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"
-							/>
-							<ul
-								id="show-search-results"
-								style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ddd; border-top: none; border-radius: 0 0 4px 4px; margin: 0; padding: 0; list-style: none; max-height: 220px; overflow-y: auto; z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.08);"
-							></ul>
-						</div>
+        $wrapper.on('click', '.remove-item', function () {
+            $(this).closest('.tracklist-row').remove();
+            calculateTotalDuration();
+            refreshInputNames();
+        });
 
-						<div
-							id="show-selected-display"
-							style="display: none; margin-bottom: 16px; padding: 8px 12px; background: #f0f6fc; border: 1px solid #72aee6; border-radius: 4px; font-size: 13px; display: flex; align-items: center; justify-content: space-between;"
-						>
-							<span id="show-selected-label" style="font-weight: 600; color: #2271b1;"></span>
-							<button type="button" id="show-selected-clear" style="background: none; border: none; cursor: pointer; color: #999; font-size: 16px; padding: 0 0 0 8px;" title="Clear selection">&times;</button>
-						</div>
+        $wrapper.on('input change', 'input', function () {
+            calculateTotalDuration();
+        });
 
-						<div style="display: flex; gap: 10px; justify-content: flex-end;">
-							<a class="button modal-close">Cancel</a>
-							<a class="button button-primary" id="confirm-add-btn" style="pointer-events: none; opacity: 0.5;">Add</a>
-							<a class="button button-primary" href="/wp-admin/post-new.php?post_type=show" target="_blank">Create New Show</a>
-						</div>
+        // =====================================================================
+        // 5. MODAL
+        // =====================================================================
 
-						<div id="add-status" style="margin-top: 15px; padding: 10px; border-radius: 4px; display: none;"></div>
-					</div>
-				</div>
-			`;
+        var $modal         = null;
+        var showsList      = null;
+        var selectedShowId    = null;
+        var selectedShowTitle = null;
 
-			$modal = $(modalHtml);
-			$('body').append($modal);
+        // ---------------------------------------------------------------------
+        // Modal HTML builder — separated from wiring so createModal() is readable
+        // ---------------------------------------------------------------------
 
-			// Close modal handlers
-			$modal.on('click', '.modal-close', function(e) {
-				e.preventDefault();
-				hideModal();
-			});
+        function buildModalHtml() {
+            return `
+                <div id="add-to-show-modal" style="display:none; position:fixed; z-index:100000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5);">
+                    <div style="background:#fff; margin:10% auto; padding:20px; border-radius:8px; width:80%; max-width:600px; max-height:70vh; overflow-y:auto; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
 
-			// Close on background click
-			$modal.on('click', function(e) {
-				if (e.target.id === 'add-to-show-modal') {
-					hideModal();
-				}
-			});
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #ddd; padding-bottom:10px;">
+                            <h2 id="modal-title" style="margin:0;">Add to Show</h2>
+                            <button type="button" class="modal-close" style="background:none; border:none; font-size:24px; cursor:pointer; color:#666;">&times;</button>
+                        </div>
 
-			// Search input: filter the cached list
-			$modal.on('input', '#show-search-input', function() {
-				var query = $(this).val().trim().toLowerCase();
-				renderSearchResults(query);
-			});
+                        <div style="margin-bottom:20px; position:relative;">
+                            <label style="display:block; margin-bottom:5px; font-weight:600;">Search Shows:</label>
+                            <input type="text" id="show-search-input" class="widefat" placeholder="Type to search..." autocomplete="off"
+                                style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+                            <ul id="show-search-results"
+                                style="display:none; position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid #ddd; border-top:none; border-radius:0 0 4px 4px; margin:0; padding:0; list-style:none; max-height:220px; overflow-y:auto; z-index:10; box-shadow:0 4px 6px rgba(0,0,0,0.08);">
+                            </ul>
+                        </div>
 
-			// Hide results when clicking outside the search area
-			$(document).on('click.showSearch', function(e) {
-				if (!$(e.target).closest('#show-search-input, #show-search-results').length) {
-					$modal.find('#show-search-results').hide();
-				}
-			});
+                        <div id="show-selected-display"
+                            style="display:none; margin-bottom:16px; padding:8px 12px; background:#f0f6fc; border:1px solid #72aee6; border-radius:4px; font-size:13px; align-items:center; justify-content:space-between;">
+                            <span id="show-selected-label" style="font-weight:600; color:#2271b1;"></span>
+                            <button type="button" id="show-selected-clear" style="background:none; border:none; cursor:pointer; color:#999; font-size:16px; padding:0 0 0 8px;" title="Clear selection">&times;</button>
+                        </div>
 
-			// Re-show results on focus if there's a query
-			$modal.on('focus', '#show-search-input', function() {
-				var query = $(this).val().trim().toLowerCase();
-				if (query.length > 0) renderSearchResults(query);
-			});
+                        <div style="display:flex; gap:10px; justify-content:flex-end;">
+                            <a class="button modal-close">Cancel</a>
+                            <a class="button button-primary" id="confirm-add-btn" style="pointer-events:none; opacity:0.5;">Add</a>
+                            <a class="button button-primary" href="/wp-admin/post-new.php?post_type=show" target="_blank">Create New Show</a>
+                        </div>
 
-			// Clear selection
-			$modal.on('click', '#show-selected-clear', function() {
-				clearSelection();
-				$modal.find('#show-search-input').val('').focus();
-			});
+                        <div id="add-status" style="margin-top:15px; padding:10px; border-radius:4px; display:none;"></div>
+                    </div>
+                </div>
+            `;
+        }
 
-			// Handle confirm button click
-			$modal.on('click', '#confirm-add-btn', function(e) {
-				e.preventDefault();
-				if (!selectedShowId) return;
-				var mode = $modal.data('mode');
-				if (mode === 'single') {
-					addSingleItemToShow();
-				} else if (mode === 'all') {
-					copyAllItemsToShow();
-				}
-			});
-		}
+        // ---------------------------------------------------------------------
+        // createModal — wires up events; HTML comes from buildModalHtml()
+        // ---------------------------------------------------------------------
 
-		/**
-		 * Render filtered search results into the dropdown list
-		 */
-		function renderSearchResults(query) {
-			if (!showsList) return;
+        function createModal() {
+            $modal = $(buildModalHtml());
+            $('body').append($modal);
 
-			var $results = $modal.find('#show-search-results');
-			$results.empty();
+            $modal.on('click', '.modal-close', function (e) { e.preventDefault(); hideModal(); });
+            $modal.on('click', function (e) { if (e.target.id === 'add-to-show-modal') hideModal(); });
 
-			if (query.length === 0) {
-				$results.hide();
-				return;
-			}
+            $modal.on('input', '#show-search-input', function () {
+                renderSearchResults($(this).val().trim().toLowerCase());
+            });
 
-			var filtered = showsList.filter(function(show) {
-				return show.title.toLowerCase().includes(query) || show.date.includes(query);
-			});
+            $(document).on('click.showSearch', function (e) {
+                if (!$(e.target).closest('#show-search-input, #show-search-results').length) {
+                    $modal.find('#show-search-results').hide();
+                }
+            });
 
-			if (filtered.length === 0) {
-				$results.append(
-					$('<li>').text('No shows found').css({
-						padding: '8px 12px',
-						color: '#999',
-						fontStyle: 'italic',
-						fontSize: '13px'
-					})
-				);
-			} else {
-				filtered.forEach(function(show) {
-					var statusBadge = show.status === 'draft' ? ' — Draft' : '';
-					var $item = $('<li>').css({
-						padding: '8px 12px',
-						cursor: 'pointer',
-						fontSize: '13px',
-						borderBottom: '1px solid #f0f0f0'
-					}).html(
-						'<strong>' + escapeHtml(show.title) + '</strong>' +
-						'<span style="color:#999; margin-left: 6px;">' + escapeHtml(show.date) + escapeHtml(statusBadge) + '</span>'
-					).on('mouseenter', function() {
-						$(this).css('background', '#f0f6fc');
-					}).on('mouseleave', function() {
-						$(this).css('background', '');
-					}).on('click', function() {
-						selectShow(show.id, show.title);
-					});
-					$results.append($item);
-				});
-			}
+            $modal.on('focus', '#show-search-input', function () {
+                var q = $(this).val().trim().toLowerCase();
+                if (q.length > 0) renderSearchResults(q);
+            });
 
-			$results.show();
-		}
+            $modal.on('click', '#show-selected-clear', function () {
+                clearSelection();
+                $modal.find('#show-search-input').val('').focus();
+            });
 
-		/**
-		 * Commit a show selection
-		 */
-		function selectShow(id, title) {
-			selectedShowId = id;
-			selectedShowTitle = title;
+            $modal.on('click', '#confirm-add-btn', function (e) {
+                e.preventDefault();
+                if (!selectedShowId) return;
+                ($modal.data('mode') === 'single') ? addSingleItemToShow() : copyAllItemsToShow();
+            });
+        }
 
-			// Update UI
-			$modal.find('#show-search-input').val('');
-			$modal.find('#show-search-results').hide();
-			$modal.find('#show-selected-label').text(title);
-			$modal.find('#show-selected-display').css('display', 'flex');
+        // ---------------------------------------------------------------------
+        // Search results rendering
+        // ---------------------------------------------------------------------
 
-			// Enable confirm button
-			$modal.find('#confirm-add-btn').css({ 'pointer-events': '', 'opacity': '' });
-		}
+        function renderSearchResults(query) {
+            if (!showsList) return;
+            var $results = $modal.find('#show-search-results').empty();
 
-		/**
-		 * Clear the current selection
-		 */
-		function clearSelection() {
-			selectedShowId = null;
-			selectedShowTitle = null;
-			$modal.find('#show-selected-display').hide();
-			$modal.find('#confirm-add-btn').css({ 'pointer-events': 'none', 'opacity': '0.5' });
-		}
+            if (!query) { $results.hide(); return; }
 
-		function hideModal() {
-			if ($modal) {
-				$modal.hide();
-				$modal.find('#add-status').hide();
-				$modal.find('#show-search-input').val('');
-				$modal.find('#show-search-results').hide();
-				$modal.removeData('row');
-				$modal.removeData('mode');
-				clearSelection();
-			}
-		}
+            var filtered = showsList.filter(function (show) {
+                return show.title.toLowerCase().includes(query) || show.date.includes(query);
+            });
 
-		function openModal(mode, $row) {
-			if (!$modal) createModal();
+            if (filtered.length === 0) {
+                $results.append(
+                    $('<li>').text('No shows found').css({ padding: '8px 12px', color: '#999', fontStyle: 'italic', fontSize: '13px' })
+                );
+            } else {
+                filtered.forEach(function (show) {
+                    var badge = show.status === 'draft' ? ' — Draft' : '';
+                    $('<li>').css({ padding: '8px 12px', cursor: 'pointer', fontSize: '13px', borderBottom: '1px solid #f0f0f0' })
+                        .html('<strong>' + escapeHtml(show.title) + '</strong><span style="color:#999; margin-left:6px;">' + escapeHtml(show.date + badge) + '</span>')
+                        .on('mouseenter', function () { $(this).css('background', '#f0f6fc'); })
+                        .on('mouseleave', function () { $(this).css('background', ''); })
+                        .on('click',      function () { selectShow(show.id, show.title); })
+                        .appendTo($results);
+                });
+            }
+            $results.show();
+        }
 
-			// Reset
-			$modal.find('#add-status').hide();
-			clearSelection();
-			$modal.find('#show-search-input').val('');
-			$modal.find('#show-search-results').hide();
+        function selectShow(id, title) {
+            selectedShowId    = id;
+            selectedShowTitle = title;
+            $modal.find('#show-search-input').val('');
+            $modal.find('#show-search-results').hide();
+            $modal.find('#show-selected-label').text(title);
+            $modal.find('#show-selected-display').css('display', 'flex');
+            $modal.find('#confirm-add-btn').css({ 'pointer-events': '', opacity: '' });
+        }
 
-			// Configure for mode
-			if (mode === 'single') {
-				$modal.find('#modal-title').text('Add Item to Show');
-				$modal.find('#confirm-add-btn').text('Add Item');
-				$modal.data('row', $row);
-			} else {
-				$modal.find('#modal-title').text('Copy All Items to Show');
-				$modal.find('#confirm-add-btn').text('Copy All');
-				$modal.removeData('row');
-			}
-			$modal.data('mode', mode);
+        function clearSelection() {
+            selectedShowId = selectedShowTitle = null;
+            $modal.find('#show-selected-display').hide();
+            $modal.find('#confirm-add-btn').css({ 'pointer-events': 'none', opacity: '0.5' });
+        }
 
-			// Pre-load the shows list silently so search is instant
-			loadShowsList(function() {
-				$modal.show();
-				// Auto-focus search
-				setTimeout(function() { $modal.find('#show-search-input').focus(); }, 50);
-			});
-		}
+        function hideModal() {
+            if (!$modal) return;
+            $modal.hide();
+            $modal.find('#add-status').hide();
+            $modal.find('#show-search-input').val('');
+            $modal.find('#show-search-results').hide();
+            $modal.removeData('row').removeData('mode');
+            clearSelection();
+        }
 
-		function loadShowsList(callback) {
-			// Return cached list if available
-			if (showsList !== null) {
-				if (callback) callback();
-				return;
-			}
+        function openModal(mode, $row) {
+            if (!$modal) createModal();
 
-			$.post(tracklistSettings.ajax_url, {
-				action: 'get_show_posts',
-				nonce: tracklistSettings.nonce,
-				current_post_id: postId
-			}).done(function(response) {
-				if (response.success) {
-					showsList = response.data;
-					if (callback) callback();
-				} else {
-					console.error('Failed to load shows:', response);
-					if (callback) callback(); // Still open modal, search will show nothing
-				}
-			}).fail(function(jqXHR, textStatus, errorThrown) {
-				console.error('AJAX error loading shows:', textStatus, errorThrown);
-				if (callback) callback();
-			});
-		}
+            $modal.find('#add-status').hide();
+            clearSelection();
+            $modal.find('#show-search-input').val('');
+            $modal.find('#show-search-results').hide();
 
-		function addSingleItemToShow() {
-			if (!selectedShowId) {
-				showModalStatus('Please select a target show.', 'error');
-				return;
-			}
-			
-			var $row = $modal.data('row');
-			if (!$row || $row.length === 0) {
-				showModalStatus('Error: Row not found.', 'error');
-				return;
-			}
-			
-			var item = {
-				type: $row.find('.item-type').val() || 'track',
-				title: $row.find('.item-title-input').val() || '',
-				url: $row.find('.item-url-input').val() || '',
-				duration: $row.find('.item-duration-input').val() || '',
-				link_to_section: $row.find('.link-to-section-checkbox').is(':checked') ? '1' : '0'
-			};
-			
-			if (!item.title) {
-				showModalStatus('Item title is required, give me something to work with at least.', 'error');
-				return;
-			}
-			
-			var $btn = $modal.find('#confirm-add-btn');
-			$btn.prop('disabled', true).text('Adding...');
+            if (mode === 'single') {
+                $modal.find('#modal-title').text('Add Item to Show');
+                $modal.find('#confirm-add-btn').text('Add Item');
+                $modal.data('row', $row);
+            } else {
+                $modal.find('#modal-title').text('Copy All Items to Show');
+                $modal.find('#confirm-add-btn').text('Copy All');
+                $modal.removeData('row');
+            }
+            $modal.data('mode', mode);
 
-			$.post(tracklistSettings.ajax_url, {
-				action: 'add_single_item_to_show',
-				nonce: tracklistSettings.nonce,
-				target_post_id: selectedShowId,
-				item: item
-			}).done(function(response) {
-				if (response.success) {
-					showModalStatus('Item added successfully!', 'success');
-					setTimeout(function() { hideModal(); }, 1100);
-				} else {
-					showModalStatus('Error: ' + (response.data.message || 'Unknown error'), 'error');
-					$btn.prop('disabled', false).text('Add Item');
-				}
-			}).fail(function(jqXHR, textStatus, errorThrown) {
-				showModalStatus('Request failed. Please try again.', 'error');
-				$btn.prop('disabled', false).text('Add Item');
-				console.error('AJAX error adding item:', textStatus, errorThrown);
-			});
-		}
+            loadShowsList(function () {
+                $modal.show();
+                setTimeout(function () { $modal.find('#show-search-input').focus(); }, 50);
+            });
+        }
 
-		function copyAllItemsToShow() {
-			if (!selectedShowId) {
-				showModalStatus('Please select a target show.', 'error');
-				return;
-			}
+        // ---------------------------------------------------------------------
+        // AJAX helpers
+        // ---------------------------------------------------------------------
 
-			var allItems = [];
-			$list.find('.tracklist-row').each(function() {
-				var $row = $(this);
-				var title = $row.find('.item-title-input').val();
-				if (title) {
-					allItems.push({
-						type: $row.find('.item-type').val() || 'track',
-						title: title,
-						url: $row.find('.item-url-input').val() || '',
-						duration: $row.find('.item-duration-input').val() || '',
-						link_to_section: $row.find('.link-to-section-checkbox').is(':checked') ? '1' : '0'
-					});
-				}
-			});
+        function loadShowsList(callback) {
+            if (showsList !== null) { if (callback) callback(); return; }
 
-			if (allItems.length === 0) {
-				showModalStatus('No items to copy, what are you trying to do here, exactly?', 'error');
-				return;
-			}
+            $.post(tracklistSettings.ajax_url, {
+                action: 'get_show_posts',
+                nonce:  tracklistSettings.nonce,
+                current_post_id: postId
+            }).done(function (response) {
+                if (response.success) showsList = response.data;
+                else console.error('Failed to load shows:', response);
+                if (callback) callback();
+            }).fail(function (xhr, status, err) {
+                console.error('AJAX error loading shows:', status, err);
+                if (callback) callback();
+            });
+        }
 
-			var $btn = $modal.find('#confirm-add-btn');
-			$btn.prop('disabled', true).text('Copying...');
+        function addSingleItemToShow() {
+            if (!selectedShowId) return showModalStatus('Please select a target show.', 'error');
 
-			$.post(tracklistSettings.ajax_url, {
-				action: 'copy_items_to_show',
-				nonce: tracklistSettings.nonce,
-				target_post_id: selectedShowId,
-				items: allItems
-			}).done(function(response) {
-				if (response.success) {
-					showModalStatus(`Successfully copied ${response.data.count} item(s)!`, 'success');
-					setTimeout(function() { hideModal(); }, 1100);
-				} else {
-					showModalStatus('Error: ' + (response.data.message || 'Unknown error'), 'error');
-					$btn.prop('disabled', false).text('Copy All');
-				}
-			}).fail(function(jqXHR, textStatus, errorThrown) {
-				showModalStatus('Request failed. Please try again.', 'error');
-				$btn.prop('disabled', false).text('Copy All');
-				console.error('AJAX error copying items:', textStatus, errorThrown);
-			});
-		}
+            var $row = $modal.data('row');
+            if (!$row || !$row.length) return showModalStatus('Error: Row not found.', 'error');
 
-		function showModalStatus(message, type) {
-			var $status = $modal.find('#add-status');
-			var bgColor = type === 'success' ? '#d4edda' : '#f8d7da';
-			var textColor = type === 'success' ? '#155724' : '#721c24';
-			var borderColor = type === 'success' ? '#c3e6cb' : '#f5c6cb';
-			
-			$status.css({
-				'background-color': bgColor,
-				'color': textColor,
-				'border': '1px solid ' + borderColor
-			}).html(message).show();
-			
-			if (type === 'success') {
-				setTimeout(function() { $status.fadeOut(); }, 1100);
-			}
-		}
+            var item = {
+                type:            $row.find('.item-type').val() || 'track',
+                title:           $row.find('.item-title-input').val() || '',
+                url:             $row.find('.item-url-input').val() || '',
+                duration:        $row.find('.item-duration-input').val() || '',
+                link_to_section: $row.find('.link-to-section-checkbox').is(':checked') ? '1' : '0'
+            };
 
-		function escapeHtml(text) {
-			if (!text) return '';
-			var map = {
-				'&': '&amp;',
-				'<': '&lt;',
-				'>': '&gt;',
-				'"': '&quot;',
-				"'": '&#039;'
-			};
-			return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
-		}
+            if (!item.title) return showModalStatus('Item title is required, give me something to work with at least.', 'error');
 
-		// =========================================================================
-		// BUTTON CLICK HANDLERS
-		// =========================================================================
+            var $btn = $modal.find('#confirm-add-btn').prop('disabled', true).text('Adding...');
 
-		// Individual "Add to Show" button
-		$wrapper.on('click', '.add-to-show-btn', function(e) {
-			e.preventDefault();
-			var $row = $(this).closest('.tracklist-row');
-			openModal('single', $row);
-		});
+            $.post(tracklistSettings.ajax_url, {
+                action: 'add_single_item_to_show',
+                nonce:  tracklistSettings.nonce,
+                target_post_id: selectedShowId,
+                item: item
+            }).done(function (response) {
+                if (response.success) { showModalStatus('Item added successfully!', 'success'); setTimeout(hideModal, 1100); }
+                else { showModalStatus('Error: ' + (response.data.message || 'Unknown error'), 'error'); $btn.prop('disabled', false).text('Add Item'); }
+            }).fail(function (xhr, status, err) {
+                showModalStatus('Request failed. Please try again.', 'error');
+                $btn.prop('disabled', false).text('Add Item');
+                console.error('AJAX error:', status, err);
+            });
+        }
 
-		// Bulk "Copy All to Show" button
-		$wrapper.on('click', '.copy-all-to-show-btn', function(e) {
-			e.preventDefault();
-			openModal('all');
-		});
+        function copyAllItemsToShow() {
+            if (!selectedShowId) return showModalStatus('Please select a target show.', 'error');
 
-		// Initialize calculations
-		calculateTotalDuration();
-	}
+            var allItems = [];
+            $list.find('.tracklist-row').each(function () {
+                var $row  = $(this);
+                var title = $row.find('.item-title-input').val();
+                if (!title) return;
+                allItems.push({
+                    type:            $row.find('.item-type').val() || 'track',
+                    title:           title,
+                    url:             $row.find('.item-url-input').val() || '',
+                    duration:        $row.find('.item-duration-input').val() || '',
+                    link_to_section: $row.find('.link-to-section-checkbox').is(':checked') ? '1' : '0'
+                });
+            });
+
+            if (!allItems.length) return showModalStatus('No items to copy, what are you trying to do here, exactly?', 'error');
+
+            var $btn = $modal.find('#confirm-add-btn').prop('disabled', true).text('Copying...');
+
+            $.post(tracklistSettings.ajax_url, {
+                action: 'copy_items_to_show',
+                nonce:  tracklistSettings.nonce,
+                target_post_id: selectedShowId,
+                items: allItems
+            }).done(function (response) {
+                if (response.success) { showModalStatus(`Successfully copied ${response.data.count} item(s)!`, 'success'); setTimeout(hideModal, 1100); }
+                else { showModalStatus('Error: ' + (response.data.message || 'Unknown error'), 'error'); $btn.prop('disabled', false).text('Copy All'); }
+            }).fail(function (xhr, status, err) {
+                showModalStatus('Request failed. Please try again.', 'error');
+                $btn.prop('disabled', false).text('Copy All');
+                console.error('AJAX error:', status, err);
+            });
+        }
+
+        function showModalStatus(message, type) {
+            var isSuccess = type === 'success';
+            $modal.find('#add-status').css({
+                'background-color': isSuccess ? '#d4edda' : '#f8d7da',
+                'color':            isSuccess ? '#155724' : '#721c24',
+                'border':           '1px solid ' + (isSuccess ? '#c3e6cb' : '#f5c6cb')
+            }).html(message).show();
+            if (isSuccess) setTimeout(function () { $modal.find('#add-status').fadeOut(); }, 1100);
+        }
+
+        // =====================================================================
+        // 6. BUTTON HANDLERS
+        // =====================================================================
+
+        $wrapper.on('click', '.add-to-show-btn',    function (e) { e.preventDefault(); openModal('single', $(this).closest('.tracklist-row')); });
+        $wrapper.on('click', '.copy-all-to-show-btn', function (e) { e.preventDefault(); openModal('all'); });
+
+        // =====================================================================
+        // 7. INIT
+        // =====================================================================
+
+        calculateTotalDuration();
+    }
 });
