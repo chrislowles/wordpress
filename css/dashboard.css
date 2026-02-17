@@ -1,6 +1,3 @@
-/* TODO: comprehensive dark mode css for all dashboard UI elements with fallbacks */
-/* @media (prefers-color-scheme: dark) {} */
-
 html, body {
 	font-family: "Lexend", sans-serif;
 	font-optical-sizing: auto;
@@ -11,8 +8,8 @@ html, body {
 }
 
 /* ==========================================================================
-	TRACKLIST METABOX STYLES
-	========================================================================== */
+   TRACKLIST METABOX STYLES
+   ========================================================================== */
 
 #tracklist-container,
 .tracklist-wrapper {
@@ -37,7 +34,7 @@ html, body {
 	border-radius: 4px;
 }
 
-/* Style specifically for the Spacer rows */
+/* Style specifically for Spacer rows */
 .tracklist-row.is-spacer {
 	background: #F0F0F1;
 	border: 2px solid #72AEE6;
@@ -88,20 +85,33 @@ html, body {
 	color: #FFF;
 	border-color: #2271B1;
 }
+.copy-to-show-btn:hover  { background: #135E96; border-color: #135E96; }
+.copy-to-show-btn:active { background: #0A4B78; border-color: #0A4B78; }
 
-.copy-to-show-btn:hover {
-	background: #135E96;
-	border-color: #135E96;
+/* ==========================================================================
+   TRACKLIST ROW VISIBILITY
+   Controls which fields show for track rows vs spacer rows.
+   PHP (render_editor_html) and JS (addRow / buildSpacerRowHtml) rely on
+   these rules instead of inline styles.
+   ========================================================================== */
+
+/* Track-only fields: hidden inside spacer rows */
+.tracklist-row.is-spacer .item-url-input,
+.tracklist-row.is-spacer .item-duration-input,
+.tracklist-row.is-spacer .fetch-duration {
+	display: none;
 }
 
-.copy-to-show-btn:active {
-	background: #0A4B78;
-	border-color: #0A4B78;
+/* Spacer-only fields: hidden inside track rows */
+.tracklist-row .link-checkbox-label {
+	display: none;
 }
-
-/* Link Checkbox for Spacers */
-.link-checkbox-label {
+.tracklist-row.is-spacer .link-checkbox-label {
 	display: flex;
+}
+
+/* Link Checkbox label */
+.link-checkbox-label {
 	align-items: center;
 	gap: 4px;
 	font-size: 12px;
@@ -118,7 +128,7 @@ html, body {
 	cursor: pointer;
 }
 
-/* The grey dotted box that appears when you are dragging an item */
+/* The grey dotted placeholder shown when dragging an item */
 .placeholder-highlight {
 	border: 2px dashed #CCC;
 	height: 45px;
@@ -126,7 +136,7 @@ html, body {
 	background: #F9F9F9;
 }
 
-/* Total duration display styling */
+/* Total duration display */
 #total-duration,
 .total-duration-display {
 	font-size: 16px;
@@ -136,48 +146,38 @@ html, body {
 }
 
 /* ==========================================================================
-	STICKY SCROLLABLE CONTROLS BAR
-	========================================================================== 
-*/
+   STICKY SCROLLABLE CONTROLS BAR
+   ========================================================================== */
+
 .tracklist-controls {
 	position: sticky;
 	bottom: 0;
 	z-index: 50;
-	background: #F6F7F7; /* Matches WP Metabox Footer BG */
+	background: #F6F7F7;
 	border-top: 1px solid #DCDCDE;
 	padding: 10px;
-	
-	/* Negative margins to sit flush with container edges */
 	margin: 10px -12px -12px -12px;
-	
-	/* Flexbox Layout */
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	
-	/* Key properties for scrolling */
 	flex-wrap: nowrap;
 	overflow-x: auto;
-	-webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
-	
-	/* Ensure container respects layout */
+	-webkit-overflow-scrolling: touch;
 	width: auto;
 	max-width: 100%;
 }
 
-/* Ensure items don't shrink inside the scrollable area */
 .tracklist-controls > * {
 	flex-shrink: 0;
 }
 
-/* Mobile responsive adjustments - using container queries */
-@container (max-width: 1024px) {
+/* Mobile responsive adjustments */
+@container tracklist (max-width: 1024px) {
 	.tracklist-row {
 		gap: 8px;
 		padding: 8px;
 	}
 
-	/* Drag handle stays with item title */
 	.tracklist-row .drag-handle {
 		order: 1;
 		font-size: 24px;
@@ -185,44 +185,14 @@ html, body {
 		touch-action: none;
 	}
 
-	.tracklist-row .item-title-input {
-		order: 2;
-		flex-basis: calc(100% - 50px); /* Account for drag handle width */
-	}
+	.tracklist-row .item-title-input    { order: 2; flex-basis: calc(100% - 50px); }
+	.tracklist-row .item-url-input      { order: 3; flex-basis: 100%; }
+	.tracklist-row .item-duration-input { order: 4; flex-basis: 100%; }
+	.tracklist-row .link-checkbox-label { order: 5; flex-basis: 100%; }
+	.tracklist-row .fetch-duration      { order: 6; flex-basis: 100%; }
+	.tracklist-row .add-to-show-btn     { order: 7; flex-basis: 100%; }
+	.tracklist-row .remove-item         { order: 8; flex-basis: 100%; }
 
-	/* Full width inputs and buttons below */
-	.tracklist-row .item-url-input {
-		order: 3;
-		flex-basis: 100%;
-	}
-	
-	.tracklist-row .item-duration-input {
-		order: 4;
-		flex-basis: 100%;
-	}
-	
-	.tracklist-row .link-checkbox-label {
-		order: 5;
-		flex-basis: 100%;
-	}
-	
-	.tracklist-row .fetch-duration {
-		order: 6;
-		flex-basis: 100%;
-	}
-	
-  .tracklist-row .add-to-show-btn {
-		order: 7;
-		flex-basis: 100%;
-	}
-
-	
-	.tracklist-row .remove-item {
-		order: 8;
-		flex-basis: 100%;
-	}
-	
-	/* Smaller buttons on mobile */
 	.tracklist-row .button {
 		font-size: 12px;
 		padding: 8px;
@@ -232,8 +202,8 @@ html, body {
 }
 
 /* ==========================================================================
-	AGENDA SCRATCHPAD STYLES
-	========================================================================== */
+   AGENDA SCRATCHPAD STYLES
+   ========================================================================== */
 
 #agenda-wrapper {
 	position: relative;
@@ -261,10 +231,7 @@ html, body {
 /* Agenda Locking Overlay */
 #agenda-lock-overlay {
 	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
+	top: 0; left: 0; right: 0; bottom: 0;
 	background: rgba(255, 255, 255, 0.85);
 	z-index: 10;
 	display: flex;
@@ -277,7 +244,6 @@ html, body {
 	display: none;
 }
 
-/* Shared Lock Message Style */
 .lock-message {
 	background: #fff;
 	padding: 15px 20px;
@@ -285,7 +251,7 @@ html, body {
 	box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 	border: 1px solid #dcdcde;
 	font-weight: 500;
-	color: #d63638; /* WordPress Error Red */
+	color: #d63638;
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -295,11 +261,6 @@ html, body {
 	font-size: 16px;
 	line-height: 1.41 !important;
 	border: 2px solid red;
-	/*position: sticky !important;
-	top: calc(32px + 10px) !important;
-	max-height: calc(100vh - 100px);
-	overflow-y: auto;
-	z-index: 100000 !important;*/
 }
 
 .notice.nagging p {
@@ -311,13 +272,8 @@ html, body {
 	font-weight: bold;
 }
 
-.notice.nagging details:not([open]) summary {
-	padding: 8px 0;
-}
-
-.notice.nagging details[open] summary {
-	padding: 8px 0 0;
-}
+.notice.nagging details:not([open]) summary { padding: 8px 0; }
+.notice.nagging details[open] summary        { padding: 8px 0 0; }
 
 .notice.nagging details[open] ul {
 	list-style: disc;
