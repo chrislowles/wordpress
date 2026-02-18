@@ -1,4 +1,4 @@
-jQuery(document).ready(function ($) {
+jQuery(document).ready($ => {
 
     var $wrapper = $('.tracklist-wrapper');
     if ($wrapper.length === 0) return;
@@ -23,7 +23,7 @@ jQuery(document).ready(function ($) {
             handle: '.drag-handle',
             placeholder: 'placeholder-highlight',
             axis: 'y',
-            update: function () {
+            update: () => {
                 calculateTotalDuration();
                 refreshInputNames();
             }
@@ -35,15 +35,15 @@ jQuery(document).ready(function ($) {
 
         function calculateTotalDuration() {
             var total = 0;
-            $list.find('.tracklist-row:not(.is-spacer)').each(function () {
+            $list.find('.tracklist-row:not(.is-spacer)').each(() => {
                 total += parseToSeconds($(this).find('.item-duration-input').val());
             });
             $durationDisplay.text(formatDuration(total));
         }
 
         function refreshInputNames() {
-            $list.find('.tracklist-row').each(function (index) {
-                $(this).find('input, select, textarea').each(function () {
+            $list.find('.tracklist-row').each(index => {
+                $(this).find('input, select, textarea').each(() => {
                     var name = $(this).attr('name');
                     if (name) $(this).attr('name', name.replace(/\[\d+\]/, '[' + index + ']'));
                 });
@@ -61,7 +61,7 @@ jQuery(document).ready(function ($) {
         // 3. FETCH DURATION (noembed API)
         // =====================================================================
 
-        $wrapper.on('click', '.fetch-duration', function () {
+        $wrapper.on('click', '.fetch-duration', () => {
             var $btn      = $(this);
             var $row      = $btn.closest('.tracklist-row');
             var url       = $row.find('.item-url-input').val();
@@ -76,12 +76,12 @@ jQuery(document).ready(function ($) {
                 url: 'https://noembed.com/embed',
                 data: { url: url },
                 dataType: 'json',
-                success: function (data) {
+                success: data => {
                     if (data.duration) { $durInput.val(formatDuration(data.duration)); calculateTotalDuration(); }
                     if (data.title)    { $titleInput.val(data.title); }
                     $btn.prop('disabled', false).text('Fetch');
                 },
-                error: function () {
+                error: () => {
                     $btn.prop('disabled', false).text('Err');
                 }
             });
@@ -116,16 +116,16 @@ jQuery(document).ready(function ($) {
             $list.children().last().find('.item-title-input').focus();
         }
 
-        $wrapper.find('.add-track').on('click', function () { addRow('track'); });
-        $wrapper.find('.add-spacer').on('click', function () { addRow('spacer'); });
+        $wrapper.find('.add-track').on('click', () => { addRow('track'); });
+        $wrapper.find('.add-spacer').on('click', () => { addRow('spacer'); });
 
-        $wrapper.on('click', '.remove-item', function () {
+        $wrapper.on('click', '.remove-item', () => {
             $(this).closest('.tracklist-row').remove();
             calculateTotalDuration();
             refreshInputNames();
         });
 
-        $wrapper.on('input change', 'input', function () {
+        $wrapper.on('input change', 'input', () => {
             calculateTotalDuration();
         });
 
@@ -133,10 +133,10 @@ jQuery(document).ready(function ($) {
         // 5. MODAL
         // =====================================================================
 
-        var $modal         = null;
-        var showsList      = null;
-        var selectedShowId    = null;
-        var selectedShowTitle = null;
+        var $modal              = null;
+        var showsList           = null;
+        var selectedShowId      = null;
+        var selectedShowTitle   = null;
 
         // ---------------------------------------------------------------------
         // Modal HTML builder — separated from wiring so createModal() is readable
@@ -187,30 +187,37 @@ jQuery(document).ready(function ($) {
             $modal = $(buildModalHtml());
             $('body').append($modal);
 
-            $modal.on('click', '.modal-close', function (e) { e.preventDefault(); hideModal(); });
-            $modal.on('click', function (e) { if (e.target.id === 'add-to-show-modal') hideModal(); });
+            $modal.on('click', '.modal-close', e => {
+                e.preventDefault();
+                hideModal();
+            });
+            $modal.on('click', e => {
+                if (e.target.id === 'add-to-show-modal') {
+                    hideModal();
+                }
+            });
 
-            $modal.on('input', '#show-search-input', function () {
+            $modal.on('input', '#show-search-input', () => {
                 renderSearchResults($(this).val().trim().toLowerCase());
             });
 
-            $(document).on('click.showSearch', function (e) {
+            $(document).on('click.showSearch', e => {
                 if (!$(e.target).closest('#show-search-input, #show-search-results').length) {
                     $modal.find('#show-search-results').hide();
                 }
             });
 
-            $modal.on('focus', '#show-search-input', function () {
+            $modal.on('focus', '#show-search-input', () => {
                 var q = $(this).val().trim().toLowerCase();
                 if (q.length > 0) renderSearchResults(q);
             });
 
-            $modal.on('click', '#show-selected-clear', function () {
+            $modal.on('click', '#show-selected-clear', () => {
                 clearSelection();
                 $modal.find('#show-search-input').val('').focus();
             });
 
-            $modal.on('click', '#confirm-add-btn', function (e) {
+            $modal.on('click', '#confirm-add-btn', e => {
                 e.preventDefault();
                 if (!selectedShowId) return;
                 ($modal.data('mode') === 'single') ? addSingleItemToShow() : copyAllItemsToShow();
@@ -227,23 +234,33 @@ jQuery(document).ready(function ($) {
 
             if (!query) { $results.hide(); return; }
 
-            var filtered = showsList.filter(function (show) {
+            var filtered = showsList.filter(show => {
                 return show.title.toLowerCase().includes(query) || show.date.includes(query);
             });
 
             if (filtered.length === 0) {
                 $results.append(
-                    $('<li>').text('No shows found').css({ padding: '8px 12px', color: '#999', fontStyle: 'italic', fontSize: '13px' })
+                    $('<li>').text('No shows found').css({
+                        padding: '8px 12px',
+                        color: '#999',
+                        fontStyle: 'italic',
+                        fontSize: '13px'
+                    })
                 );
             } else {
-                filtered.forEach(function (show) {
+                filtered.forEach(show => {
                     var badge = show.status === 'draft' ? ' — Draft' : '';
-                    $('<li>').css({ padding: '8px 12px', cursor: 'pointer', fontSize: '13px', borderBottom: '1px solid #f0f0f0' })
-                        .html('<strong>' + escapeHtml(show.title) + '</strong><span style="color:#999; margin-left:6px;">' + escapeHtml(show.date + badge) + '</span>')
-                        .on('mouseenter', function () { $(this).css('background', '#f0f6fc'); })
-                        .on('mouseleave', function () { $(this).css('background', ''); })
-                        .on('click',      function () { selectShow(show.id, show.title); })
-                        .appendTo($results);
+                    $('<li>').css({
+                        padding: '8px 12px',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        borderBottom: '1px solid #F0F0F0'
+                    })
+                    .html('<strong>' + escapeHtml(show.title) + '</strong><span style="color:#999; margin-left:6px;">' + escapeHtml(show.date + badge) + '</span>')
+                    .on('mouseenter', () => { $(this).css('background', '#f0f6fc'); })
+                    .on('mouseleave', () => { $(this).css('background', ''); })
+                    .on('click',      () => { selectShow(show.id, show.title); })
+                    .appendTo($results);
                 });
             }
             $results.show();
@@ -256,13 +273,19 @@ jQuery(document).ready(function ($) {
             $modal.find('#show-search-results').hide();
             $modal.find('#show-selected-label').text(title);
             $modal.find('#show-selected-display').css('display', 'flex');
-            $modal.find('#confirm-add-btn').css({ 'pointer-events': '', opacity: '' });
+            $modal.find('#confirm-add-btn').css({
+                'pointer-events': '',
+                opacity: ''
+            });
         }
 
         function clearSelection() {
             selectedShowId = selectedShowTitle = null;
             $modal.find('#show-selected-display').hide();
-            $modal.find('#confirm-add-btn').css({ 'pointer-events': 'none', opacity: '0.5' });
+            $modal.find('#confirm-add-btn').css({
+                'pointer-events': 'none',
+                opacity: '0.5'
+            });
         }
 
         function hideModal() {
@@ -294,9 +317,9 @@ jQuery(document).ready(function ($) {
             }
             $modal.data('mode', mode);
 
-            loadShowsList(function () {
+            loadShowsList(() => {
                 $modal.show();
-                setTimeout(function () { $modal.find('#show-search-input').focus(); }, 50);
+                setTimeout(() => { $modal.find('#show-search-input').focus(); }, 50);
             });
         }
 
@@ -311,11 +334,11 @@ jQuery(document).ready(function ($) {
                 action: 'get_show_posts',
                 nonce:  tracklistSettings.nonce,
                 current_post_id: postId
-            }).done(function (response) {
+            }).done(response => {
                 if (response.success) showsList = response.data;
                 else console.error('Failed to load shows:', response);
                 if (callback) callback();
-            }).fail(function (xhr, status, err) {
+            }).fail((xhr, status, err) => {
                 console.error('AJAX error loading shows:', status, err);
                 if (callback) callback();
             });
@@ -344,10 +367,10 @@ jQuery(document).ready(function ($) {
                 nonce:  tracklistSettings.nonce,
                 target_post_id: selectedShowId,
                 item: item
-            }).done(function (response) {
+            }).done(response => {
                 if (response.success) { showModalStatus('Item added successfully!', 'success'); setTimeout(hideModal, 1100); }
                 else { showModalStatus('Error: ' + (response.data.message || 'Unknown error'), 'error'); $btn.prop('disabled', false).text('Add Item'); }
-            }).fail(function (xhr, status, err) {
+            }).fail((xhr, status, err) => {
                 showModalStatus('Request failed. Please try again.', 'error');
                 $btn.prop('disabled', false).text('Add Item');
                 console.error('AJAX error:', status, err);
@@ -358,7 +381,7 @@ jQuery(document).ready(function ($) {
             if (!selectedShowId) return showModalStatus('Please select a target show.', 'error');
 
             var allItems = [];
-            $list.find('.tracklist-row').each(function () {
+            $list.find('.tracklist-row').each(() => {
                 var $row  = $(this);
                 var title = $row.find('.item-title-input').val();
                 if (!title) return;
@@ -380,10 +403,10 @@ jQuery(document).ready(function ($) {
                 nonce:  tracklistSettings.nonce,
                 target_post_id: selectedShowId,
                 items: allItems
-            }).done(function (response) {
+            }).done(response => {
                 if (response.success) { showModalStatus(`Successfully copied ${response.data.count} item(s)!`, 'success'); setTimeout(hideModal, 1100); }
                 else { showModalStatus('Error: ' + (response.data.message || 'Unknown error'), 'error'); $btn.prop('disabled', false).text('Copy All'); }
-            }).fail(function (xhr, status, err) {
+            }).fail((xhr, status, err) => {
                 showModalStatus('Request failed. Please try again.', 'error');
                 $btn.prop('disabled', false).text('Copy All');
                 console.error('AJAX error:', status, err);
@@ -393,19 +416,19 @@ jQuery(document).ready(function ($) {
         function showModalStatus(message, type) {
             var isSuccess = type === 'success';
             $modal.find('#add-status').css({
-                'background-color': isSuccess ? '#d4edda' : '#f8d7da',
-                'color':            isSuccess ? '#155724' : '#721c24',
-                'border':           '1px solid ' + (isSuccess ? '#c3e6cb' : '#f5c6cb')
+                'background-color': isSuccess ? '#D4EDDA' : '#F8D7DA',
+                'color':            isSuccess ? '#155724' : '#721C24',
+                'border':           '1px solid ' + (isSuccess ? '#C3E6CB' : '#F5C6CB')
             }).html(message).show();
-            if (isSuccess) setTimeout(function () { $modal.find('#add-status').fadeOut(); }, 1100);
+            if (isSuccess) setTimeout(() => $modal.find('#add-status').fadeOut(), 1100);
         }
 
         // =====================================================================
         // 6. BUTTON HANDLERS
         // =====================================================================
 
-        $wrapper.on('click', '.add-to-show-btn',    function (e) { e.preventDefault(); openModal('single', $(this).closest('.tracklist-row')); });
-        $wrapper.on('click', '.copy-all-to-show-btn', function (e) { e.preventDefault(); openModal('all'); });
+        $wrapper.on('click', '.add-to-show-btn',    e => { e.preventDefault(); openModal('single', $(this).closest('.tracklist-row')); });
+        $wrapper.on('click', '.copy-all-to-show-btn', e => { e.preventDefault(); openModal('all'); });
 
         // =====================================================================
         // 7. INIT
