@@ -1,4 +1,4 @@
-jQuery(document).ready(function($) {
+jQuery(document).ready($ => {
 
     var $wrapper = $('.tracklist-wrapper');
     if ($wrapper.length === 0) return;
@@ -23,7 +23,7 @@ jQuery(document).ready(function($) {
             handle: '.drag-handle',
             placeholder: 'placeholder-highlight',
             axis: 'y',
-            update: function() {
+            update: () => {
                 calculateTotalDuration();
                 refreshInputNames();
             }
@@ -58,37 +58,7 @@ jQuery(document).ready(function($) {
         };
 
         // =====================================================================
-        // 3. FETCH DURATION (noembed API)
-        // =====================================================================
-
-        $wrapper.on('click', '.fetch-duration', function() {
-            var $btn      = $(this);
-            var $row      = $btn.closest('.tracklist-row');
-            var url       = $row.find('.item-url-input').val();
-            var $durInput = $row.find('.item-duration-input');
-            var $titleInput = $row.find('.item-title-input');
-
-            if (!url) return alert('Enter URL first');
-
-            $btn.prop('disabled', true).text('...');
-
-            $.ajax({
-                url: 'https://noembed.com/embed',
-                data: { url: url },
-                dataType: 'json',
-                success: function(data) {
-                    if (data.duration) { $durInput.val(formatDuration(data.duration)); calculateTotalDuration(); }
-                    if (data.title)    { $titleInput.val(data.title); }
-                    $btn.prop('disabled', false).text('Fetch');
-                },
-                error: function() {
-                    $btn.prop('disabled', false).text('Err');
-                }
-            });
-        });
-
-        // =====================================================================
-        // 4. ADD / REMOVE ROWS
+        // 3. ADD / REMOVE ROWS
         // CSS in dashboard.css handles visibility of track-only and spacer-only
         // elements via the .is-spacer class; no inline styles needed here.
         // =====================================================================
@@ -106,7 +76,6 @@ jQuery(document).ready(function($) {
                         <input type="checkbox" name="tracklist[9999][link_to_section]" class="link-to-section-checkbox" value="1" />
                         Link
                     </label>
-                    <button type="button" class="fetch-duration button">Fetch</button>
                     <button type="button" class="add-to-show-btn button">Add to Show</button>
                     <button type="button" class="remove-item button">Delete</button>
                 </div>
@@ -116,8 +85,8 @@ jQuery(document).ready(function($) {
             $list.children().last().find('.item-title-input').focus();
         }
 
-        $wrapper.find('.add-track').on('click', function() { addRow('track'); });
-        $wrapper.find('.add-spacer').on('click', function() { addRow('spacer'); });
+        $wrapper.find('.add-track').on('click', () => { addRow('track'); });
+        $wrapper.find('.add-spacer').on('click', () => { addRow('spacer'); });
 
         $wrapper.on('click', '.remove-item', function() {
             $(this).closest('.tracklist-row').remove();
@@ -125,12 +94,12 @@ jQuery(document).ready(function($) {
             refreshInputNames();
         });
 
-        $wrapper.on('input change', 'input', function() {
+        $wrapper.on('input change', 'input', () => {
             calculateTotalDuration();
         });
 
         // =====================================================================
-        // 5. MODAL
+        // 4. MODAL
         // =====================================================================
 
         var $modal              = null;
@@ -187,11 +156,11 @@ jQuery(document).ready(function($) {
             $modal = $(buildModalHtml());
             $('body').append($modal);
 
-            $modal.on('click', '.modal-close', function(e) {
+            $modal.on('click', '.modal-close', e => {
                 e.preventDefault();
                 hideModal();
             });
-            $modal.on('click', function(e) {
+            $modal.on('click', e => {
                 if (e.target.id === 'add-to-show-modal') {
                     hideModal();
                 }
@@ -201,7 +170,7 @@ jQuery(document).ready(function($) {
                 renderSearchResults($(this).val().trim().toLowerCase());
             });
 
-            $(document).on('click.showSearch', function(e) {
+            $(document).on('click.showSearch', e => {
                 if (!$(e.target).closest('#show-search-input, #show-search-results').length) {
                     $modal.find('#show-search-results').hide();
                 }
@@ -212,12 +181,12 @@ jQuery(document).ready(function($) {
                 if (q.length > 0) renderSearchResults(q);
             });
 
-            $modal.on('click', '#show-selected-clear', function {
+            $modal.on('click', '#show-selected-clear', () => {
                 clearSelection();
                 $modal.find('#show-search-input').val('').focus();
             });
 
-            $modal.on('click', '#confirm-add-btn', function(e) {
+            $modal.on('click', '#confirm-add-btn', e => {
                 e.preventDefault();
                 if (!selectedShowId) return;
                 ($modal.data('mode') === 'single') ? addSingleItemToShow() : copyAllItemsToShow();
@@ -234,7 +203,7 @@ jQuery(document).ready(function($) {
 
             if (!query) { $results.hide(); return; }
 
-            var filtered = showsList.filter(function(show) {
+            var filtered = showsList.filter(show => {
                 return show.title.toLowerCase().includes(query) || show.date.includes(query);
             });
 
@@ -248,7 +217,7 @@ jQuery(document).ready(function($) {
                     })
                 );
             } else {
-                filtered.forEach(function(show) {
+                filtered.forEach(show => {
                     var badge = show.status === 'draft' ? ' — Draft' : '';
                     $('<li>').css({
                         padding: '8px 12px',
@@ -317,9 +286,9 @@ jQuery(document).ready(function($) {
             }
             $modal.data('mode', mode);
 
-            loadShowsList(function() {
+            loadShowsList(() => {
                 $modal.show();
-                setTimeout(function() { $modal.find('#show-search-input').focus(); }, 50);
+                setTimeout(() => { $modal.find('#show-search-input').focus(); }, 50);
             });
         }
 
@@ -334,11 +303,11 @@ jQuery(document).ready(function($) {
                 action: 'get_show_posts',
                 nonce:  tracklistSettings.nonce,
                 current_post_id: postId
-            }).done(function(response) {
+            }).done(response => {
                 if (response.success) showsList = response.data;
                 else console.error('Failed to load shows:', response);
                 if (callback) callback();
-            }).fail(function(xhr, status, err) {
+            }).fail((xhr, status, err) => {
                 console.error('AJAX error loading shows:', status, err);
                 if (callback) callback();
             });
@@ -367,10 +336,10 @@ jQuery(document).ready(function($) {
                 nonce:  tracklistSettings.nonce,
                 target_post_id: selectedShowId,
                 item: item
-            }).done(function(response) {
+            }).done(response => {
                 if (response.success) { showModalStatus('Item added successfully!', 'success'); setTimeout(hideModal, 1100); }
                 else { showModalStatus('Error: ' + (response.data.message || 'Unknown error'), 'error'); $btn.prop('disabled', false).text('Add Item'); }
-            }).fail(function(xhr, status, err) {
+            }).fail((xhr, status, err) => {
                 showModalStatus('Request failed. Please try again.', 'error');
                 $btn.prop('disabled', false).text('Add Item');
                 console.error('AJAX error:', status, err);
@@ -403,10 +372,10 @@ jQuery(document).ready(function($) {
                 nonce:  tracklistSettings.nonce,
                 target_post_id: selectedShowId,
                 items: allItems
-            }).done(function(response) {
+            }).done(response => {
                 if (response.success) { showModalStatus(`Successfully copied ${response.data.count} item(s)!`, 'success'); setTimeout(hideModal, 1100); }
                 else { showModalStatus('Error: ' + (response.data.message || 'Unknown error'), 'error'); $btn.prop('disabled', false).text('Copy All'); }
-            }).fail(function(xhr, status, err) {
+            }).fail((xhr, status, err) => {
                 showModalStatus('Request failed. Please try again.', 'error');
                 $btn.prop('disabled', false).text('Copy All');
                 console.error('AJAX error:', status, err);
@@ -420,26 +389,18 @@ jQuery(document).ready(function($) {
                 'color':            isSuccess ? '#155724' : '#721C24',
                 'border':           '1px solid ' + (isSuccess ? '#C3E6CB' : '#F5C6CB')
             }).html(message).show();
-            if (isSuccess) setTimeout(function() {
-                $modal.find('#add-status').fadeOut();
-            }, 1100);
+            if (isSuccess) setTimeout(() => $modal.find('#add-status').fadeOut(), 1100);
         }
 
         // =====================================================================
-        // 6. BUTTON HANDLERS
+        // 5. BUTTON HANDLERS
         // =====================================================================
 
-        $wrapper.on('click', '.add-to-show-btn', function(e) {
-            e.preventDefault();
-            openModal('single', $(this).closest('.tracklist-row'));
-        });
-        $wrapper.on('click', '.copy-all-to-show-btn', function(e) {
-            e.preventDefault();
-            openModal('all');
-        });
+        $wrapper.on('click', '.add-to-show-btn',    e => { e.preventDefault(); openModal('single', $(e.currentTarget).closest('.tracklist-row')); });
+        $wrapper.on('click', '.copy-all-to-show-btn', e => { e.preventDefault(); openModal('all'); });
 
         // =====================================================================
-        // 7. INIT
+        // 6. INIT
         // =====================================================================
 
         calculateTotalDuration();
