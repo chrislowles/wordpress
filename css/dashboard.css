@@ -97,8 +97,7 @@ html, body {
 
 /* Track-only fields: hidden inside spacer rows */
 .tracklist-row.is-spacer .item-url-input,
-.tracklist-row.is-spacer .item-duration-input,
-.tracklist-row.is-spacer .fetch-duration {
+.tracklist-row.is-spacer .item-duration-input {
 	display: none;
 }
 
@@ -189,9 +188,8 @@ html, body {
 	.tracklist-row .item-url-input      { order: 3; flex-basis: 100%; }
 	.tracklist-row .item-duration-input { order: 4; flex-basis: 100%; }
 	.tracklist-row .link-checkbox-label { order: 5; flex-basis: 100%; }
-	.tracklist-row .fetch-duration      { order: 6; flex-basis: 100%; }
-	.tracklist-row .add-to-show-btn     { order: 7; flex-basis: 100%; }
-	.tracklist-row .remove-item         { order: 8; flex-basis: 100%; }
+	.tracklist-row .add-to-show-btn     { order: 6; flex-basis: 100%; }
+	.tracklist-row .remove-item         { order: 7; flex-basis: 100%; }
 
 	.tracklist-row .button {
 		font-size: 12px;
