@@ -6,6 +6,10 @@
  * Field names: All data uses the canonical names 'title', 'url', 'duration'.
  * Legacy names ('track_title', 'track_url') are converted once by
  * migrate_tracklist_data() at every read boundary; they never reach sanitize_items().
+ *
+ * Note: the old '_show_airing_date' post meta is no longer written.  Any
+ * existing rows can be left in place (they are harmless) or cleaned up with:
+ *   DELETE FROM wp_postmeta WHERE meta_key = '_show_airing_date';
  */
 class ChrisLowles_Shows {
 
@@ -20,8 +24,8 @@ class ChrisLowles_Shows {
 		add_action('admin_notices', [$this, 'show_admin_notice']);
 
 		// Save Handlers
+		add_action('save_post_show', [$this, 'validate_publish_date'], 5);
 		add_action('save_post_show', [$this, 'save_tracklist']);
-		add_action('save_post_show', [$this, 'save_airing_date']);
 		add_action('save_post_show', [$this, 'auto_fetch_link_titles'], 20, 2);
 
 		// AJAX Handlers for cross-post transfer
@@ -33,7 +37,8 @@ class ChrisLowles_Shows {
 		// Assets & Template Button
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_assets'], 20);
 
-		// Admin Columns — Airing Date
+		// Admin Columns — Publish Date with airing status
+		// Replaces the built-in 'date' column with our status-aware version.
 		add_filter('manage_show_posts_columns',         [$this, 'airing_date_column_header']);
 		add_action('manage_show_posts_custom_column',   [$this, 'airing_date_column_content'], 10, 2);
 		add_filter('manage_edit-show_sortable_columns', [$this, 'airing_date_sortable_column']);
@@ -63,24 +68,24 @@ class ChrisLowles_Shows {
 				'name'               => 'Shows',
 				'singular_name'      => 'Show',
 			],
-			'public'             => true,
+			'public'              => true,
 			'exclude_from_search' => true,
-			'publicly_queryable' => true,
-			'show_ui'            => true,
-			'show_in_nav_menus'  => true,
-			'show_in_admin_bar'  => true,
-			'show_in_rest'       => true,
-			'capability_type'    => 'post',
-			'hierarchical'       => false,
-			'has_archive'        => true,
-			'query_var'          => true,
-			'can_export'         => true,
-			'rewrite_no_front'   => false,
-			'show_in_menu'       => true,
-			'menu_position'      => 10,
-			'menu_icon'          => 'dashicons-playlist-audio',
-			'supports'           => ['title', 'editor', 'markup_markdown', 'thumbnail'],
-			'rewrite'            => true,
+			'publicly_queryable'  => true,
+			'show_ui'             => true,
+			'show_in_nav_menus'   => true,
+			'show_in_admin_bar'   => true,
+			'show_in_rest'        => true,
+			'capability_type'     => 'post',
+			'hierarchical'        => false,
+			'has_archive'         => true,
+			'query_var'           => true,
+			'can_export'          => true,
+			'rewrite_no_front'    => false,
+			'show_in_menu'        => true,
+			'menu_position'       => 10,
+			'menu_icon'           => 'dashicons-playlist-audio',
+			'supports'            => ['title', 'editor', 'markup_markdown', 'thumbnail'],
+			'rewrite'             => true,
 		]);
 	}
 
@@ -105,19 +110,87 @@ class ChrisLowles_Shows {
 	}
 
 	// =========================================================================
+	// PUBLISH DATE VALIDATION
+	// Runs early on every show save (priority 5).  If the post is being saved
+	// as a draft with a publish date that is already in the past, stash a flag
+	// in a short-lived transient so show_admin_notice() can surface it on the
+	// next page load (after the redirect back to the edit screen).
+	// =========================================================================
+
+	public function validate_publish_date($post_id) {
+		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+		if (!current_user_can('edit_post', $post_id)) return;
+
+		// Only nag for drafts — scheduled/published posts are fine by definition.
+		$new_status = $_POST['post_status'] ?? get_post_status($post_id);
+		if ($new_status !== 'draft') return;
+
+		// WordPress sends the chosen date as separate components (aa, mm, jj, hh, mn, ss).
+		// If aa is absent we cannot judge, so bail silently.
+		if (empty($_POST['aa'])) return;
+
+		$chosen_ts = mktime(
+			(int) ($_POST['hh'] ?? 0),
+			(int) ($_POST['mn'] ?? 0),
+			(int) ($_POST['ss'] ?? 0),
+			(int) ($_POST['mm'] ?? date('n')),
+			(int) ($_POST['jj'] ?? date('j')),
+			(int) ($_POST['aa'] ?? date('Y'))
+		);
+
+		// Set a transient if the chosen publish date is already in the past.
+		if ($chosen_ts <= current_time('timestamp')) {
+			set_transient('show_overdue_notice_' . get_current_user_id(), $post_id, 60);
+		}
+	}
+
+	// =========================================================================
 	// ADMIN NOTICE
 	// =========================================================================
 
 	public function show_admin_notice() {
 		$screen = get_current_screen();
 		if (!$screen || $screen->post_type !== 'show' || !in_array($screen->base, ['post', 'post-new', 'edit'])) return;
+
+		// ── Overdue / no-date notices on the edit / new-post screens ─────────
+		if (in_array($screen->base, ['post', 'post-new'])) {
+			$post_id = isset($_GET['post']) ? intval($_GET['post']) : 0;
+
+			// Check transient left by validate_publish_date() after a just-completed save.
+			$flagged_id = get_transient('show_overdue_notice_' . get_current_user_id());
+			if ($flagged_id) {
+				delete_transient('show_overdue_notice_' . get_current_user_id());
+				echo '<div class="notice notice-error is-dismissible"><p>'
+					. '<strong>⚠️ Publish date is in the past.</strong> '
+					. 'This show is still a draft but its publish date has already lapsed — '
+					. 'update the date in the <em>Publish</em> panel to when the episode is expected to finish airing.</p></div>';
+
+			} elseif ($post_id) {
+				// Persistent overdue banner while the editor is open.
+				$post = get_post($post_id);
+				if ($post && $post->post_status === 'draft') {
+					$ts = strtotime($post->post_date);
+					if ($ts && $ts <= current_time('timestamp')) {
+						echo '<div class="notice notice-error"><p>'
+							. '<strong>⚠️ Overdue:</strong> '
+							. 'This draft\'s publish date (<strong>'
+							. esc_html(date_i18n('F j, Y \a\t g:i a', $ts))
+							. '</strong>) has already passed. '
+							. 'Update it in the <em>Publish</em> panel before going live.</p></div>';
+					}
+				}
+			}
+		}
+
+		// ── General show workflow nagging ─────────────────────────────────────
 		?>
 		<div class="notice nagging is-dismissible">
 			<details>
 				<summary>Show Post Nagging:</summary>
 				<ul>
-					<li><a title="Click 'Load Template'">Title formatting example:</a> Chris & Jesse: [full-length-month] [non-zero-leading-day-of-the-month] [four-digit-year] ([optional-show-theme])</li>
-					<li>Regarding nixing a show: If you intend to shift a show up to a new date, remember to adjust the slug, title, air date <em>and</em> the publish date if it's already been set.</li>
+					<li><a title="Click 'Load Template'">Title formatting example:</a> Chris &amp; Jesse: [full-length-month] [non-zero-leading-day-of-the-month] [four-digit-year] ([optional-show-theme])</li>
+					<li><strong>Set the Publish date</strong> (in the Publish panel, top-right) to when the episode is expected to finish airing — this is how the archive column tracks overdue and upcoming shows. Show posts must have an explicit future date even while drafts.</li>
+					<li>Regarding nixing a show: If you intend to shift a show up to a new date, remember to adjust the slug, title, publish date <em>and</em> the post date if it's already been set.</li>
 					<li>When accessing the Show Posts Dashboard at the station it is recommended to head directly to the <b>search function</b> located below this notice so you can find the Show Post most relevant to you, avoid scrolling through the archive if you know you can just search it.</li>
 					<li>If you find that you need to push news items into next week, open the archive "All Shows" view in a new tab and use the <b>search function</b> to see if the Show Post has already been made and add to that instead.</li>
 					<li>There are <b>(in development)</b> controls in the tracklist metabox that as of right now allow you to add rows all at once or individually into already made Show Posts within the new/edit screen, there is also a link in these modals to create a new Show Post if one doesn't come up, again search from the archive view in another tab just in case.</li>
@@ -135,53 +208,26 @@ class ChrisLowles_Shows {
 	// =========================================================================
 
 	public function add_meta_boxes() {
-		add_meta_box('tracklist_meta_box', 'Show Tracklist',      [$this, 'render_tracklist_metabox'], 'show', 'normal', 'high');
-		add_meta_box('show_airing_date',   'Expected Airing Date', [$this, 'render_airing_date_metabox'], 'show', 'side', 'high');
+		add_meta_box('tracklist_meta_box', 'Show Tracklist', [$this, 'render_tracklist_metabox'], 'show', 'normal', 'high');
+		// The separate "Expected Airing Date" meta box has been removed.
+		// Use the built-in Publish panel date/time fields instead.
 	}
 
-	// -------------------------------------------------------------------------
-	// Airing Date Metabox
-	// -------------------------------------------------------------------------
-
-	public function render_airing_date_metabox($post) {
-		wp_nonce_field('save_airing_date_meta', 'airing_date_meta_nonce');
-		$airing_date = get_post_meta($post->ID, '_show_airing_date', true);
-		?>
-		<p style="margin:0 0 8px;">
-			<label for="show_airing_date" style="display:block; margin-bottom:4px; font-weight:600;">Date &amp; Time</label>
-			<input type="datetime-local" id="show_airing_date" name="show_airing_date"
-				value="<?php echo esc_attr($airing_date); ?>" style="width:100%;" />
-		</p>
-		<p style="margin:0; color:#646970; font-size:11px;">
-			Set this to when the episode is expected to finish airing so the post goes live at the right time.
-		</p>
-		<?php
-	}
-
-	public function save_airing_date($post_id) {
-		if (!isset($_POST['airing_date_meta_nonce']) || !wp_verify_nonce($_POST['airing_date_meta_nonce'], 'save_airing_date_meta')) return;
-		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
-		if (!current_user_can('edit_post', $post_id)) return;
-
-		if (!empty($_POST['show_airing_date'])) {
-			$raw = sanitize_text_field($_POST['show_airing_date']);
-			if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', $raw)) {
-				update_post_meta($post_id, '_show_airing_date', $raw);
-			}
-		} else {
-			delete_post_meta($post_id, '_show_airing_date');
-		}
-	}
-
-	// -------------------------------------------------------------------------
-	// Airing Date Admin Columns
-	// -------------------------------------------------------------------------
+	// =========================================================================
+	// ADMIN COLUMNS — Publish Date with airing status
+	//
+	// Swaps the built-in 'date' column for our status-aware 'show_airing_date'
+	// column in the same position, reading directly from post_date.
+	// =========================================================================
 
 	public function airing_date_column_header($columns) {
 		$new = [];
 		foreach ($columns as $key => $label) {
-			$new[$key] = $label;
-			if ($key === 'title') $new['show_airing_date'] = 'Airs';
+			if ($key === 'date') {
+				$new['show_airing_date'] = 'Publish Date';
+			} else {
+				$new[$key] = $label;
+			}
 		}
 		return $new;
 	}
@@ -189,43 +235,64 @@ class ChrisLowles_Shows {
 	public function airing_date_column_content($column, $post_id) {
 		if ($column !== 'show_airing_date') return;
 
-		$airing_date = get_post_meta($post_id, '_show_airing_date', true);
-		if (empty($airing_date)) { echo '<span style="color:#a7aaad;">—</span>'; return; }
+		$post   = get_post($post_id);
+		$status = $post->post_status ?? 'draft';
 
-		$timestamp = strtotime($airing_date);
-		if (!$timestamp) { echo '<span style="color:#a7aaad;">—</span>'; return; }
+		// Published posts: plain date, no status label needed.
+		if ($status === 'publish') {
+			echo '<span style="color:#1d2327;">' . esc_html(get_the_date('Y/m/d \a\t g:i a', $post_id)) . '</span>';
+			return;
+		}
 
-		$diff      = $timestamp - current_time('timestamp');
-		$formatted = date_i18n('Y/m/d \a\t g:i a', $timestamp);
+		$ts          = strtotime($post->post_date);
+		$modified_ts = strtotime($post->post_modified);
+
+		// Draft where post_date is within 60 s of post_modified almost certainly
+		// means WordPress auto-filled "right now" and the editor never set a real
+		// date — surface a prompt rather than a misleading timestamp.
+		if (!$ts || abs($ts - $modified_ts) < 60) {
+			echo '<span style="color:#D63638; font-weight:600;">⚠ No date set</span>';
+			return;
+		}
+
+		$diff      = $ts - current_time('timestamp');
+		$formatted = date_i18n('Y/m/d \a\t g:i a', $ts);
 
 		if ($diff < 0) {
-			$label = 'Overdue';    $colour = '#D63638';
+			$label  = 'Overdue';
+			$colour = '#D63638';
+			$weight = '600';
 		} elseif ($diff < DAY_IN_SECONDS) {
-			$label = 'Airing soon'; $colour = '#DBA617';
+			$label  = 'Airing soon';
+			$colour = '#DBA617';
+			$weight = '600';
 		} else {
-			$label = 'Confirmed';  $colour = '#646970';
+			$label  = 'Confirmed';
+			$colour = '#646970';
+			$weight = 'normal';
 		}
 
 		printf(
-			'<span style="display:block; color:%1$s; font-size:13px; margin-bottom:1px;">%2$s</span>'
+			'<span style="display:block; color:%1$s; font-size:13px; font-weight:%4$s; margin-bottom:1px;">%2$s</span>'
 			. '<span style="display:block; color:#1d2327; white-space:nowrap;">%3$s</span>',
 			esc_attr($colour),
 			esc_html($label),
-			esc_html($formatted)
+			esc_html($formatted),
+			esc_attr($weight)
 		);
 	}
 
 	public function airing_date_sortable_column($columns) {
-		$columns['show_airing_date'] = 'show_airing_date';
+		// Map our custom column key back to the native 'date' orderby so WP
+		// handles the SQL sorting without any extra pre_get_posts logic.
+		$columns['show_airing_date'] = 'date';
 		return $columns;
 	}
 
 	public function airing_date_orderby($query) {
+		// No custom meta_key logic needed — 'date' is a native WP orderby value.
+		// This method is retained as a hook placeholder for future use.
 		if (!is_admin() || !$query->is_main_query()) return;
-		if ($query->get('orderby') === 'show_airing_date') {
-			$query->set('meta_key', '_show_airing_date');
-			$query->set('orderby', 'meta_value');
-		}
 	}
 
 	// =========================================================================
