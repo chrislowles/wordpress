@@ -96,7 +96,6 @@ jQuery(document).ready(function ($) {
                     <input type="checkbox" name="tracklist[0][link_to_section]" class="link-to-section-checkbox" value="1" checked />
                     Link
                 </label>
-                <button type="button" class="fetch-duration button">Fetch</button>
                 <button type="button" class="add-to-show-btn button">Add to Show</button>
                 <button type="button" class="remove-item button">Delete</button>
             </div>
