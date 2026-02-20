@@ -1,4 +1,4 @@
-jQuery(document).ready($ => {
+jQuery(document).ready(function($) {
 
     var $wrapper = $('.tracklist-wrapper');
     if ($wrapper.length === 0) return;
@@ -23,7 +23,7 @@ jQuery(document).ready($ => {
             handle: '.drag-handle',
             placeholder: 'placeholder-highlight',
             axis: 'y',
-            update: () => {
+            update: function() {
                 calculateTotalDuration();
                 refreshInputNames();
             }
@@ -35,15 +35,15 @@ jQuery(document).ready($ => {
 
         function calculateTotalDuration() {
             var total = 0;
-            $list.find('.tracklist-row:not(.is-spacer)').each(() => {
+            $list.find('.tracklist-row:not(.is-spacer)').each(function() {
                 total += parseToSeconds($(this).find('.item-duration-input').val());
             });
             $durationDisplay.text(formatDuration(total));
         }
 
         function refreshInputNames() {
-            $list.find('.tracklist-row').each(index => {
-                $(this).find('input, select, textarea').each(() => {
+            $list.find('.tracklist-row').each(function(index) {
+                $(this).find('input, select, textarea').each(function() {
                     var name = $(this).attr('name');
                     if (name) $(this).attr('name', name.replace(/\[\d+\]/, '[' + index + ']'));
                 });
@@ -61,7 +61,7 @@ jQuery(document).ready($ => {
         // 3. FETCH DURATION (noembed API)
         // =====================================================================
 
-        $wrapper.on('click', '.fetch-duration', () => {
+        $wrapper.on('click', '.fetch-duration', function() {
             var $btn      = $(this);
             var $row      = $btn.closest('.tracklist-row');
             var url       = $row.find('.item-url-input').val();
@@ -76,12 +76,12 @@ jQuery(document).ready($ => {
                 url: 'https://noembed.com/embed',
                 data: { url: url },
                 dataType: 'json',
-                success: data => {
+                success: function(data) {
                     if (data.duration) { $durInput.val(formatDuration(data.duration)); calculateTotalDuration(); }
                     if (data.title)    { $titleInput.val(data.title); }
                     $btn.prop('disabled', false).text('Fetch');
                 },
-                error: () => {
+                error: function() {
                     $btn.prop('disabled', false).text('Err');
                 }
             });
@@ -116,16 +116,16 @@ jQuery(document).ready($ => {
             $list.children().last().find('.item-title-input').focus();
         }
 
-        $wrapper.find('.add-track').on('click', () => { addRow('track'); });
-        $wrapper.find('.add-spacer').on('click', () => { addRow('spacer'); });
+        $wrapper.find('.add-track').on('click', function() { addRow('track'); });
+        $wrapper.find('.add-spacer').on('click', function() { addRow('spacer'); });
 
-        $wrapper.on('click', '.remove-item', () => {
+        $wrapper.on('click', '.remove-item', function() {
             $(this).closest('.tracklist-row').remove();
             calculateTotalDuration();
             refreshInputNames();
         });
 
-        $wrapper.on('input change', 'input', () => {
+        $wrapper.on('input change', 'input', function() {
             calculateTotalDuration();
         });
 
@@ -187,37 +187,37 @@ jQuery(document).ready($ => {
             $modal = $(buildModalHtml());
             $('body').append($modal);
 
-            $modal.on('click', '.modal-close', e => {
+            $modal.on('click', '.modal-close', function(e) {
                 e.preventDefault();
                 hideModal();
             });
-            $modal.on('click', e => {
+            $modal.on('click', function(e) {
                 if (e.target.id === 'add-to-show-modal') {
                     hideModal();
                 }
             });
 
-            $modal.on('input', '#show-search-input', () => {
+            $modal.on('input', '#show-search-input', function() {
                 renderSearchResults($(this).val().trim().toLowerCase());
             });
 
-            $(document).on('click.showSearch', e => {
+            $(document).on('click.showSearch', function(e) {
                 if (!$(e.target).closest('#show-search-input, #show-search-results').length) {
                     $modal.find('#show-search-results').hide();
                 }
             });
 
-            $modal.on('focus', '#show-search-input', () => {
+            $modal.on('focus', '#show-search-input', function() {
                 var q = $(this).val().trim().toLowerCase();
                 if (q.length > 0) renderSearchResults(q);
             });
 
-            $modal.on('click', '#show-selected-clear', () => {
+            $modal.on('click', '#show-selected-clear', function {
                 clearSelection();
                 $modal.find('#show-search-input').val('').focus();
             });
 
-            $modal.on('click', '#confirm-add-btn', e => {
+            $modal.on('click', '#confirm-add-btn', function(e) {
                 e.preventDefault();
                 if (!selectedShowId) return;
                 ($modal.data('mode') === 'single') ? addSingleItemToShow() : copyAllItemsToShow();
@@ -234,7 +234,7 @@ jQuery(document).ready($ => {
 
             if (!query) { $results.hide(); return; }
 
-            var filtered = showsList.filter(show => {
+            var filtered = showsList.filter(function(show) {
                 return show.title.toLowerCase().includes(query) || show.date.includes(query);
             });
 
@@ -248,7 +248,7 @@ jQuery(document).ready($ => {
                     })
                 );
             } else {
-                filtered.forEach(show => {
+                filtered.forEach(function(show) {
                     var badge = show.status === 'draft' ? ' — Draft' : '';
                     $('<li>').css({
                         padding: '8px 12px',
@@ -257,9 +257,9 @@ jQuery(document).ready($ => {
                         borderBottom: '1px solid #F0F0F0'
                     })
                     .html('<strong>' + escapeHtml(show.title) + '</strong><span style="color:#999; margin-left:6px;">' + escapeHtml(show.date + badge) + '</span>')
-                    .on('mouseenter', () => { $(this).css('background', '#f0f6fc'); })
-                    .on('mouseleave', () => { $(this).css('background', ''); })
-                    .on('click',      () => { selectShow(show.id, show.title); })
+                    .on('mouseenter', function() { $(this).css('background', '#f0f6fc'); })
+                    .on('mouseleave', function() { $(this).css('background', ''); })
+                    .on('click',      function() { selectShow(show.id, show.title); })
                     .appendTo($results);
                 });
             }
@@ -317,9 +317,9 @@ jQuery(document).ready($ => {
             }
             $modal.data('mode', mode);
 
-            loadShowsList(() => {
+            loadShowsList(function() {
                 $modal.show();
-                setTimeout(() => { $modal.find('#show-search-input').focus(); }, 50);
+                setTimeout(function() { $modal.find('#show-search-input').focus(); }, 50);
             });
         }
 
@@ -334,11 +334,11 @@ jQuery(document).ready($ => {
                 action: 'get_show_posts',
                 nonce:  tracklistSettings.nonce,
                 current_post_id: postId
-            }).done(response => {
+            }).done(function(response) {
                 if (response.success) showsList = response.data;
                 else console.error('Failed to load shows:', response);
                 if (callback) callback();
-            }).fail((xhr, status, err) => {
+            }).fail(function(xhr, status, err) {
                 console.error('AJAX error loading shows:', status, err);
                 if (callback) callback();
             });
@@ -367,10 +367,10 @@ jQuery(document).ready($ => {
                 nonce:  tracklistSettings.nonce,
                 target_post_id: selectedShowId,
                 item: item
-            }).done(response => {
+            }).done(function(response) {
                 if (response.success) { showModalStatus('Item added successfully!', 'success'); setTimeout(hideModal, 1100); }
                 else { showModalStatus('Error: ' + (response.data.message || 'Unknown error'), 'error'); $btn.prop('disabled', false).text('Add Item'); }
-            }).fail((xhr, status, err) => {
+            }).fail(function(xhr, status, err) {
                 showModalStatus('Request failed. Please try again.', 'error');
                 $btn.prop('disabled', false).text('Add Item');
                 console.error('AJAX error:', status, err);
@@ -381,7 +381,7 @@ jQuery(document).ready($ => {
             if (!selectedShowId) return showModalStatus('Please select a target show.', 'error');
 
             var allItems = [];
-            $list.find('.tracklist-row').each(() => {
+            $list.find('.tracklist-row').each(function() {
                 var $row  = $(this);
                 var title = $row.find('.item-title-input').val();
                 if (!title) return;
@@ -403,10 +403,10 @@ jQuery(document).ready($ => {
                 nonce:  tracklistSettings.nonce,
                 target_post_id: selectedShowId,
                 items: allItems
-            }).done(response => {
+            }).done(function(response) {
                 if (response.success) { showModalStatus(`Successfully copied ${response.data.count} item(s)!`, 'success'); setTimeout(hideModal, 1100); }
                 else { showModalStatus('Error: ' + (response.data.message || 'Unknown error'), 'error'); $btn.prop('disabled', false).text('Copy All'); }
-            }).fail((xhr, status, err) => {
+            }).fail(function(xhr, status, err) {
                 showModalStatus('Request failed. Please try again.', 'error');
                 $btn.prop('disabled', false).text('Copy All');
                 console.error('AJAX error:', status, err);
@@ -420,15 +420,23 @@ jQuery(document).ready($ => {
                 'color':            isSuccess ? '#155724' : '#721C24',
                 'border':           '1px solid ' + (isSuccess ? '#C3E6CB' : '#F5C6CB')
             }).html(message).show();
-            if (isSuccess) setTimeout(() => $modal.find('#add-status').fadeOut(), 1100);
+            if (isSuccess) setTimeout(function() {
+                $modal.find('#add-status').fadeOut();
+            }, 1100);
         }
 
         // =====================================================================
         // 6. BUTTON HANDLERS
         // =====================================================================
 
-        $wrapper.on('click', '.add-to-show-btn',    e => { e.preventDefault(); openModal('single', $(this).closest('.tracklist-row')); });
-        $wrapper.on('click', '.copy-all-to-show-btn', e => { e.preventDefault(); openModal('all'); });
+        $wrapper.on('click', '.add-to-show-btn', function(e) {
+            e.preventDefault();
+            openModal('single', $(this).closest('.tracklist-row'));
+        });
+        $wrapper.on('click', '.copy-all-to-show-btn', function(e) {
+            e.preventDefault();
+            openModal('all');
+        });
 
         // =====================================================================
         // 7. INIT
