@@ -266,7 +266,6 @@ class ChrisLowles_Shows {
 					<label class="link-checkbox-label">
 						<input type="checkbox" name="tracklist[<?php echo $i; ?>][link_to_section]" value="1" <?php checked($link); ?> class="link-to-section-checkbox">Link
 					</label>
-					<button type="button" class="fetch-duration button">Fetch</button>
 					<button type="button" class="add-to-show-btn button">Add to Show</button>
 					<button type="button" class="remove-item button">Delete</button>
 				</div>
@@ -505,7 +504,7 @@ class ChrisLowles_Shows {
 		wp_enqueue_script('theme-utils', get_stylesheet_directory_uri() . '/js/utils.js', ['jquery'], '1.0.0', true);
 
 		// Tracklist editor
-		wp_enqueue_script('tracklist-js', get_theme_file_uri() . '/js/tracklist.js', ['jquery', 'jquery-ui-sortable', 'theme-utils'], '7.0.0', true);
+		wp_enqueue_script('tracklist-js', get_theme_file_uri() . '/js/tracklist.js', ['jquery', 'jquery-ui-sortable', 'theme-utils'], '8.0.0', true);
 		wp_localize_script('tracklist-js', 'tracklistSettings', [
 			'ajax_url' => admin_url('admin-ajax.php'),
 			'nonce'    => wp_create_nonce('tracklist_nonce'),
