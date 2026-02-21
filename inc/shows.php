@@ -589,7 +589,7 @@ class ChrisLowles_Shows {
 				'In The Cinema',
 				'The Pin Drop',
 				'Walking On Thin Ice',
-				'One Up'
+				'One Up',
 				'One Up (More)'
 			]
 		]);
