@@ -32,12 +32,10 @@ jQuery(document).ready(function ($) {
         e.preventDefault();
 
         var urlCount = countBareUrls(content);
-        var message  = `
-            Found ${urlCount} bare URL ${(urlCount !== 1 ? 's' : '')} in the content.\n\n
-            Do you want to fetch page titles for these URLs?\n\n
-            - Yes = Fetch titles and convert to [Title](URL) format\n
-            - No = Save without fetching titles
-        `;
+        var message  = `Found ${urlCount} bare URL ${(urlCount !== 1 ? 's' : '')} in the content.\n
+Do you want to fetch page titles for these URLs?\n
+- Yes = Fetch titles and convert to [Title](URL) format\n
+- No = Save without fetching titles`;
 
         var $field = $('input[name="fetch_link_titles"]');
         if (!$field.length) {
