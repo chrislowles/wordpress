@@ -161,7 +161,7 @@ class ChrisLowles_Shows {
 			if ($flagged_id) {
 				delete_transient('show_overdue_notice_' . get_current_user_id());
 				echo '<div class="notice notice-error is-dismissible"><p>'
-					. '<strong>⚠️ Publish date is in the past.</strong> '
+					. '<strong>WOOPS - Publish date is in the past.</strong> '
 					. 'This show is still a draft but its publish date has already lapsed — '
 					. 'update the date in the <em>Publish</em> panel to when the episode is expected to finish airing.</p></div>';
 
@@ -172,7 +172,7 @@ class ChrisLowles_Shows {
 					$ts = strtotime($post->post_date);
 					if ($ts && $ts <= current_time('timestamp')) {
 						echo '<div class="notice notice-error"><p>'
-							. '<strong>⚠️ Overdue:</strong> '
+							. '<strong>Overdue:</strong> '
 							. 'This draft\'s publish date (<strong>'
 							. esc_html(date_i18n('F j, Y \a\t g:i a', $ts))
 							. '</strong>) has already passed. '
@@ -182,10 +182,10 @@ class ChrisLowles_Shows {
 			}
 		}
 
-		// ── General show workflow nagging ─────────────────────────────────────
+		// General show workflow nagging
 		?>
 		<div class="notice nagging is-dismissible">
-			<details>
+			<details open>
 				<summary>Show Post Nagging:</summary>
 				<ul>
 					<li><a title="Click 'Load Template'">Title formatting example:</a> Chris &amp; Jesse: [full-length-month] [non-zero-leading-day-of-the-month] [four-digit-year] ([optional-show-theme])</li>
@@ -251,7 +251,7 @@ class ChrisLowles_Shows {
 		// means WordPress auto-filled "right now" and the editor never set a real
 		// date — surface a prompt rather than a misleading timestamp.
 		if (!$ts || abs($ts - $modified_ts) < 60) {
-			echo '<span style="color:#D63638; font-weight:600;">⚠ No date set</span>';
+			echo '<span style="color:#D63638; font-weight:600;">Date is unset</span>';
 			return;
 		}
 
@@ -380,9 +380,11 @@ class ChrisLowles_Shows {
 		preg_match_all('/(?<!\]\()\b(https?:\/\/[^\s\)\]<>"\']+)/i', $content, $matches);
 		if (empty($matches[1])) return;
 
+		# these domains tend to not work anyway so skip when processing them for the bare url detection
 		$skip_domains = [
 			'reddit.com', 'www.reddit.com', 'old.reddit.com',
-			'twitter.com', 'x.com', 'instagram.com', 'facebook.com',
+			'twitter.com', 'x.com',
+			'instagram.com', 'facebook.com',
 			'tiktok.com', 'linkedin.com', 'pinterest.com',
 		];
 
@@ -582,8 +584,14 @@ class ChrisLowles_Shows {
 		wp_enqueue_script('show-template-button', get_stylesheet_directory_uri() . '/js/show-template-button.js', ['jquery', 'theme-utils'], '3.0.0', true);
 		wp_localize_script('show-template-button', 'showTemplate', [
 			'title'   => "Chris & Jesse: " . date('F j Y'),
-			'body'    => "### In The Cinema\n[*What's On at Huski Pics?*](https://huskipics.com.au/movies/now-showing/)\n[*Global box office top 10 (replace placeholder link with latest headline)*](https://www.screendaily.com/box-office/box-office-reports/international)\n\n### The Pin Drop\n[*YouTube global music top 10*](https://charts.youtube.com/charts/TopSongs/global/weekly)\n*Chris' personal picks last week*\n\n### Walking On Thin Ice\n\n### One Up",
-			'spacers' => ['In The Cinema', 'The Pin Drop', 'Walking On Thin Ice', 'One Up'],
+			'body'    => "### In The Cinema\n[*What's On at Huski Pics?*](https://huskipics.com.au/movies/now-showing/)\n\n[*Global box office top 10 (replace placeholder link with latest headline)*](https://www.screendaily.com/box-office/box-office-reports/international)\n\n### The Pin Drop\n[*YouTube global music top 10*](https://charts.youtube.com/charts/TopSongs/global/weekly)\n\n*Chris' personal picks last week*\n\n### Walking On Thin Ice\n\n### One Up\n\n### One Up (More)",
+			'spacers' => [
+				'In The Cinema',
+				'The Pin Drop',
+				'Walking On Thin Ice',
+				'One Up'
+				'One Up (More)'
+			]
 		]);
 
 		// Auto-link-title fetcher
