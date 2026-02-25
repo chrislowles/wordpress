@@ -20,12 +20,6 @@ class ChrisLowles_Shows {
 		// Meta Boxes
 		add_action('add_meta_boxes', [$this, 'add_meta_boxes']);
 
-		// Publish Date Enforcement
-		// Prevents show posts from leaving draft status without an explicit date.
-		// Alert states for the edit screen will be specified and added separately.
-		add_filter('wp_insert_post_data', [$this, 'enforce_publish_date'], 10, 2);
-		add_action('admin_notices',       [$this, 'show_date_required_notice']);
-
 		// Save Handlers
 		add_action('save_post_show', [$this, 'save_tracklist']);
 		add_action('save_post_show', [$this, 'auto_fetch_link_titles'], 20, 2);
@@ -40,12 +34,10 @@ class ChrisLowles_Shows {
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_assets'], 20);
 
 		// Admin Columns
-		// register_columns() handles both the editing-status dot and the
-		// status-aware publish date, replacing the built-in 'date' column.
-		add_filter('manage_show_posts_columns',         [$this, 'register_columns']);
-		add_action('manage_show_posts_custom_column',   [$this, 'render_column'], 10, 2);
-		add_filter('manage_edit-show_sortable_columns', [$this, 'airing_date_sortable_column']);
-		add_action('pre_get_posts',                     [$this, 'airing_date_orderby']);
+		// register_columns() inserts the editing-status dot before the
+		// checkbox column; the native 'date' column is left in place unchanged.
+		add_filter('manage_show_posts_columns',       [$this, 'register_columns']);
+		add_action('manage_show_posts_custom_column', [$this, 'render_column'], 10, 2);
 
 		// Frontend: Auto-add IDs to headings for in-page anchor links
 		add_filter('the_content', [$this, 'auto_id_headings'], 10);
@@ -113,86 +105,11 @@ class ChrisLowles_Shows {
 	}
 
 	// =========================================================================
-	// PUBLISH DATE ENFORCEMENT
-	//
-	// Rules:
-	//   1. Autosaves and revisions are always skipped.
-	//   2. Posts that are already published are skipped regardless of the new
-	//      status — routine edits of aired shows should never be re-gated.
-	//   3. For every other save (new drafts, existing drafts, publish attempts):
-	//      post_date must be more than SHOW_DATE_MIN_LEAD_SECONDS in the future.
-	//      If it is not, the post is forced to draft status and a transient is
-	//      written so show_date_required_notice() can display the right message.
-	//
-	// Why "future date" rather than "not right now":
-	//   A draft that was first saved without a date gets post_date = the moment
-	//   of that first save.  On every subsequent save that date stays in the
-	//   past, so a small "not within N seconds of now" window misses it
-	//   entirely.  Requiring a future date catches both the brand-new case and
-	//   any previously-saved draft that was never given a real date.
-	// =========================================================================
-
-	const SHOW_DATE_MIN_LEAD_SECONDS = 300; // 5 minutes — enough to survive clock skew
-
-	public function enforce_publish_date($data, $postarr) {
-		if ($data['post_type'] !== 'show') return $data;
-		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return $data;
-		if (!empty($postarr['ID']) && wp_is_post_revision($postarr['ID'])) return $data;
-
-		// Rule 2: already-published posts are never re-gated.
-		$original_status = $postarr['original_post_status'] ?? get_post_status($postarr['ID'] ?? 0);
-		if ($original_status === 'publish') return $data;
-
-		$ts          = strtotime($data['post_date']);
-		$now         = current_time('timestamp');
-		$date_is_set = $ts && ($ts - $now) > self::SHOW_DATE_MIN_LEAD_SECONDS;
-
-		if (!$date_is_set) {
-			$intended_status     = $data['post_status'];
-			$data['post_status'] = 'draft';
-			set_transient(
-				'show_date_required_' . get_current_user_id(),
-				$intended_status, // stored so the notice can be specific
-				60
-			);
-		}
-
-		return $data;
-	}
-
-	public function show_date_required_notice() {
-		$screen = get_current_screen();
-		if (!$screen || $screen->post_type !== 'show') return;
-		if (!in_array($screen->base, ['post', 'post-new'], true)) return;
-
-		$intended = get_transient('show_date_required_' . get_current_user_id());
-		if ($intended === false) return;
-
-		delete_transient('show_date_required_' . get_current_user_id());
-
-		$tried_to_publish = in_array($intended, ['publish', 'future'], true);
-
-		if ($tried_to_publish) {
-			$message = '<strong>Could not publish.</strong> '
-				. 'Set an explicit future date in the <em>Publish</em> panel — '
-				. 'the post has been held as a draft until one is provided.';
-		} else {
-			$message = '<strong>Date is not set.</strong> '
-				. 'An explicit future date is required before this show can be published. '
-				. 'Update it in the <em>Publish</em> panel.';
-		}
-
-		echo '<div class="notice notice-error is-dismissible"><p>' . $message . '</p></div>';
-	}
-
-	// =========================================================================
 	// META BOXES
 	// =========================================================================
 
 	public function add_meta_boxes() {
 		add_meta_box('tracklist_meta_box', 'Show Tracklist', [$this, 'render_tracklist_metabox'], 'show', 'normal', 'high');
-		// The separate "Expected Airing Date" meta box has been removed.
-		// Use the built-in Publish panel date/time fields instead.
 	}
 
 	// =========================================================================
@@ -202,10 +119,11 @@ class ChrisLowles_Shows {
 	// each custom column key.
 	//
 	// Columns defined here:
-	//   editing_status  — dot indicator read from WP's native _edit_lock meta,
-	//                     refreshed by Heartbeat while a post is open for editing.
-	//                     Green = no active editor, Red = post currently open.
-	//   show_airing_date — status-aware publish date replacing the built-in 'date'.
+	//   editing_status — dot indicator read from WP's native _edit_lock meta,
+	//                    refreshed by Heartbeat while a post is open for editing.
+	//                    Green = no active editor, Red = post currently open.
+	//
+	// The native 'date' column is preserved as-is; no custom date logic applies.
 	// =========================================================================
 
 	public function register_columns($columns) {
@@ -214,8 +132,6 @@ class ChrisLowles_Shows {
 			if ($key === 'cb') {
 				$new['cb']             = $label;
 				$new['editing_status'] = '<span class="screen-reader-text">Editing Status</span>';
-			} elseif ($key === 'date') {
-				$new['show_airing_date'] = 'Publish Date';
 			} else {
 				$new[$key] = $label;
 			}
@@ -226,8 +142,6 @@ class ChrisLowles_Shows {
 	public function render_column($column, $post_id) {
 		if ($column === 'editing_status') {
 			$this->render_editing_status($post_id);
-		} elseif ($column === 'show_airing_date') {
-			$this->render_airing_date($post_id);
 		}
 	}
 
@@ -258,70 +172,6 @@ class ChrisLowles_Shows {
 			$is_editing ? 'is-editing' : 'is-free',
 			esc_attr($label)
 		);
-	}
-
-	// -------------------------------------------------------------------------
-	// Airing Date
-	// -------------------------------------------------------------------------
-
-	private function render_airing_date($post_id) {
-		$post   = get_post($post_id);
-		$status = $post->post_status ?? 'draft';
-
-		if ($status === 'publish') {
-			echo '<span style="color:#1d2327;">' . esc_html(get_the_date('Y/m/d \a\t g:i a', $post_id)) . '</span>';
-			return;
-		}
-
-		$ts          = strtotime($post->post_date);
-		$modified_ts = strtotime($post->post_modified);
-
-		// Draft where post_date is within 60 s of post_modified almost certainly
-		// means WordPress auto-filled "right now" and the editor never set a real
-		// date — surface a prompt rather than a misleading timestamp.
-		if (!$ts || abs($ts - $modified_ts) < 60) {
-			echo '<span style="color:#D63638; font-weight:600;">Date is unset</span>';
-			return;
-		}
-
-		$diff      = $ts - current_time('timestamp');
-		$formatted = date_i18n('Y/m/d \a\t g:i a', $ts);
-
-		if ($diff < 0) {
-			$label  = 'Overdue';
-			$colour = '#D63638';
-			$weight = '600';
-		} elseif ($diff < DAY_IN_SECONDS) {
-			$label  = 'Airing soon';
-			$colour = '#DBA617';
-			$weight = '600';
-		} else {
-			$label  = 'Confirmed';
-			$colour = '#646970';
-			$weight = 'normal';
-		}
-
-		printf(
-			'<span style="display:block; color:%1$s; font-size:13px; font-weight:%4$s; margin-bottom:1px;">%2$s</span>'
-			. '<span style="display:block; color:#1d2327; white-space:nowrap;">%3$s</span>',
-			esc_attr($colour),
-			esc_html($label),
-			esc_html($formatted),
-			esc_attr($weight)
-		);
-	}
-
-	public function airing_date_sortable_column($columns) {
-		// Map our custom column key back to the native 'date' orderby so WP
-		// handles the SQL sorting without any extra pre_get_posts logic.
-		$columns['show_airing_date'] = 'date';
-		return $columns;
-	}
-
-	public function airing_date_orderby($query) {
-		// No custom meta_key logic needed — 'date' is a native WP orderby value.
-		// This method is retained as a hook placeholder for future use.
-		if (!is_admin() || !$query->is_main_query()) return;
 	}
 
 	// =========================================================================
