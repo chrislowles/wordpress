@@ -30,6 +30,10 @@ class ChrisLowles_Shows {
 		add_action('wp_ajax_copy_items_to_show',       [$this, 'ajax_copy_items_to_show']);
 		add_action('wp_ajax_add_single_item_to_show',  [$this, 'ajax_add_single_item_to_show']);
 
+		// AJAX Handler: release _edit_lock immediately on edit-screen unload.
+		// Called via navigator.sendBeacon so it survives page navigation.
+		add_action('wp_ajax_release_show_edit_lock', [$this, 'ajax_release_edit_lock']);
+
 		// Assets & Template Button
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_assets'], 20);
 
@@ -148,10 +152,17 @@ class ChrisLowles_Shows {
 	// -------------------------------------------------------------------------
 	// Editing Status Dot
 	// Reads WP's native _edit_lock meta ({timestamp}:{user_id}).
-	// The lock is refreshed every ~15 s via Heartbeat while an editor has the
-	// post open and expires naturally when they leave.  WordPress treats it as
-	// stale after 150 s, so we use the same threshold.
+	//
+	// Threshold rationale: Heartbeat runs at ~15 s on edit screens (fast mode).
+	// 20 s = one full heartbeat interval + 5 s of clock-skew grace.  A lock
+	// older than that means the editor has almost certainly left.  The previous
+	// 150 s value (10 missed beats) caused the dot to stay red for up to 2.5
+	// minutes after navigating away.  With the sendBeacon unload handler below
+	// the lock is usually deleted before the archive even renders, so this
+	// threshold only matters as a backstop for abnormal exits (crash, kill tab).
 	// -------------------------------------------------------------------------
+
+	const EDIT_LOCK_STALE_SECONDS = 20;
 
 	private function render_editing_status($post_id) {
 		$lock       = get_post_meta($post_id, '_edit_lock', true);
@@ -160,7 +171,7 @@ class ChrisLowles_Shows {
 
 		if ($lock) {
 			$parts = explode(':', $lock, 2);
-			if (count($parts) === 2 && (time() - (int) $parts[0]) < 150) {
+			if (count($parts) === 2 && (time() - (int) $parts[0]) < self::EDIT_LOCK_STALE_SECONDS) {
 				$is_editing = true;
 				$user       = get_userdata((int) $parts[1]);
 				$label      = $user ? esc_attr($user->display_name) . ' is editing' : 'Someone is editing';
@@ -414,6 +425,35 @@ class ChrisLowles_Shows {
 		wp_send_json_success(['message' => 'Item added successfully']);
 	}
 
+	/**
+	 * Release _edit_lock for a show post immediately.
+	 *
+	 * Called via navigator.sendBeacon on the edit-screen beforeunload event so
+	 * the lock is cleared the moment the editor navigates away, rather than
+	 * waiting up to EDIT_LOCK_STALE_SECONDS for it to expire on its own.
+	 *
+	 * Only deletes the lock when the requesting user is the one who holds it,
+	 * so a second editor can never inadvertently clear someone else's session.
+	 */
+	public function ajax_release_edit_lock() {
+		check_ajax_referer('tracklist_nonce', 'nonce');
+
+		$post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+
+		if (!$post_id || get_post_type($post_id) !== 'show' || !current_user_can('edit_post', $post_id)) {
+			wp_send_json_error();
+		}
+
+		$lock  = get_post_meta($post_id, '_edit_lock', true);
+		$parts = $lock ? explode(':', $lock, 2) : [];
+
+		if (isset($parts[1]) && (int) $parts[1] === get_current_user_id()) {
+			delete_post_meta($post_id, '_edit_lock');
+		}
+
+		wp_send_json_success();
+	}
+
 	// =========================================================================
 	// SANITIZATION
 	// migrate_tracklist_data() is always called upstream, so only canonical
@@ -458,6 +498,26 @@ class ChrisLowles_Shows {
 			'nonce'    => wp_create_nonce('tracklist_nonce'),
 			'user_id'  => get_current_user_id(),
 		]);
+
+		// Release _edit_lock the instant the editor navigates away.
+		//
+		// WordPress's own post-lock.js fires a $.post on beforeunload, but a
+		// regular XHR is not guaranteed to complete when the page is unloading.
+		// navigator.sendBeacon queues the request at the browser level so it
+		// is delivered even after the page has torn down, eliminating the race
+		// condition where the archive renders before the lock is cleared.
+		wp_add_inline_script('tracklist-js', sprintf(
+			'window.addEventListener("beforeunload", function() {
+				var postId = document.getElementById("post_ID");
+				if (!postId || !postId.value) return;
+				var data = new FormData();
+				data.append("action", "release_show_edit_lock");
+				data.append("post_id", postId.value);
+				data.append("nonce", tracklistSettings.nonce);
+				navigator.sendBeacon(%s, data);
+			});',
+			wp_json_encode(admin_url('admin-ajax.php'))
+		));
 
 		// Template loader button
 		wp_enqueue_script('show-template-button', get_stylesheet_directory_uri() . '/js/show-template-button.js', ['jquery', 'theme-utils'], '3.0.0', true);
