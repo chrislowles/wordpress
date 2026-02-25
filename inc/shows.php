@@ -59,7 +59,7 @@ class ChrisLowles_Shows {
 				'new_item'           => 'New Show',
 				'edit_item'          => 'Edit Show',
 				'view_item'          => 'View Show',
-				'update_item'        => 'View Show',
+				'update_item'        => 'Update Show',
 				'all_items'          => 'All Shows',
 				'search_items'       => 'Search Shows',
 				'parent_item_colon'  => 'Parent Show',
@@ -161,7 +161,7 @@ class ChrisLowles_Shows {
 			if ($flagged_id) {
 				delete_transient('show_overdue_notice_' . get_current_user_id());
 				echo '<div class="notice notice-error is-dismissible"><p>'
-					. '<strong>WOOPS - Publish date is in the past.</strong> '
+					. '<strong>Publish date has lapsed.</strong> '
 					. 'This show is still a draft but its publish date has already lapsed — '
 					. 'update the date in the <em>Publish</em> panel to when the episode is expected to finish airing.</p></div>';
 
