@@ -20,11 +20,13 @@ class ChrisLowles_Shows {
 		// Meta Boxes
 		add_action('add_meta_boxes', [$this, 'add_meta_boxes']);
 
-		// Admin Notice
-		add_action('admin_notices', [$this, 'show_admin_notice']);
+		// Publish Date Enforcement
+		// Prevents show posts from leaving draft status without an explicit date.
+		// Alert states for the edit screen will be specified and added separately.
+		add_filter('wp_insert_post_data', [$this, 'enforce_publish_date'], 10, 2);
+		add_action('admin_notices',       [$this, 'show_date_required_notice']);
 
 		// Save Handlers
-		add_action('save_post_show', [$this, 'validate_publish_date'], 5);
 		add_action('save_post_show', [$this, 'save_tracklist']);
 		add_action('save_post_show', [$this, 'auto_fetch_link_titles'], 20, 2);
 
@@ -37,10 +39,11 @@ class ChrisLowles_Shows {
 		// Assets & Template Button
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_assets'], 20);
 
-		// Admin Columns — Publish Date with airing status
-		// Replaces the built-in 'date' column with our status-aware version.
-		add_filter('manage_show_posts_columns',         [$this, 'airing_date_column_header']);
-		add_action('manage_show_posts_custom_column',   [$this, 'airing_date_column_content'], 10, 2);
+		// Admin Columns
+		// register_columns() handles both the editing-status dot and the
+		// status-aware publish date, replacing the built-in 'date' column.
+		add_filter('manage_show_posts_columns',         [$this, 'register_columns']);
+		add_action('manage_show_posts_custom_column',   [$this, 'render_column'], 10, 2);
 		add_filter('manage_edit-show_sortable_columns', [$this, 'airing_date_sortable_column']);
 		add_action('pre_get_posts',                     [$this, 'airing_date_orderby']);
 
@@ -110,97 +113,45 @@ class ChrisLowles_Shows {
 	}
 
 	// =========================================================================
-	// PUBLISH DATE VALIDATION
-	// Runs early on every show save (priority 5).  If the post is being saved
-	// as a draft with a publish date that is already in the past, stash a flag
-	// in a short-lived transient so show_admin_notice() can surface it on the
-	// next page load (after the redirect back to the edit screen).
+	// PUBLISH DATE ENFORCEMENT
+	// Gates publish/future status on an explicitly set date.  If post_date is
+	// within 90 seconds of the current time it is treated as the WordPress
+	// auto-fill default and the post is held as a draft.
+	// A transient is written so show_date_required_notice() can surface a
+	// single, targeted error message on the next page load.
+	// Alert states beyond the enforcement message are TBD.
 	// =========================================================================
 
-	public function validate_publish_date($post_id) {
-		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
-		if (!current_user_can('edit_post', $post_id)) return;
+	public function enforce_publish_date($data, $postarr) {
+		if ($data['post_type'] !== 'show') return $data;
+		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return $data;
+		if (!empty($postarr['ID']) && wp_is_post_revision($postarr['ID'])) return $data;
 
-		// Only nag for drafts — scheduled/published posts are fine by definition.
-		$new_status = $_POST['post_status'] ?? get_post_status($post_id);
-		if ($new_status !== 'draft') return;
+		// Only gate transitions to live states.
+		if (!in_array($data['post_status'], ['publish', 'future'], true)) return $data;
 
-		// WordPress sends the chosen date as separate components (aa, mm, jj, hh, mn, ss).
-		// If aa is absent we cannot judge, so bail silently.
-		if (empty($_POST['aa'])) return;
+		$ts  = strtotime($data['post_date']);
+		$now = current_time('timestamp');
 
-		$chosen_ts = mktime(
-			(int) ($_POST['hh'] ?? 0),
-			(int) ($_POST['mn'] ?? 0),
-			(int) ($_POST['ss'] ?? 0),
-			(int) ($_POST['mm'] ?? date('n')),
-			(int) ($_POST['jj'] ?? date('j')),
-			(int) ($_POST['aa'] ?? date('Y'))
-		);
-
-		// Set a transient if the chosen publish date is already in the past.
-		if ($chosen_ts <= current_time('timestamp')) {
-			set_transient('show_overdue_notice_' . get_current_user_id(), $post_id, 60);
+		if (!$ts || abs($ts - $now) < 90) {
+			$data['post_status'] = 'draft';
+			set_transient('show_date_required_' . get_current_user_id(), true, 60);
 		}
+
+		return $data;
 	}
 
-	// =========================================================================
-	// ADMIN NOTICE
-	// =========================================================================
-
-	public function show_admin_notice() {
+	public function show_date_required_notice() {
 		$screen = get_current_screen();
-		if (!$screen || $screen->post_type !== 'show' || !in_array($screen->base, ['post', 'post-new', 'edit'])) return;
+		if (!$screen || $screen->post_type !== 'show') return;
+		if (!get_transient('show_date_required_' . get_current_user_id())) return;
 
-		// ── Overdue / no-date notices on the edit / new-post screens ─────────
-		if (in_array($screen->base, ['post', 'post-new'])) {
-			$post_id = isset($_GET['post']) ? intval($_GET['post']) : 0;
+		delete_transient('show_date_required_' . get_current_user_id());
 
-			// Check transient left by validate_publish_date() after a just-completed save.
-			$flagged_id = get_transient('show_overdue_notice_' . get_current_user_id());
-			if ($flagged_id) {
-				delete_transient('show_overdue_notice_' . get_current_user_id());
-				echo '<div class="notice notice-error is-dismissible"><p>'
-					. '<strong>Publish date has lapsed.</strong> '
-					. 'This show is still a draft but its publish date has already lapsed — '
-					. 'update the date in the <em>Publish</em> panel to when the episode is expected to finish airing.</p></div>';
-
-			} elseif ($post_id) {
-				// Persistent overdue banner while the editor is open.
-				$post = get_post($post_id);
-				if ($post && $post->post_status === 'draft') {
-					$ts = strtotime($post->post_date);
-					if ($ts && $ts <= current_time('timestamp')) {
-						echo '<div class="notice notice-error"><p>'
-							. '<strong>Overdue:</strong> '
-							. 'This draft\'s publish date (<strong>'
-							. esc_html(date_i18n('F j, Y \a\t g:i a', $ts))
-							. '</strong>) has already passed. '
-							. 'Update it in the <em>Publish</em> panel before going live.</p></div>';
-					}
-				}
-			}
-		}
-
-		// General show workflow nagging
-		?>
-		<div class="notice nagging is-dismissible">
-			<details open>
-				<summary>Show Post Nagging:</summary>
-				<ul>
-					<li><a title="Click 'Load Template'">Title formatting example:</a> Chris &amp; Jesse: [full-length-month] [non-zero-leading-day-of-the-month] [four-digit-year] ([optional-show-theme])</li>
-					<li><strong>Set the Publish date</strong> (in the Publish panel, top-right) to when the episode is expected to finish airing — this is how the archive column tracks overdue and upcoming shows. Show posts must have an explicit future date even while drafts.</li>
-					<li>Regarding nixing a show: If you intend to shift a show up to a new date, remember to adjust the slug, title, publish date <em>and</em> the post date if it's already been set.</li>
-					<li>When accessing the Show Posts Dashboard at the station it is recommended to head directly to the <b>search function</b> located below this notice so you can find the Show Post most relevant to you, avoid scrolling through the archive if you know you can just search it.</li>
-					<li>If you find that you need to push news items into next week, open the archive "All Shows" view in a new tab and use the <b>search function</b> to see if the Show Post has already been made and add to that instead.</li>
-					<li>There are <b>(in development)</b> controls in the tracklist metabox that as of right now allow you to add rows all at once or individually into already made Show Posts within the new/edit screen, there is also a link in these modals to create a new Show Post if one doesn't come up, again search from the archive view in another tab just in case.</li>
-					<li>When publishing aired shows, if you find that you're not sure of what to do inform me (Chris) on the relevant channels.</li>
-					<li>Show Posts are meant to be a centralized format to organize, you can include unlinked subheaders under linked segments in Show Posts as we don't have character limits, go crazy (but keep it organized at least, for my sanity)</li>
-					<li>If you find any gaps in the flow of managing Show Posts, inform me (Chris)</li>
-				</ul>
-			</details>
-		</div>
-		<?php
+		echo '<div class="notice notice-error is-dismissible"><p>'
+			. '<strong>Publish date required.</strong> '
+			. 'Set an explicit date in the <em>Publish</em> panel — the post has been held as a draft until one is provided.'
+			. '</p></div>';
 	}
 
 	// =========================================================================
@@ -214,16 +165,25 @@ class ChrisLowles_Shows {
 	}
 
 	// =========================================================================
-	// ADMIN COLUMNS — Publish Date with airing status
+	// ADMIN COLUMNS
+	// register_columns() is the single filter callback that defines all custom
+	// columns for the show post list.  render_column() dispatches rendering for
+	// each custom column key.
 	//
-	// Swaps the built-in 'date' column for our status-aware 'show_airing_date'
-	// column in the same position, reading directly from post_date.
+	// Columns defined here:
+	//   editing_status  — dot indicator read from WP's native _edit_lock meta,
+	//                     refreshed by Heartbeat while a post is open for editing.
+	//                     Green = no active editor, Red = post currently open.
+	//   show_airing_date — status-aware publish date replacing the built-in 'date'.
 	// =========================================================================
 
-	public function airing_date_column_header($columns) {
+	public function register_columns($columns) {
 		$new = [];
 		foreach ($columns as $key => $label) {
-			if ($key === 'date') {
+			if ($key === 'cb') {
+				$new['cb']             = $label;
+				$new['editing_status'] = '<span class="screen-reader-text">Editing Status</span>';
+			} elseif ($key === 'date') {
 				$new['show_airing_date'] = 'Publish Date';
 			} else {
 				$new[$key] = $label;
@@ -232,13 +192,51 @@ class ChrisLowles_Shows {
 		return $new;
 	}
 
-	public function airing_date_column_content($column, $post_id) {
-		if ($column !== 'show_airing_date') return;
+	public function render_column($column, $post_id) {
+		if ($column === 'editing_status') {
+			$this->render_editing_status($post_id);
+		} elseif ($column === 'show_airing_date') {
+			$this->render_airing_date($post_id);
+		}
+	}
 
+	// -------------------------------------------------------------------------
+	// Editing Status Dot
+	// Reads WP's native _edit_lock meta ({timestamp}:{user_id}).
+	// The lock is refreshed every ~15 s via Heartbeat while an editor has the
+	// post open and expires naturally when they leave.  WordPress treats it as
+	// stale after 150 s, so we use the same threshold.
+	// -------------------------------------------------------------------------
+
+	private function render_editing_status($post_id) {
+		$lock       = get_post_meta($post_id, '_edit_lock', true);
+		$is_editing = false;
+		$label      = 'No active editor';
+
+		if ($lock) {
+			$parts = explode(':', $lock, 2);
+			if (count($parts) === 2 && (time() - (int) $parts[0]) < 150) {
+				$is_editing = true;
+				$user       = get_userdata((int) $parts[1]);
+				$label      = $user ? esc_attr($user->display_name) . ' is editing' : 'Someone is editing';
+			}
+		}
+
+		printf(
+			'<span class="show-edit-dot %s" title="%s"></span>',
+			$is_editing ? 'is-editing' : 'is-free',
+			esc_attr($label)
+		);
+	}
+
+	// -------------------------------------------------------------------------
+	// Airing Date
+	// -------------------------------------------------------------------------
+
+	private function render_airing_date($post_id) {
 		$post   = get_post($post_id);
 		$status = $post->post_status ?? 'draft';
 
-		// Published posts: plain date, no status label needed.
 		if ($status === 'publish') {
 			echo '<span style="color:#1d2327;">' . esc_html(get_the_date('Y/m/d \a\t g:i a', $post_id)) . '</span>';
 			return;
@@ -427,8 +425,8 @@ class ChrisLowles_Shows {
 
 	/**
 	 * Extract page title from HTML.
-	 * Priority: og:title → twitter:title → og:title (reversed attrs)
-	 *           → twitter:title (reversed attrs) → <title> tag → null
+	 * Priority: og:title -> twitter:title -> og:title (reversed attrs)
+	 *           -> twitter:title (reversed attrs) -> <title> tag -> null
 	 */
 	private function extract_title_from_html($html) {
 		if (empty($html)) return null;
