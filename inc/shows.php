@@ -114,28 +114,47 @@ class ChrisLowles_Shows {
 
 	// =========================================================================
 	// PUBLISH DATE ENFORCEMENT
-	// Gates publish/future status on an explicitly set date.  If post_date is
-	// within 90 seconds of the current time it is treated as the WordPress
-	// auto-fill default and the post is held as a draft.
-	// A transient is written so show_date_required_notice() can surface a
-	// single, targeted error message on the next page load.
-	// Alert states beyond the enforcement message are TBD.
+	//
+	// Rules:
+	//   1. Autosaves and revisions are always skipped.
+	//   2. Posts that are already published are skipped regardless of the new
+	//      status — routine edits of aired shows should never be re-gated.
+	//   3. For every other save (new drafts, existing drafts, publish attempts):
+	//      post_date must be more than SHOW_DATE_MIN_LEAD_SECONDS in the future.
+	//      If it is not, the post is forced to draft status and a transient is
+	//      written so show_date_required_notice() can display the right message.
+	//
+	// Why "future date" rather than "not right now":
+	//   A draft that was first saved without a date gets post_date = the moment
+	//   of that first save.  On every subsequent save that date stays in the
+	//   past, so a small "not within N seconds of now" window misses it
+	//   entirely.  Requiring a future date catches both the brand-new case and
+	//   any previously-saved draft that was never given a real date.
 	// =========================================================================
+
+	const SHOW_DATE_MIN_LEAD_SECONDS = 300; // 5 minutes — enough to survive clock skew
 
 	public function enforce_publish_date($data, $postarr) {
 		if ($data['post_type'] !== 'show') return $data;
 		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return $data;
 		if (!empty($postarr['ID']) && wp_is_post_revision($postarr['ID'])) return $data;
 
-		// Only gate transitions to live states.
-		if (!in_array($data['post_status'], ['publish', 'future'], true)) return $data;
+		// Rule 2: already-published posts are never re-gated.
+		$original_status = $postarr['original_post_status'] ?? get_post_status($postarr['ID'] ?? 0);
+		if ($original_status === 'publish') return $data;
 
-		$ts  = strtotime($data['post_date']);
-		$now = current_time('timestamp');
+		$ts          = strtotime($data['post_date']);
+		$now         = current_time('timestamp');
+		$date_is_set = $ts && ($ts - $now) > self::SHOW_DATE_MIN_LEAD_SECONDS;
 
-		if (!$ts || abs($ts - $now) < 90) {
+		if (!$date_is_set) {
+			$intended_status     = $data['post_status'];
 			$data['post_status'] = 'draft';
-			set_transient('show_date_required_' . get_current_user_id(), true, 60);
+			set_transient(
+				'show_date_required_' . get_current_user_id(),
+				$intended_status, // stored so the notice can be specific
+				60
+			);
 		}
 
 		return $data;
@@ -144,14 +163,26 @@ class ChrisLowles_Shows {
 	public function show_date_required_notice() {
 		$screen = get_current_screen();
 		if (!$screen || $screen->post_type !== 'show') return;
-		if (!get_transient('show_date_required_' . get_current_user_id())) return;
+		if (!in_array($screen->base, ['post', 'post-new'], true)) return;
+
+		$intended = get_transient('show_date_required_' . get_current_user_id());
+		if ($intended === false) return;
 
 		delete_transient('show_date_required_' . get_current_user_id());
 
-		echo '<div class="notice notice-error is-dismissible"><p>'
-			. '<strong>Publish date required.</strong> '
-			. 'Set an explicit date in the <em>Publish</em> panel — the post has been held as a draft until one is provided.'
-			. '</p></div>';
+		$tried_to_publish = in_array($intended, ['publish', 'future'], true);
+
+		if ($tried_to_publish) {
+			$message = '<strong>Could not publish.</strong> '
+				. 'Set an explicit future date in the <em>Publish</em> panel — '
+				. 'the post has been held as a draft until one is provided.';
+		} else {
+			$message = '<strong>Date is not set.</strong> '
+				. 'An explicit future date is required before this show can be published. '
+				. 'Update it in the <em>Publish</em> panel.';
+		}
+
+		echo '<div class="notice notice-error is-dismissible"><p>' . $message . '</p></div>';
 	}
 
 	// =========================================================================
