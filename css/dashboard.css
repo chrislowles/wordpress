@@ -277,3 +277,33 @@ html, body {
 	list-style: disc;
 	margin: 15px 15px;
 }
+
+/* ==========================================================================
+   SHOW EDITING STATUS DOT
+   Rendered in the show post list table via render_editing_status().
+   .is-free  = no active editor (green)
+   .is-editing = post currently open by someone (red)
+   ========================================================================== */
+
+.show-edit-dot {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	vertical-align: middle;
+	flex-shrink: 0;
+}
+
+.show-edit-dot.is-free {
+	background-color: #00A32A;
+}
+
+.show-edit-dot.is-editing {
+	background-color: #D63638;
+}
+
+/* Keep the column header narrow — it's icon-only */
+.column-editing_status {
+	width: 28px !important;
+	text-align: center !important;
+}
