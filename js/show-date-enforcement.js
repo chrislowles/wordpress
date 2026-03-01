@@ -36,7 +36,6 @@
  *    show state; the scheduled date serves as the pre-publish holding state).
  *  - "Save Draft" button hidden (no separate draft workflow for shows).
  *  - Date picker section highlighted with an amber outline until confirmed.
- *  - Callout inserted beneath the Publish button explaining what to do.
  *
  * WordPress Classic Editor DOM targets used
  * -----------------------------------------
@@ -55,7 +54,6 @@
 jQuery( function ( $ ) {
     'use strict';
 
-    var CALLOUT_ID       = 'show-date-required-callout';
     var HIGHLIGHT_CLS    = 'show-date-picker-required';
     var HIDDEN_FIELD_NAME = 'show_date_explicitly_set';
 
@@ -113,31 +111,6 @@ jQuery( function ( $ ) {
     }
 
     // =========================================================================
-    // UI: CALLOUT
-    // =========================================================================
-
-    function ensureCallout() {
-        if ( $( '#' + CALLOUT_ID ).length ) return;
-
-        var $callout = $( '<p>', {
-            id:    CALLOUT_ID,
-            class: 'show-date-callout',
-            html:  '<span></span> ' + 'Open the date picker above, choose a date, then click <strong>OK</strong>.'
-        } );
-
-        var $after = $( '#publish' ).closest( '#publishing-action' );
-        if ( $after.length ) {
-            $after.after( $callout );
-        } else {
-            $( '#submitdiv' ).append( $callout );
-        }
-    }
-
-    function removeCallout() {
-        $( '#' + CALLOUT_ID ).remove();
-    }
-
-    // =========================================================================
     // UI: DATE PICKER HIGHLIGHT
     // =========================================================================
 
@@ -192,11 +165,9 @@ jQuery( function ( $ ) {
 
         if ( hasValidDate() ) {
             unlockPublishButton();
-            removeCallout();
             highlightDatePicker( false );
         } else {
             lockPublishButton();
-            ensureCallout();
             highlightDatePicker( true );
         }
 
@@ -252,7 +223,6 @@ jQuery( function ( $ ) {
             // while a date still hasn't been confirmed.
             if ( ! hasValidDate() ) {
                 lockPublishButton();
-                ensureCallout();
             }
         } );
         observer.observe( submitDiv, { childList: true, subtree: true } );
