@@ -1,0 +1,4 @@
+Refactor as according to the notes below:
+* Enforce setting a post date for show posts, mainly through intercepting the hooks assosiated with creating/editing show posts, disable the publish/schedule/etc button until a post date is set
+* With that in mind, disable the Pending Review status for show posts, setting the date for a show post to be scheduled will be it's own kind of interim draft status and in the meantime between creating and it publishing, the contents will be will be reviewed and edited accordingly.
+* Also with that in mind, disable draft saving for show posts, old unset show posts should be excempt but acknowledged as needing a publish date to be set when edited, the enforcement should come in then.
