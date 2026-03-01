@@ -292,7 +292,7 @@ class ChrisLowles_Shows {
 
 		if ( ! empty( $_GET['show_date_error'] ) ) {
 			echo '<div class="notice notice-error nagging">';
-			echo '<p><strong>You need to explicitly set a publish date.</strong> ';
+			echo '<p><strong>An explicit publish date is required.</strong> ';
 			echo 'Open the <strong>Publish</strong> date picker, choose a date (past or future), ';
 			echo 'click <strong>OK</strong>, then save again.</p>';
 			echo '</div>';
