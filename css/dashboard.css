@@ -308,35 +308,6 @@ html, body {
 	text-align: center !important;
 }
 
-/* ==========================================================================
-   SHOW DATE ENFORCEMENT
-   Controls the "set a date before saving" callout, picker highlight, and
-   locked publish button state injected by show-date-enforcement.js.
-   ========================================================================== */
-
-/* Callout inserted below the Publish button */
-.show-date-callout {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	margin: 8px 0 4px;
-	padding: 8px 10px;
-	background: #FFF3CD;
-	border: 1px solid #FBBF24;
-	border-radius: 3px;
-	font-size: 12px;
-	line-height: 1.4;
-	color: #92400E;
-}
-
-.show-date-callout .dashicons {
-	font-size: 16px;
-	width: 16px;
-	height: 16px;
-	flex-shrink: 0;
-	color: #D97706;
-}
-
 /* Highlight the date picker wrapper when a date is required */
 .show-date-picker-required {
 	outline: 2px solid #FBBF24;
