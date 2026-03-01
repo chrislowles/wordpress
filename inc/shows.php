@@ -171,6 +171,34 @@ class ChrisLowles_Shows {
 	}
 
 	/**
+	 * Returns true when the post either has the confirmation meta OR its
+	 * current status proves the date was intentionally set.
+	 *
+	 * 'future' (Scheduled) and 'publish' cannot be reached without WordPress
+	 * itself requiring a valid date, so they are inherently confirmed regardless
+	 * of whether the meta exists. This handles posts that were scheduled or
+	 * published before the enforcement meta was introduced.
+	 *
+	 * When a future/publish post is missing the meta, we write it lazily here
+	 * so subsequent checks hit the fast path and don't re-evaluate status.
+	 */
+	private function is_effectively_confirmed( int $post_id ): bool {
+		if ( $post_id <= 0 ) return false;
+		if ( $this->is_date_confirmed( $post_id ) ) return true;
+
+		$post = get_post( $post_id );
+		if ( ! $post ) return false;
+
+		if ( in_array( $post->post_status, [ 'future', 'publish' ], true ) ) {
+			// Lazy back-fill: write the meta so we don't repeat this check.
+			update_post_meta( $post_id, '_show_date_confirmed', '1' );
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Reconstruct the submitted post_date from the individual form fields.
 	 * Returns the sentinel when the year/month/day fields are absent or zero.
 	 */
@@ -216,7 +244,7 @@ class ChrisLowles_Shows {
 		$submitted_date = $this->build_submitted_date();
 		$date_present   = $this->date_is_set( $submitted_date );
 
-		if ( $this->is_date_confirmed( $post_id ) ) {
+		if ( $this->is_effectively_confirmed( $post_id ) ) {
 			// Lenient path — already confirmed, just ensure date wasn't cleared.
 			if ( $date_present ) return;
 		} else {
@@ -291,15 +319,15 @@ class ChrisLowles_Shows {
 		if ( ! $is_show_edit ) return;
 
 		if ( ! empty( $_GET['show_date_error'] ) ) {
-			echo '<div class="notice notice-error nagging">';
-			echo '<p><strong>An explicit publish date is required.</strong> ';
+			echo '<div class="notice notice-error is-dismissible nagging">';
+			echo '<p><strong>Show not saved.</strong> You need to explicitly set a publish date. ';
 			echo 'Open the <strong>Publish</strong> date picker, choose a date (past or future), ';
 			echo 'click <strong>OK</strong>, then save again.</p>';
 			echo '</div>';
 			return;
 		}
 
-		if ( isset( $post->ID ) && $post->ID > 0 && ! $this->is_date_confirmed( $post->ID ) ) {
+		if ( isset( $post->ID ) && $post->ID > 0 && ! $this->is_effectively_confirmed( $post->ID ) ) {
 			if ( $this->date_is_set( $post->post_date ) ) {
 				// "Publish immediately" post — has a date but it was never chosen.
 				echo '<div class="notice notice-warning nagging">';
@@ -717,7 +745,7 @@ class ChrisLowles_Shows {
 		);
 
 		$post_id        = get_the_ID();
-		$date_confirmed = $post_id ? $this->is_date_confirmed( $post_id ) : false;
+		$date_confirmed = $post_id ? $this->is_effectively_confirmed( $post_id ) : false;
 
 		wp_localize_script( 'show-date-enforcement', 'showDateEnforcement', [
 			// True when _show_date_confirmed meta exists — JS starts with the
