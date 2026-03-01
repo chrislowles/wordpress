@@ -18,7 +18,7 @@ new ChrisLowles_Redirects();
 
 // 4. Scratchpad
 require get_stylesheet_directory() . '/inc/scratchpad.php';
-new ChrisLowles_Agenda();
+new ChrisLowles_Scratchpad();
 
 // 5. General Theme Setup
 add_action('after_setup_theme', function () {
