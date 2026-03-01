@@ -9,32 +9,57 @@
  *
  * Date Enforcement Policy
  * -----------------------
- * Every show post MUST have an explicit publish date set before it can be saved.
- * The rules are:
+ * Every show post MUST have an explicitly user-chosen date before it can be
+ * saved. "Publish immediately" (WordPress auto-filled current time) is NOT
+ * accepted — a real date must be picked in the date picker.
  *
- *  - 'draft' status is blocked for new show posts. Saving without a date is
- *    prevented both server-side (save_post_show bail) and client-side (publish
- *    button disabled until a date is chosen).
+ * How it works end-to-end:
  *
- *  - 'pending' (Pending Review) is permanently disabled for show posts. The
- *    scheduled date IS the interim review state — a future-dated show sits as
- *    'future' (Scheduled) until it publishes automatically.
+ *  1. JS (show-date-enforcement.js) watches the date picker. The Publish button
+ *     stays disabled until the user clicks the blue "OK" button inside the
+ *     picker. At that point JS injects a hidden field `show_date_explicitly_set=1`
+ *     into the form and enables the Publish button.
  *
- *  - Legacy draft show posts (created before this enforcement was added) are
- *    allowed to open and be edited, but cannot be re-saved without a date.
- *    An admin notice explains this on every edit of a legacy draft.
+ *  2. PHP (enforce_show_date, priority 1) checks for that field on every save.
+ *     If it is present AND the date fields contain a real date, the save is
+ *     allowed and `_show_date_confirmed` post meta is written at priority 99
+ *     by finalize_date_confirmation(). If not, all downstream save_post_show
+ *     callbacks are unhooked and the request is redirected back to the editor
+ *     with ?show_date_error=1.
+ *
+ *  3. Once `_show_date_confirmed` meta exists the post is "confirmed". Future
+ *     edits skip the `show_date_explicitly_set` requirement — the user doesn't
+ *     have to re-open the date picker every time they save. JS receives the
+ *     `dateConfirmed` flag and starts with the button enabled.
+ *
+ *  4. "Publish immediately" posts lack `_show_date_confirmed` and are treated
+ *     identically to brand-new posts: button disabled, picker highlighted,
+ *     notice explains what to do.
+ *
+ *  5. Genuine 0000-00-00 legacy drafts also lack the meta and get the same
+ *     treatment.
+ *
+ *  6. 'pending' (Pending Review) is permanently blocked for show posts.
+ *     Scheduling a future date is the intended pre-publish holding state.
  *
  * Note: the old '_show_airing_date' post meta is no longer written. Any
- * existing rows can be left in place (they are harmless) or cleaned up with:
+ * existing rows can be left in place (harmless) or cleaned up with:
  *   DELETE FROM wp_postmeta WHERE meta_key = '_show_airing_date';
  */
 class ChrisLowles_Shows {
 
 	// -------------------------------------------------------------------------
-	// The date WordPress uses for a "not yet set" post is this sentinel value.
-	// Any post_date matching it should be treated as "no date chosen".
+	// Sentinel value WordPress stores for a post that has never had a real
+	// date set. Anything else is a real timestamp.
 	// -------------------------------------------------------------------------
 	const WP_UNSET_DATE = '0000-00-00 00:00:00';
+
+	// -------------------------------------------------------------------------
+	// Set by enforce_show_date() when a save passes validation and the
+	// confirmation meta should be written. Consumed at priority 99 by
+	// finalize_date_confirmation() so it runs after tracklist saves.
+	// -------------------------------------------------------------------------
+	private bool $pending_date_confirmation = false;
 
 	public function __construct() {
 		// CPT
@@ -48,14 +73,17 @@ class ChrisLowles_Shows {
 		add_action( 'save_post_show', [ $this, 'auto_fetch_link_titles' ], 20, 2 );
 
 		// ---- Date Enforcement -----------------------------------------------
-		// Block saves that lack a real date (server-side guard).
+		// Priority 1  — runs before tracklist/content saves so we can bail early.
 		add_action( 'save_post_show', [ $this, 'enforce_show_date' ], 1 );
 
-		// Strip 'draft' and 'pending' from the status dropdown in the editor.
-		add_filter( 'wp_insert_post_data', [ $this, 'block_draft_and_pending_status' ], 10, 2 );
+		// Priority 99 — writes confirmation meta after all other save work.
+		add_action( 'save_post_show', [ $this, 'finalize_date_confirmation' ], 99 );
 
-		// Show a persistent notice on legacy draft show posts.
-		add_action( 'admin_notices', [ $this, 'legacy_draft_notice' ] );
+		// Block 'pending' at the DB layer; JS also removes it from the UI.
+		add_filter( 'wp_insert_post_data', [ $this, 'block_pending_status' ], 10, 2 );
+
+		// Admin notices: blocked-save error + unconfirmed-post warning.
+		add_action( 'admin_notices', [ $this, 'date_enforcement_notices' ] );
 		// ---------------------------------------------------------------------
 
 		// AJAX Handlers for cross-post transfer
@@ -64,7 +92,7 @@ class ChrisLowles_Shows {
 		add_action( 'wp_ajax_copy_items_to_show',      [ $this, 'ajax_copy_items_to_show' ] );
 		add_action( 'wp_ajax_add_single_item_to_show', [ $this, 'ajax_add_single_item_to_show' ] );
 
-		// AJAX Handler: release _edit_lock immediately on edit-screen unload.
+		// Release _edit_lock immediately on edit-screen unload via sendBeacon.
 		add_action( 'wp_ajax_release_show_edit_lock', [ $this, 'ajax_release_edit_lock' ] );
 
 		// Assets & Template Button
@@ -124,79 +152,27 @@ class ChrisLowles_Shows {
 	// =========================================================================
 
 	/**
-	 * Returns true when the supplied date string represents a real, set date.
-	 * WordPress stores '0000-00-00 00:00:00' for posts that have never had a
-	 * date chosen; anything else is treated as intentionally set.
+	 * Returns true when the date string is a real timestamp (not the WP sentinel).
 	 */
 	private function date_is_set( string $date ): bool {
 		return ! empty( $date ) && $date !== self::WP_UNSET_DATE;
 	}
 
 	/**
-	 * Returns true when the given post is a legacy draft show — i.e. it was
-	 * created before date enforcement was introduced and has no real date.
+	 * Returns true when the post has been saved through the enforcement workflow
+	 * at least once — i.e. the user explicitly picked a date in the date picker.
 	 *
-	 * "Legacy" means it already exists in the database (has an ID > 0) AND its
-	 * current saved status is 'draft' AND it has no real post_date set.
+	 * "Publish immediately" posts have a real post_date (their creation time)
+	 * but they lack this meta, so date_is_set() alone is not a sufficient check.
 	 */
-	private function is_legacy_draft( int $post_id ): bool {
+	private function is_date_confirmed( int $post_id ): bool {
 		if ( $post_id <= 0 ) return false;
-		$post = get_post( $post_id );
-		if ( ! $post ) return false;
-		return $post->post_status === 'draft' && ! $this->date_is_set( $post->post_date );
+		return (bool) get_post_meta( $post_id, '_show_date_confirmed', true );
 	}
 
 	/**
-	 * save_post_show — priority 1 (runs before tracklist save).
-	 *
-	 * Bails the save and redirects back to the edit screen with an error query
-	 * arg when a show post is being saved without a real date.
-	 *
-	 * Exemptions:
-	 *  - Autosaves are always allowed through (they don't change the date).
-	 *  - REST API saves are blocked like normal saves.
-	 *  - Trash / restore transitions are allowed through (the date is irrelevant).
-	 *  - Legacy drafts being opened for the first time: the save is blocked but
-	 *    the notice explains what to do.
-	 */
-	public function enforce_show_date( int $post_id ): void {
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
-		if ( ! current_user_can( 'edit_post', $post_id ) ) return;
-
-		// Allow trash / restore without a date requirement.
-		$new_status = $_POST['post_status'] ?? '';
-		if ( in_array( $new_status, [ 'trash', 'inherit' ], true ) ) return;
-
-		// Determine the date being submitted.
-		// WordPress assembles the post_date from individual date/time fields.
-		$submitted_date = $this->build_submitted_date();
-
-		if ( $this->date_is_set( $submitted_date ) ) return; // All good — date present.
-
-		// Also allow if the post already has a real date saved (editing without
-		// touching the date picker should not cause a block).
-		$saved_post = get_post( $post_id );
-		if ( $saved_post && $this->date_is_set( $saved_post->post_date ) ) return;
-
-		// No date — prevent the save by unhooking subsequent save_post_show
-		// callbacks so nothing is written, then redirect.
-		remove_action( 'save_post_show', [ $this, 'save_tracklist' ] );
-		remove_action( 'save_post_show', [ $this, 'auto_fetch_link_titles' ], 20 );
-
-		// Redirect back with an error flag so the admin notice can fire.
-		$redirect = add_query_arg(
-			[ 'show_date_error' => '1', 'message' => '99' ],
-			get_edit_post_link( $post_id, 'url' ) ?: admin_url( 'post.php?post=' . $post_id . '&action=edit' )
-		);
-
-		wp_safe_redirect( $redirect );
-		exit;
-	}
-
-	/**
-	 * Reconstruct the submitted post_date from the individual form fields that
-	 * WordPress sends, matching what wp_insert_post() assembles internally.
-	 * Returns the sentinel value when the fields are absent or unset.
+	 * Reconstruct the submitted post_date from the individual form fields.
+	 * Returns the sentinel when the year/month/day fields are absent or zero.
 	 */
 	private function build_submitted_date(): string {
 		$aa = isset( $_POST['aa'] ) ? (int) $_POST['aa'] : 0;
@@ -212,24 +188,82 @@ class ChrisLowles_Shows {
 	}
 
 	/**
-	 * wp_insert_post_data filter — strips 'draft' and 'pending' statuses from
-	 * show posts before they are written to the database.
+	 * save_post_show — priority 1.
 	 *
-	 * If a new show arrives as 'draft' (e.g. the default for a brand-new post
-	 * before the user has set a date), we leave it as-is so the post can be
-	 * created in the DB — the enforce_show_date hook above will catch the case
-	 * where no date is set and redirect before any tracklist data is saved.
+	 * Two enforcement tiers:
 	 *
-	 * 'pending' is always converted to 'draft' as a fallback; client-side JS
-	 * removes the option from the dropdown so this should rarely fire.
+	 *  Already confirmed (_show_date_confirmed meta set):
+	 *    Only verify the submitted date fields still contain a real date.
+	 *    No re-confirmation needed on every save.
 	 *
-	 * Legacy draft posts (existing rows without a date) pass through unchanged
-	 * so they remain editable; enforce_show_date handles the save-time block.
+	 *  Unconfirmed (new post, "Publish immediately", any legacy draft):
+	 *    Require BOTH a real submitted date AND the hidden field
+	 *    `show_date_explicitly_set=1` that JS injects only when the user
+	 *    clicks OK inside the date picker. This is the only reliable way to
+	 *    distinguish "user chose this date" from "WordPress pre-filled now".
+	 *    On success, $pending_date_confirmation is set so the meta gets written.
+	 *
+	 * On failure: downstream hooks are removed, request redirected with error.
 	 */
-	public function block_draft_and_pending_status( array $data, array $postarr ): array {
+	public function enforce_show_date( int $post_id ): void {
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
+		if ( ! current_user_can( 'edit_post', $post_id ) ) return;
+
+		// Trash / restore transitions don't need a date.
+		$new_status = $_POST['post_status'] ?? '';
+		if ( in_array( $new_status, [ 'trash', 'inherit' ], true ) ) return;
+
+		$submitted_date = $this->build_submitted_date();
+		$date_present   = $this->date_is_set( $submitted_date );
+
+		if ( $this->is_date_confirmed( $post_id ) ) {
+			// Lenient path — already confirmed, just ensure date wasn't cleared.
+			if ( $date_present ) return;
+		} else {
+			// Strict path — require explicit picker confirmation from JS.
+			$explicitly_set = isset( $_POST['show_date_explicitly_set'] )
+				&& $_POST['show_date_explicitly_set'] === '1';
+
+			if ( $date_present && $explicitly_set ) {
+				$this->pending_date_confirmation = true;
+				return;
+			}
+		}
+
+		// ---- Block the save -------------------------------------------------
+		remove_action( 'save_post_show', [ $this, 'save_tracklist' ] );
+		remove_action( 'save_post_show', [ $this, 'auto_fetch_link_titles' ], 20 );
+
+		$redirect = add_query_arg(
+			[ 'show_date_error' => '1', 'message' => '99' ],
+			get_edit_post_link( $post_id, 'url' ) ?: admin_url( 'post.php?post=' . $post_id . '&action=edit' )
+		);
+
+		wp_safe_redirect( $redirect );
+		exit;
+	}
+
+	/**
+	 * save_post_show — priority 99.
+	 *
+	 * Writes _show_date_confirmed after enforce_show_date() gave the green
+	 * light. Runs after tracklist and content saves. No-ops on autosaves.
+	 */
+	public function finalize_date_confirmation( int $post_id ): void {
+		if ( ! $this->pending_date_confirmation ) return;
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
+
+		update_post_meta( $post_id, '_show_date_confirmed', '1' );
+		$this->pending_date_confirmation = false;
+	}
+
+	/**
+	 * wp_insert_post_data — convert 'pending' → 'draft' for show posts.
+	 * Pending Review is not a valid show state; JS removes it from the UI too.
+	 */
+	public function block_pending_status( array $data, array $postarr ): array {
 		if ( ( $data['post_type'] ?? '' ) !== 'show' ) return $data;
 
-		// Convert 'pending' → 'draft' (pending is not a valid show state).
 		if ( $data['post_status'] === 'pending' ) {
 			$data['post_status'] = 'draft';
 		}
@@ -238,14 +272,16 @@ class ChrisLowles_Shows {
 	}
 
 	/**
-	 * Admin notice — shown on show edit screens in two situations:
+	 * Admin notices on show edit screens.
 	 *
-	 *  1. The save was blocked because no date was set (?show_date_error=1).
-	 *  2. A legacy draft show (no date, pre-enforcement) is being edited.
-	 *
-	 * In both cases the message explains what the user needs to do.
+	 * Case 1 — ?show_date_error=1: save was just blocked, red error.
+	 * Case 2 — unconfirmed existing post: yellow warning.
+	 *   Sub-cases:
+	 *     a) post_date is set (was "Publish immediately") — specific message.
+	 *     b) post_date is 0000-00-00 (genuine legacy draft) — generic message.
+	 * New posts (ID = 0) get no PHP notice; the JS callout is sufficient.
 	 */
-	public function legacy_draft_notice(): void {
+	public function date_enforcement_notices(): void {
 		global $pagenow, $post;
 
 		$is_show_edit = in_array( $pagenow, [ 'post.php', 'post-new.php' ], true )
@@ -254,30 +290,37 @@ class ChrisLowles_Shows {
 
 		if ( ! $is_show_edit ) return;
 
-		// Case 1 — save was blocked.
 		if ( ! empty( $_GET['show_date_error'] ) ) {
 			echo '<div class="notice notice-error is-dismissible nagging">';
-			echo '<p><strong>Show not saved.</strong> Every show post requires a publish date. ';
-			echo 'Use the <strong>Publish</strong> date picker on the right to set one, then save again.</p>';
+			echo '<p><strong>Show not saved.</strong> You need to explicitly set a publish date. ';
+			echo 'Open the <strong>Publish</strong> date picker, choose a date (past or future), ';
+			echo 'click <strong>OK</strong>, then save again.</p>';
 			echo '</div>';
 			return;
 		}
 
-		// Case 2 — legacy draft with no date.
-		if ( isset( $post->ID ) && $this->is_legacy_draft( $post->ID ) ) {
-			echo '<div class="notice notice-warning nagging">';
-			echo '<p><strong>This show has no publish date.</strong> ';
-			echo 'It was created before date enforcement was introduced. ';
-			echo 'Set a date using the <strong>Publish</strong> date picker on the right before saving — ';
-			echo 'the save button will remain disabled until a date is chosen.</p>';
-			echo '</div>';
+		if ( isset( $post->ID ) && $post->ID > 0 && ! $this->is_date_confirmed( $post->ID ) ) {
+			if ( $this->date_is_set( $post->post_date ) ) {
+				// "Publish immediately" post — has a date but it was never chosen.
+				echo '<div class="notice notice-warning nagging">';
+				echo '<p><strong>This show has no confirmed publish date.</strong> ';
+				echo 'It was previously saved with &ldquo;Publish immediately&rdquo; rather than an explicitly chosen date, ';
+				echo 'which means it may publish or has published at the wrong time. ';
+				echo 'Open the <strong>Publish</strong> date picker, pick a proper date, click <strong>OK</strong>, then save.</p>';
+				echo '</div>';
+			} else {
+				// Genuine 0000-00-00 legacy draft.
+				echo '<div class="notice notice-warning nagging">';
+				echo '<p><strong>This show has no publish date.</strong> ';
+				echo 'Open the <strong>Publish</strong> date picker, choose a date, click <strong>OK</strong>, then save — ';
+				echo 'the save button will remain disabled until you do.</p>';
+				echo '</div>';
+			}
 		}
 	}
 
 	// =========================================================================
 	// DATA MIGRATION
-	// Single place that converts legacy field names (track_title / track_url)
-	// to the canonical names (title / url). Called on every DB read boundary.
 	// =========================================================================
 
 	private function migrate_tracklist_data( $items ) {
@@ -325,10 +368,6 @@ class ChrisLowles_Shows {
 		}
 	}
 
-	// -------------------------------------------------------------------------
-	// Editing Status Dot
-	// -------------------------------------------------------------------------
-
 	const EDIT_LOCK_STALE_SECONDS = 20;
 
 	private function render_editing_status( $post_id ) {
@@ -363,12 +402,6 @@ class ChrisLowles_Shows {
 		$this->render_editor_html( $tracklist, $post->ID );
 	}
 
-	/**
-	 * Render the tracklist editor HTML.
-	 *
-	 * Visibility of track-only vs spacer-only elements is handled entirely by
-	 * CSS in dashboard.css via the .is-spacer class — no inline styles needed.
-	 */
 	private function render_editor_html( $items, $post_id ) {
 		$items = is_array( $items ) ? $items : [];
 		?>
@@ -421,10 +454,6 @@ class ChrisLowles_Shows {
 		}
 	}
 
-	/**
-	 * Auto-fetch titles for bare URLs in post content on save.
-	 * Only runs if the user confirmed via the JavaScript dialog.
-	 */
 	public function auto_fetch_link_titles( $post_id, $post ) {
 		if ( empty( $_POST['fetch_link_titles'] ) ) return;
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
@@ -481,9 +510,6 @@ class ChrisLowles_Shows {
 		add_action( 'save_post_show', [ $this, 'auto_fetch_link_titles' ], 20, 2 );
 	}
 
-	/**
-	 * Extract page title from HTML.
-	 */
 	private function extract_title_from_html( $html ) {
 		if ( empty( $html ) ) return null;
 
@@ -520,7 +546,7 @@ class ChrisLowles_Shows {
 			'posts_per_page' => -1,
 			'orderby'        => 'date',
 			'order'          => 'DESC',
-			'post_status'    => [ 'publish', 'draft' ],
+			'post_status'    => [ 'publish', 'future', 'draft' ],
 			'post__not_in'   => [ $current_post_id ],
 		] );
 
@@ -589,9 +615,6 @@ class ChrisLowles_Shows {
 		wp_send_json_success( [ 'message' => 'Item added successfully' ] );
 	}
 
-	/**
-	 * Release _edit_lock for a show post immediately.
-	 */
 	public function ajax_release_edit_lock() {
 		check_ajax_referer( 'tracklist_nonce', 'nonce' );
 
@@ -684,25 +707,22 @@ class ChrisLowles_Shows {
 		// Auto-link-title fetcher
 		wp_enqueue_script( 'fetch-link-titles', get_stylesheet_directory_uri() . '/js/fetch-link-titles.js', [ 'jquery', 'theme-utils' ], '1.0.0', true );
 
-		// Date enforcement — disable publish/submit until a date is set.
+		// Date enforcement
 		wp_enqueue_script(
 			'show-date-enforcement',
 			get_stylesheet_directory_uri() . '/js/show-date-enforcement.js',
 			[ 'jquery' ],
-			'1.0.0',
+			'2.0.0',
 			true
 		);
 
-		// Pass through whether this post is a legacy draft so JS can adjust
-		// its initial state without having to infer it from the DOM alone.
 		$post_id        = get_the_ID();
-		$is_legacy      = $this->is_legacy_draft( $post_id ?: 0 );
-		$has_date       = $post_id && $this->date_is_set( get_post( $post_id )->post_date ?? '' );
+		$date_confirmed = $post_id ? $this->is_date_confirmed( $post_id ) : false;
 
 		wp_localize_script( 'show-date-enforcement', 'showDateEnforcement', [
-			'isLegacyDraft' => $is_legacy,
-			'hasDate'       => $has_date,
-			'unsetDate'     => self::WP_UNSET_DATE,
+			// True when _show_date_confirmed meta exists — JS starts with the
+			// button enabled and doesn't require the picker to be opened.
+			'dateConfirmed' => $date_confirmed,
 		] );
 	}
 
