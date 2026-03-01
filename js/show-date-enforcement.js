@@ -122,7 +122,7 @@ jQuery( function ( $ ) {
         var $callout = $( '<p>', {
             id:    CALLOUT_ID,
             class: 'show-date-callout',
-            html:  'Open the date picker above, choose a date, then click <strong>OK</strong>.'
+            html: 'Open the date picker above, choose a date, then click <strong>OK</strong>.'
         } );
 
         var $after = $( '#publish' ).closest( '#publishing-action' );
