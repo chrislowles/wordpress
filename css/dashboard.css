@@ -200,15 +200,15 @@ html, body {
 }
 
 /* ==========================================================================
-   AGENDA SCRATCHPAD STYLES
+   SCRATCHPAD STYLES
    ========================================================================== */
 
-#agenda-wrapper {
+#scratchpad-wrapper {
 	position: relative;
 	border: 1px solid #ccc;
 }
 
-#agenda-content {
+#scratchpad-content {
 	width: 100%;
 	display: block;
 	border: none;
@@ -217,7 +217,7 @@ html, body {
 	padding: 10px;
 }
 
-.agenda-controls {
+.scratchpad-controls {
 	padding: 10px;
 	background: #f0f0f1;
 	border-top: 1px solid #ccc;
@@ -226,8 +226,8 @@ html, body {
 	gap: 10px;
 }
 
-/* Agenda Locking Overlay */
-#agenda-lock-overlay {
+/* Scratchpad Locking Overlay */
+#scratchpad-lock-overlay {
 	position: absolute;
 	top: 0; left: 0; right: 0; bottom: 0;
 	background: rgba(255, 255, 255, 0.85);
@@ -238,7 +238,7 @@ html, body {
 	backdrop-filter: blur(1px);
 }
 
-#agenda-lock-overlay.hidden {
+#scratchpad-lock-overlay.hidden {
 	display: none;
 }
 
