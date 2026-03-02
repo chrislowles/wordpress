@@ -250,7 +250,7 @@ jQuery( function ( $ ) {
         // If the post was supposedly confirmed but the picker is still showing
         // "Publish immediately", something is off — revoke confirmation so the
         // user is prompted to set a real date.
-        if ( showDateEnforcement.dateConfirmed && isPublishImmediately() ) {
+        if ( ! showDateEnforcement.dateConfirmed && isPublishImmediately() ) {
             dateExplicitlySet = false;
         }
         update();
