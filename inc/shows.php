@@ -740,7 +740,7 @@ class ChrisLowles_Shows {
             'show-date-enforcement',
             get_stylesheet_directory_uri() . '/js/show-date-enforcement.js',
             [ 'jquery' ],
-            '2.1.0',
+            '2.2.0',
             true
         );
 
