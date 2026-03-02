@@ -275,13 +275,14 @@ jQuery(document).ready($ => {
             $modal.find('#show-search-input').val('');
             $modal.find('#show-search-results').hide();
 
+            // FIX: Re-enable the button when opening the modal
             if (mode === 'single') {
                 $modal.find('#modal-title').text('Add Item to Show');
-                $modal.find('#confirm-add-btn').text('Add Item');
+                $modal.find('#confirm-add-btn').text('Add Item').prop('disabled', false);
                 $modal.data('row', $row);
             } else {
                 $modal.find('#modal-title').text('Copy All Items to Show');
-                $modal.find('#confirm-add-btn').text('Copy All');
+                $modal.find('#confirm-add-btn').text('Copy All').prop('disabled', false);
                 $modal.removeData('row');
             }
             $modal.data('mode', mode);
