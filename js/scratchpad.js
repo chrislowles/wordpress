@@ -74,7 +74,7 @@ jQuery(document).ready(function($) {
 				$btn.text('Saved!');
 				setTimeout(function() { $btn.text('Save').prop('disabled', false); }, 2000);
 			} else {
-				alert('Error: ' + response.data.message);
+				alert(`Error: ${response.data.message}`);
 				$btn.text('Save').prop('disabled', false);
 			}
 		}).fail(function() {
