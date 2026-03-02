@@ -177,6 +177,9 @@ jQuery( function ( $ ) {
     setTimeout( function () {
         if ( isPublishImmediately() ) {
             dateExplicitlySet = false;
+        } else {
+            // A date is already set, so mark it as explicitly set
+            dateExplicitlySet = true;
         }
         update();
     }, 0 );
