@@ -7,7 +7,7 @@ class ChrisLowles_Cleanup {
 
     public function __construct() {
         // Bloat Removal
-        add_action('admin_init', [$this, 'nuke_hostinger']);
+        add_action( 'admin_init', [ $this, 'nuke_hostinger' ] );
         
         // Feature Disabling
         $this->disable_categories();
@@ -26,27 +26,27 @@ class ChrisLowles_Cleanup {
      */
     public function nuke_hostinger() {
         $plugin_path = 'hostinger/hostinger.php';
-        if (is_plugin_active($plugin_path)) {
-            deactivate_plugins($plugin_path);
+        if ( is_plugin_active( $plugin_path ) ) {
+            deactivate_plugins( $plugin_path );
         }
-        add_filter('all_plugins', function($plugins) use ($plugin_path) {
-            if (isset($plugins[$plugin_path])) unset($plugins[$plugin_path]);
+        add_filter( 'all_plugins', function($plugins) use ( $plugin_path ) {
+            if ( isset( $plugins[ $plugin_path ] ) ) unset( $plugins[ $plugin_path ] );
             return $plugins;
-        });
+        } );
     }
 
     /**
      * Disable Categories (Taxonomy & UI)
      */
     private function disable_categories() {
-        add_action('init', function() {
-            unregister_taxonomy_for_object_type('category', 'post');
-        }, 20);
+        add_action( 'init', function () {
+            unregister_taxonomy_for_object_type( 'category', 'post' );
+        }, 20 );
 
-        add_action('admin_menu', function() {
-            remove_menu_page('edit-tags.php?taxonomy=category');
-            remove_meta_box('categorydiv', 'post', 'side');
-        }, 999);
+        add_action( 'admin_menu', function () {
+            remove_menu_page( 'edit-tags.php?taxonomy=category' );
+            remove_meta_box( 'categorydiv', 'post', 'side' );
+        }, 999 );
     }
 
     /**
@@ -54,42 +54,52 @@ class ChrisLowles_Cleanup {
      */
     private function disable_comments() {
         // Post type support
-        add_action('admin_init', function() {
-            foreach (get_post_types() as $post_type) {
-                if (post_type_supports($post_type, 'comments')) {
-                    remove_post_type_support($post_type, 'comments');
-                    remove_post_type_support($post_type, 'trackbacks');
+        add_action( 'admin_init', function () {
+            foreach ( get_post_types() as $post_type ) {
+                if ( post_type_supports( $post_type, 'comments' ) ) {
+                    remove_post_type_support( $post_type, 'comments' );
+                    remove_post_type_support( $post_type, 'trackbacks' );
                 }
             }
-        });
+        } );
 
         // Front-end closing
-        add_filter('comments_open', '__return_false', 20, 2);
-        add_filter('pings_open', '__return_false', 20, 2);
-        add_filter('comments_array', '__return_empty_array', 10, 2);
+        add_filter( 'comments_open', '__return_false', 20, 2 );
+        add_filter( 'pings_open', '__return_false', 20, 2 );
+        add_filter( 'comments_array', '__return_empty_array', 10, 2 );
 
         // Admin Menu & Bar
-        add_action('admin_menu', function() { remove_menu_page('edit-comments.php'); });
-        add_action('admin_init', function() {
+        add_action( 'admin_menu', function () {
+            remove_menu_page( 'edit-comments.php' );
+        } );
+        add_action( 'admin_init', function () {
             global $pagenow;
-            if ($pagenow === 'edit-comments.php') { wp_redirect(admin_url()); exit; }
-        });
-        add_action('wp_before_admin_bar_render', function() {
+            if ( $pagenow === 'edit-comments.php' ) {
+                wp_redirect( admin_url() );
+                exit;
+            }
+        } );
+        add_action( 'wp_before_admin_bar_render', function () {
             global $wp_admin_bar;
-            $wp_admin_bar->remove_menu('comments');
+            $wp_admin_bar->remove_menu( 'comments' );
         });
 
         // Header cleanup
-        add_filter('wp_headers', function($headers) { unset($headers['X-Pingback']); return $headers; });
-        add_action('wp_head', function() { echo '<style>.comment-respond, .comments-area, #comments { display: none !important; }</style>'; });
+        add_filter( 'wp_headers', function ( $headers ) {
+            unset( $headers[ 'X-Pingback' ] );
+            return $headers;
+        } );
+        add_action( 'wp_head', function () {
+            echo '<style>.comment-respond, .comments-area, #comments { display: none !important; }</style>';
+        });
     }
 
     /**
      * Disable Pages Post Type
      */
-    private function disable_pages() {
-        add_filter('register_post_type_args', function($args, $post_type) {
-            if ($post_type === 'page') {
+    private function disable_pages () {
+        add_filter( 'register_post_type_args', function ( $args, $post_type ) {
+            if ( $post_type === 'page' ) {
                 $args['public'] = false;
                 $args['show_ui'] = false;
                 $args['show_in_menu'] = false;
@@ -102,14 +112,14 @@ class ChrisLowles_Cleanup {
             return $args;
         }, 10, 2);
 
-        add_action('wp_before_admin_bar_render', function() {
+        add_action( 'wp_before_admin_bar_render', function () {
             global $wp_admin_bar;
-            $wp_admin_bar->remove_menu('new-page');
+            $wp_admin_bar->remove_menu( 'new-page' );
         });
 
-        add_action('admin_init', function() {
+        add_action( 'admin_init', function () {
             global $pagenow;
-            if ($pagenow === 'edit.php' && isset($_GET['post_type']) && $_GET['post_type'] === 'page') {
+            if ( $pagenow === 'edit.php' && isset( $_GET[ 'post_type' ] ) && $_GET[ 'post_type' ] === 'page' ) {
                 wp_redirect(admin_url()); exit;
             }
         });
@@ -118,27 +128,27 @@ class ChrisLowles_Cleanup {
     /**
      * Disable Widgets
      */
-    private function disable_widgets() {
-        add_action('wp_dashboard_setup', function() {
-            remove_meta_box('dashboard_quick_press', 'dashboard', 'side');
-            remove_meta_box('dashboard_primary', 'dashboard', 'side');
-            remove_action('welcome_panel', 'wp_welcome_panel');
+    private function disable_widgets () {
+        add_action( 'wp_dashboard_setup', function () {
+            remove_meta_box( 'dashboard_quick_press', 'dashboard', 'side' );
+            remove_meta_box( 'dashboard_primary', 'dashboard', 'side' );
+            remove_action( 'welcome_panel', 'wp_welcome_panel' );
         });
         
         // Remove from Appearance menu
-        add_action('widgets_init', function() {
+        add_action( 'widgets_init', function () {
             global $wp_registered_sidebars;
             $wp_registered_sidebars = array();
-            unregister_widget('WP_Widget_Recent_Comments');
+            unregister_widget( 'WP_Widget_Recent_Comments' );
         }, 999);
     }
 
     /**
      * Restrict Appearance Menu (Keep Customizer)
      */
-    private function disable_appearance() {
+    private function disable_appearance () {
         // Remove specific submenus
-        add_action('admin_menu', function() {
+        add_action( 'admin_menu', function () {
             remove_submenu_page('themes.php', 'themes.php');
             remove_submenu_page('themes.php', 'theme-install.php');
             remove_submenu_page('themes.php', 'theme-editor.php');
@@ -146,66 +156,66 @@ class ChrisLowles_Cleanup {
             remove_submenu_page('themes.php', 'widgets.php');
             remove_submenu_page('themes.php', 'custom-header');
             remove_submenu_page('themes.php', 'custom-background');
-        }, 999);
+        }, 999 );
 
         // Redirect blocked pages
-        add_action('admin_init', function() {
+        add_action( 'admin_init', function () {
             global $pagenow;
-            $blocked = ['themes.php', 'nav-menus.php', 'widgets.php', 'theme-editor.php', 'theme-install.php'];
+            $blocked = [ 'themes.php', 'nav-menus.php', 'widgets.php', 'theme-editor.php', 'theme-install.php' ];
             if (in_array($pagenow, $blocked)) { wp_safe_redirect(admin_url()); exit; }
         });
 
         // Cap changes
-        add_filter('user_has_cap', function($caps) {
-            $caps['switch_themes'] = false;
-            $caps['install_themes'] = false;
-            $caps['update_themes'] = false;
-            $caps['delete_themes'] = false;
-            $caps['edit_themes'] = false;
+        add_filter( 'user_has_cap', function( $caps ) {
+            $caps[ 'switch_themes' ] = false;
+            $caps[ 'install_themes' ] = false;
+            $caps[ 'update_themes' ] = false;
+            $caps[ 'delete_themes' ] = false;
+            $caps[ 'edit_themes' ] = false;
             return $caps;
         });
 
         // Clean Customizer
-        add_action('customize_register', function($wp_customize) {
-            $wp_customize->remove_section('nav');
-        }, 999);
+        add_action( 'customize_register', function ( $wp_customize ) {
+            $wp_customize->remove_section( 'nav' );
+        }, 999 );
 
         // Disable file editing constant
-        if (!defined('DISALLOW_FILE_EDIT')) define('DISALLOW_FILE_EDIT', true);
+        if ( !defined( 'DISALLOW_FILE_EDIT' ) ) define( 'DISALLOW_FILE_EDIT', true );
 
         // Hide updates
-        add_filter('pre_site_transient_update_themes', '__return_null');
+        add_filter( 'pre_site_transient_update_themes', '__return_null' );
     }
 
     /**
      * Disable WordPress Auto-Embeds (oEmbed)
      * Prevents URLs from being automatically converted to embedded media
      */
-    private function disable_embeds() {
-        add_action('init', function() {
+    private function disable_embeds () {
+        add_action( 'init', function () {
             // Remove the REST API endpoint.
-            remove_action('rest_api_init', 'wp_oembed_register_route');
+            remove_action( 'rest_api_init', 'wp_oembed_register_route' );
             // Remove oEmbed discovery links.
-            remove_action('wp_head', 'wp_oembed_add_discovery_links');
+            remove_action( 'wp_head', 'wp_oembed_add_discovery_links' );
             // Remove all embeds rewrite rules.
-            add_filter('rewrite_rules_array', function ($rules) {
-                foreach ($rules as $rule => $rewrite) {
-                    if (false !== strpos($rewrite, 'embed=true')) {
-                        unset($rules[$rule]);
+            add_filter( 'rewrite_rules_array', function ( $rules ) {
+                foreach ( $rules as $rule => $rewrite ) {
+                    if ( false !== strpos( $rewrite, 'embed=true' ) ) {
+                        unset( $rules[ $rule ] );
                     }
                 }
                 return $rules;
-            });
+            } );
             // Also remove from excerpt
-            remove_filter('the_excerpt', array($GLOBALS['wp_embed'], 'autoembed'), 8);
-        }, 9999);
+            remove_filter( 'the_excerpt', array( $GLOBALS[ 'wp_embed' ], 'autoembed' ), 8 );
+        }, 9999 );
     }
 
     /**
      * Disable Gutenberg (Placeholder)
      */
-    private function disable_gutenberg() {
-         add_filter('use_widgets_block_editor', '__return_false');
-         // add_filter('use_block_editor_for_post', '__return_false');
+    private function disable_gutenberg () {
+         add_filter( 'use_widgets_block_editor', '__return_false' );
+         // add_filter( 'use_block_editor_for_post', '__return_false' );
     }
 }
