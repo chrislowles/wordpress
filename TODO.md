@@ -1,1 +1,0 @@
-* Noticed another quirk in the show post date enforcement, the update button doesn't unlock when the post is actually being updated with new content (body content/tracklist/etc)
