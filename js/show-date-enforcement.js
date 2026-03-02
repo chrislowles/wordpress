@@ -1,90 +1,38 @@
 /**
- * show-date-enforcement.js
+ * show-date-enforcement.js  v3.0.0
  *
- * Client-side date enforcement for the Show post type.
+ * Hard split between confirmed and unconfirmed posts.
  *
- * Core problem being solved
- * -------------------------
- * When WordPress creates a new post or a post is saved with "Publish
- * immediately", it pre-fills the date picker fields with the current time.
- * This means the date fields always contain *a* date — we cannot use them
- * alone to detect whether the user has actually chosen one.
+ * CONFIRMED (dateConfirmed === true)
+ *   Button starts unlocked. MutationObserver re-asserts the unlock after every
+ *   DOM re-render but can never lock the button. The unconfirmed code path is
+ *   never executed (early return).
  *
- * The solution: track whether the user has explicitly clicked the "OK" button
- * inside the date picker (.save-timestamp). Only that action constitutes an
- * intentional date choice. Until it happens, the Publish button is locked.
- *
- * State model
- * -----------
- * dateExplicitlySet — starts true only for posts that already have a
- *   confirmed date from a previous save (_show_date_confirmed meta, passed
- *   via showDateEnforcement.dateConfirmed). For every other post — new,
- *   "Publish immediately", or legacy draft — it starts false and becomes
- *   true only when the user clicks OK in the picker.
- *
- * When dateExplicitlySet is true, the hidden field show_date_explicitly_set=1
- * is injected into the form so the PHP enforcement layer can verify it.
- *
- * Once a post is confirmed (dateConfirmed = true from PHP), subsequent edits
- * start with the button enabled. The user can save normally without having
- * to re-open the picker — they only need to open it again if they want to
- * actually change the date.
- *
- * Rules also enforced here
- * ------------------------
- *  - "Pending Review" option removed from the status dropdown (not a valid
- *    show state; the scheduled date serves as the pre-publish holding state).
- *  - "Save Draft" button hidden (no separate draft workflow for shows).
- *  - Date picker section highlighted with an amber outline until confirmed.
- *
- * WordPress Classic Editor DOM targets used
- * -----------------------------------------
- *  #publish              — main Publish / Schedule / Update button
- *  #save-post            — Save Draft link
- *  #timestampdiv         — date/time picker container
- *  .misc-pub-section     — the row in the publish box containing the date
- *  input#aa, #mm, #jj    — year / month / day fields (used for validation)
- *  .save-timestamp       — OK button inside the picker (date confirmed here)
- *  .cancel-timestamp     — Cancel button inside the picker
- *  #timestamp            — display span showing current date/status
- *  #submitdiv            — the whole publish meta-box (watched for re-renders)
+ * UNCONFIRMED (new post / "Publish immediately" / legacy draft without meta)
+ *   Button starts locked. Only clicking OK in the date picker sets
+ *   dateExplicitlySet = true and unlocks the button.
  */
 
 /* global showDateEnforcement, jQuery */
 jQuery( function ( $ ) {
     'use strict';
 
-    var HIGHLIGHT_CLS    = 'show-date-picker-required';
+    var HIGHLIGHT_CLS     = 'show-date-picker-required';
     var HIDDEN_FIELD_NAME = 'show_date_explicitly_set';
+    var isConfirmed       = showDateEnforcement.dateConfirmed === true;
 
     // =========================================================================
-    // STATE
-    // dateExplicitlySet — the single source of truth for whether saving is
-    // allowed. Starts true only when PHP confirmed a proper date already exists.
+    // SHARED HELPERS
     // =========================================================================
 
-    var dateExplicitlySet = showDateEnforcement.dateConfirmed === true;
-
-    // =========================================================================
-    // HIDDEN FIELD
-    // Keeps the form field in sync with dateExplicitlySet. PHP reads this to
-    // distinguish an intentional date from a WordPress-auto-filled one.
-    // =========================================================================
-
-    function syncHiddenField() {
+    function syncHiddenField( value ) {
         var $field = $( 'input[name="' + HIDDEN_FIELD_NAME + '"]' );
         if ( ! $field.length ) {
             $field = $( '<input>', { type: 'hidden', name: HIDDEN_FIELD_NAME } );
             $( '#post' ).append( $field );
         }
-        $field.val( dateExplicitlySet ? '1' : '0' );
+        $field.val( value ? '1' : '0' );
     }
-
-    // =========================================================================
-    // DATE FIELD VALIDATION
-    // Used as a secondary guard: even if dateExplicitlySet is true we won't
-    // enable the button if the year/month/day fields are zeroed out.
-    // =========================================================================
 
     function dateFieldsAreSet() {
         var aa = parseInt( $( '#aa' ).val(), 10 );
@@ -93,41 +41,15 @@ jQuery( function ( $ ) {
         return aa > 0 && mm > 0 && jj > 0;
     }
 
-    function hasValidDate() {
-        // For confirmed posts, trust the PHP-verified date. Re-reading #aa/#mm/#jj
-        // on every mutation is unsafe — CodeMirror / WP autosave can leave them
-        // momentarily empty, which locks the button even though the date is valid.
-        if ( dateExplicitlySet && showDateEnforcement.dateConfirmed ) {
-            return true;
-        }
-        return dateExplicitlySet && dateFieldsAreSet();
-    }
-
-    // =========================================================================
-    // PUBLISH IMMEDIATELY DETECTION
-    // WordPress renders "Publish immediately" (or its localised equivalent) in
-    // the #timestamp span when no explicit date has been set. Checking this on
-    // load lets us catch posts that were saved in that state and reset the
-    // explicit flag for them, even if dateConfirmed was somehow truthy.
-    // =========================================================================
-
     function isPublishImmediately() {
         var text = ( $( '#timestamp' ).text() || '' ).toLowerCase();
         return text.indexOf( 'immediately' ) !== -1;
     }
 
-    // =========================================================================
-    // UI: DATE PICKER HIGHLIGHT
-    // =========================================================================
-
     function highlightDatePicker( on ) {
         $( '#timestampdiv' ).toggleClass( HIGHLIGHT_CLS, on );
         $( '#edit-timestamp' ).closest( '.misc-pub-section' ).toggleClass( HIGHLIGHT_CLS, on );
     }
-
-    // =========================================================================
-    // UI: PUBLISH BUTTON
-    // =========================================================================
 
     function lockPublishButton() {
         $( '#publish' )
@@ -143,18 +65,9 @@ jQuery( function ( $ ) {
             .removeAttr( 'title' );
     }
 
-    // =========================================================================
-    // UI: INVALID STATUS CLEANUP
-    // Removes "Pending Review" from the dropdown and hides "Save Draft".
-    // Called on load and after every submit-box mutation.
-    // =========================================================================
-
     function cleanupInvalidStatuses() {
         $( '#post_status option[value="pending"]' ).remove();
         $( '#save-post' ).hide();
-
-        // If WP is currently displaying "Pending Review" as the status label,
-        // relabel it to Draft so the UI doesn't show a state that can't exist.
         $( '#post-status-display' ).each( function () {
             if ( $( this ).text().trim() === 'Pending Review' ) {
                 $( this ).text( 'Draft' );
@@ -163,12 +76,61 @@ jQuery( function ( $ ) {
     }
 
     // =========================================================================
-    // MAIN UPDATE — called on load and after every relevant event
+    // CONFIRMED PATH
+    // The button is unlocked on load and stays unlocked. MutationObserver
+    // re-asserts the unlock after every DOM re-render (autosave indicator,
+    // word count, CodeMirror activity, etc.) but NEVER locks.
     // =========================================================================
 
-    function update() {
-        syncHiddenField();
+    if ( isConfirmed ) {
+        syncHiddenField( true );
 
+        var confirmTimer;
+        var submitDivConfirmed = document.getElementById( 'submitdiv' );
+
+        if ( submitDivConfirmed && typeof MutationObserver !== 'undefined' ) {
+            new MutationObserver( function () {
+                clearTimeout( confirmTimer );
+                confirmTimer = setTimeout( function () {
+                    // Re-assert unlock — mutations never lock a confirmed post.
+                    unlockPublishButton();
+                    highlightDatePicker( false );
+                    cleanupInvalidStatuses();
+                }, 50 );
+            } ).observe( submitDivConfirmed, { childList: true, subtree: true } );
+        }
+
+        setTimeout( function () {
+            // Safety valve: if somehow the picker shows "Publish immediately"
+            // despite the confirmation meta existing, treat it as needing a
+            // re-pick (without revoking the meta server-side).
+            if ( isPublishImmediately() ) {
+                lockPublishButton();
+                highlightDatePicker( true );
+            } else {
+                unlockPublishButton();
+                highlightDatePicker( false );
+            }
+            cleanupInvalidStatuses();
+        }, 0 );
+
+        return; // ← confirmed posts never reach the unconfirmed code below
+    }
+
+    // =========================================================================
+    // UNCONFIRMED PATH
+    // dateConfirmed is false: new post, "Publish immediately", or legacy draft.
+    // Button stays locked until the user clicks OK in the date picker.
+    // =========================================================================
+
+    var dateExplicitlySet = false;
+
+    function hasValidDate() {
+        return dateExplicitlySet && dateFieldsAreSet();
+    }
+
+    function update() {
+        syncHiddenField( dateExplicitlySet );
         if ( hasValidDate() ) {
             unlockPublishButton();
             highlightDatePicker( false );
@@ -176,18 +138,11 @@ jQuery( function ( $ ) {
             lockPublishButton();
             highlightDatePicker( true );
         }
-
         cleanupInvalidStatuses();
     }
 
-    // =========================================================================
-    // EVENT: user clicked OK inside the date picker
-    // This is the ONLY moment we treat as "date explicitly set".
-    // =========================================================================
-
+    // OK button — the only action that constitutes an intentional date choice.
     $( document ).on( 'click', '.save-timestamp', function () {
-        // Give WordPress a tick to write the new values into the fields and
-        // update the #timestamp display span before we read them.
         setTimeout( function () {
             if ( dateFieldsAreSet() ) {
                 dateExplicitlySet = true;
@@ -196,61 +151,31 @@ jQuery( function ( $ ) {
         }, 50 );
     } );
 
-    // =========================================================================
-    // EVENT: user cancelled the date picker
-    // If they land back on "Publish immediately", revoke explicit-set status.
-    // =========================================================================
-
+    // Cancel button — revoke if the picker lands back on "Publish immediately".
     $( document ).on( 'click', '.cancel-timestamp', function () {
         setTimeout( function () {
             if ( isPublishImmediately() ) {
-                // Only revoke if the post hasn't been confirmed yet. A
-                // confirmed post that the user happens to cancel on shouldn't
-                // suddenly be blocked — they've already set a date previously.
-                if ( ! showDateEnforcement.dateConfirmed ) {
-                    dateExplicitlySet = false;
-                }
+                dateExplicitlySet = false;
             }
             update();
         }, 50 );
     } );
 
-    // =========================================================================
-    // MUTATION OBSERVER: watch #submitdiv for WordPress re-renders
-    // WP can rebuild parts of the submit box when the status dropdown changes.
-    // Re-run cleanup so our UI changes survive those re-renders.
-    // =========================================================================
-
-    var submitDiv = document.getElementById( 'submitdiv' );
-    if ( submitDiv && typeof MutationObserver !== 'undefined' ) {
-        var observerTimer;
-        var observer = new MutationObserver( function () {
-            // Debounce: wait for WordPress to finish mutating the DOM before
-            // reading field values or button state. Without this, date fields
-            // can appear empty mid-mutation and incorrectly trigger a lock.
+    // MutationObserver — re-runs update() after DOM settles.
+    // For unconfirmed posts this is fine: update() may lock or unlock
+    // based on dateExplicitlySet, which only changes via picker events.
+    var observerTimer;
+    var submitDivUnconfirmed = document.getElementById( 'submitdiv' );
+    if ( submitDivUnconfirmed && typeof MutationObserver !== 'undefined' ) {
+        new MutationObserver( function () {
             clearTimeout( observerTimer );
-            observerTimer = setTimeout( function () {
-                // Call full update() so confirmed posts get unlocked as well
-                // as locked — the old logic only ever locked, which caused the
-                // Update button to stay disabled after any DOM mutation
-                // (autosave indicator, editor word count, etc.).
-                update();
-            }, 50 );
-        } );
-        observer.observe( submitDiv, { childList: true, subtree: true } );
+            observerTimer = setTimeout( update, 50 );
+        } ).observe( submitDivUnconfirmed, { childList: true, subtree: true } );
     }
 
-    // =========================================================================
-    // INITIAL RUN
-    // Use setTimeout(0) to queue after WordPress's own post.js has run and
-    // populated the #timestamp display span (needed for isPublishImmediately).
-    // =========================================================================
-
+    // Initial run — queue after WP's own post.js populates #timestamp.
     setTimeout( function () {
-        // If the post was supposedly confirmed but the picker is still showing
-        // "Publish immediately", something is off — revoke confirmation so the
-        // user is prompted to set a real date.
-        if ( ! showDateEnforcement.dateConfirmed && isPublishImmediately() ) {
+        if ( isPublishImmediately() ) {
             dateExplicitlySet = false;
         }
         update();
