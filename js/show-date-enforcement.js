@@ -94,6 +94,12 @@ jQuery( function ( $ ) {
     }
 
     function hasValidDate() {
+        // For confirmed posts, trust the PHP-verified date. Re-reading #aa/#mm/#jj
+        // on every mutation is unsafe — CodeMirror / WP autosave can leave them
+        // momentarily empty, which locks the button even though the date is valid.
+        if ( dateExplicitlySet && showDateEnforcement.dateConfirmed ) {
+            return true;
+        }
         return dateExplicitlySet && dateFieldsAreSet();
     }
 
