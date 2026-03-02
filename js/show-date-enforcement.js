@@ -217,13 +217,19 @@ jQuery( function ( $ ) {
 
     var submitDiv = document.getElementById( 'submitdiv' );
     if ( submitDiv && typeof MutationObserver !== 'undefined' ) {
+        var observerTimer;
         var observer = new MutationObserver( function () {
-            cleanupInvalidStatuses();
-            // Re-lock if the button was re-rendered into an enabled state
-            // while a date still hasn't been confirmed.
-            if ( ! hasValidDate() ) {
-                lockPublishButton();
-            }
+            // Debounce: wait for WordPress to finish mutating the DOM before
+            // reading field values or button state. Without this, date fields
+            // can appear empty mid-mutation and incorrectly trigger a lock.
+            clearTimeout( observerTimer );
+            observerTimer = setTimeout( function () {
+                // Call full update() so confirmed posts get unlocked as well
+                // as locked — the old logic only ever locked, which caused the
+                // Update button to stay disabled after any DOM mutation
+                // (autosave indicator, editor word count, etc.).
+                update();
+            }, 50 );
         } );
         observer.observe( submitDiv, { childList: true, subtree: true } );
     }
