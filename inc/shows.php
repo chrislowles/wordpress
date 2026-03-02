@@ -732,7 +732,7 @@ class ChrisLowles_Shows {
 			]
 		] );
 
-		// Auto-link-title fetcher
+		// Automatic link title fetcher for urls in markdown
 		wp_enqueue_script( 'fetch-link-titles', get_stylesheet_directory_uri() . '/js/fetch-link-titles.js', [ 'jquery', 'theme-utils' ], '1.0.0', true );
 
 		// Date enforcement
@@ -740,7 +740,7 @@ class ChrisLowles_Shows {
             'show-date-enforcement',
             get_stylesheet_directory_uri() . '/js/show-date-enforcement.js',
             [ 'jquery' ],
-            '2.2.0',
+            '3.0.0',
             true
         );
 
