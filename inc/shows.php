@@ -237,9 +237,14 @@ class ChrisLowles_Shows {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
 		if ( ! current_user_can( 'edit_post', $post_id ) ) return;
 
-		// Trash / restore transitions don't need a date.
+		// Trash / restore / delete transitions don't need a date.
+		// $_POST path: saving from the editor with status=trash.
+		// $_REQUEST path: list-table trash uses a GET request so $_POST is empty.
 		$new_status = $_POST['post_status'] ?? '';
 		if ( in_array( $new_status, [ 'trash', 'inherit' ], true ) ) return;
+
+		$request_action = $_REQUEST['action'] ?? '';
+		if ( in_array( $request_action, [ 'trash', 'untrash', 'delete' ], true ) ) return;
 
 		$submitted_date = $this->build_submitted_date();
 		$date_present   = $this->date_is_set( $submitted_date );
