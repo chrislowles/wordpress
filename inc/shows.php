@@ -451,7 +451,7 @@ class ChrisLowles_Shows {
 					<span class="drag-handle">|||</span>
 					<input type="hidden"  name="tracklist[<?php echo $i; ?>][type]"     value="<?php echo esc_attr( $type );  ?>" class="item-type">
 					<input type="text"    name="tracklist[<?php echo $i; ?>][title]"    value="<?php echo esc_attr( $title ); ?>" class="item-title-input"    placeholder="<?php echo $type === 'spacer' ? 'Segment Title...' : 'Artist - Title'; ?>">
-					<input type="url"     name="tracklist[<?php echo $i; ?>][url]"      value="<?php echo esc_attr( $url );   ?>" class="item-url-input"      placeholder="URL">
+					<input type="url"     name="tracklist[<?php echo $i; ?>][url]"      value="<?php echo esc_attr( $url );   ?>" class="item-url-input"      placeholder="https://...">
 					<input type="text"    name="tracklist[<?php echo $i; ?>][duration]" value="<?php echo esc_attr( $dur );   ?>" class="item-duration-input" placeholder="0:00">
 					<label class="link-checkbox-label">
 						<input type="checkbox" name="tracklist[<?php echo $i; ?>][link_to_section]" value="1" <?php checked( $link ); ?> class="link-to-section-checkbox">Link
