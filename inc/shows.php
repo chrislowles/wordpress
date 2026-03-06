@@ -724,18 +724,28 @@ class ChrisLowles_Shows {
 		) );
 
 		// Template loader button
-		wp_enqueue_script( 'show-template-button', get_stylesheet_directory_uri() . '/js/show-template-button.js', [ 'jquery', 'theme-utils' ], '3.0.0', true );
-		wp_localize_script( 'show-template-button', 'showTemplate', [
-			'title'   => "Chris & Jesse: " . date( 'F j Y' ),
-			'body'    => "### In The Cinema\n[*What's On at Huski Pics?*](https://huskipics.com.au/movies/now-showing/)\n\n[*Global box office top 10 (replace placeholder link with latest headline)*](https://www.screendaily.com/box-office/box-office-reports/international)\n\n### The Pin Drop\n[*YouTube global music top 10*](https://charts.youtube.com/charts/TopSongs/global/weekly)\n\n*Chris' personal picks last week*\n\n### Walking On Thin Ice\n\n### One Up\n\n### One Up (More)",
-			'spacers' => [
-				'In The Cinema',
-				'The Pin Drop',
-				'Walking On Thin Ice',
-				'One Up',
-				'One Up (More)'
+		wp_enqueue_script(
+			'show-template-button',
+			get_stylesheet_directory_uri() . "/js/show-template-button.js",
+			[ 'jquery', 'theme-utils' ],
+			'3.0.0',
+			true
+		);
+		wp_localize_script(
+			'show-template-button',
+			'showTemplate',
+			[
+				'title'   => "Chris & Jesse: " . date( 'F j Y' ),
+				'body'    => "### In The Cinema\n[*What's On at Huski Pics?*](https://huskipics.com.au/movies/now-showing/)\n[*Global Box Office Top 10 (REPLACE W. LATEST HEADLINE AND LINK)*](https://www.screendaily.com/box-office/box-office-reports/international)\n\n### The Pin Drop\n[*YouTube global music top 10*](https://charts.youtube.com/charts/TopSongs/global/weekly)\n*Chris' personal picks last week*\n\n### Walking On Thin Ice\n\n### One Up\n\n### One Up (More)",
+				'spacers' => [
+					'In The Cinema',
+					'The Pin Drop',
+					'Walking On Thin Ice',
+					'One Up',
+					'One Up (More)'
+				]
 			]
-		] );
+		);
 
 		// Automatic link title fetcher for urls in markdown
 		wp_enqueue_script( 'fetch-link-titles', get_stylesheet_directory_uri() . '/js/fetch-link-titles.js', [ 'jquery', 'theme-utils' ], '1.0.0', true );
