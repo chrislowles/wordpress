@@ -38,7 +38,7 @@ add_action('admin_enqueue_scripts', function () {
 		'dashboard-css',
 		get_stylesheet_directory_uri() . '/css/dashboard.css',
 		array(),
-		'1.0.2'
+		'2.0.0'
 	);
 	wp_enqueue_style(
 		'google-fonts',
