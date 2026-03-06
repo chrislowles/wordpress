@@ -324,3 +324,14 @@ html, body {
 	cursor: not-allowed;
 	pointer-events: none; /* belt-and-suspenders alongside .prop('disabled') */
 }
+
+/* TITLE FIELD (NEW/EDIT SCREEN) TWEAK TO ACCOMADATE THE TEMPLATE SHORTCUT */
+
+#titlewrap {
+  display: flex;
+  gap: 10px;
+}
+
+#titlewrap #title {
+  flex: 1;
+}
