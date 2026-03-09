@@ -736,7 +736,7 @@ class ChrisLowles_Shows {
 			'showTemplate',
 			[
 				'title'   => "Chris & Jesse: " . date( 'F j Y' ),
-				'body'    => "### In The Cinema\n[*What's On at Huski Pics?*](https://huskipics.com.au/movies/now-showing/)\n[*Global Box Office Top 10 (REPLACE W. LATEST HEADLINE AND LINK)*](https://www.screendaily.com/box-office/box-office-reports/international)\n\n### The Pin Drop\n[*YouTube global music top 10*](https://charts.youtube.com/charts/TopSongs/global/weekly)\n*Chris' personal picks last week*\n\n### Walking On Thin Ice\n\n### One Up\n\n### One Up (More)",
+				'body'    => "### In The Cinema\n[*What's On at Huski Pics?*](https://huskipics.com.au/movies/now-showing/)\n[*GLOBAL BOX OFFICE TOP 10 (REPLACE THIS W. LATEST HEADLINE AND LINK)*](https://www.screendaily.com/box-office/box-office-reports/international)\n\n### The Pin Drop\n[*YouTube global music top 10*](https://charts.youtube.com/charts/TopSongs/global/weekly)\n*Chris' personal picks last week*\n\n### Walking On Thin Ice\n\n### One Up\n\n### One Up (More)",
 				'spacers' => [
 					'In The Cinema',
 					'The Pin Drop',
@@ -747,14 +747,25 @@ class ChrisLowles_Shows {
 			]
 		);
 
-		// Automatic link title fetcher for urls in markdown
-		wp_enqueue_script( 'fetch-link-titles', get_stylesheet_directory_uri() . '/js/fetch-link-titles.js', [ 'jquery', 'theme-utils' ], '1.0.0', true );
+		// Automatic link title fetcher for urls in markdown body content editor
+		wp_enqueue_script(
+			'fetch-link-titles',
+			get_stylesheet_directory_uri() . '/js/fetch-link-titles.js',
+			[
+				'jquery',
+				'theme-utils'
+			],
+			'1.0.0',
+			true
+		);
 
 		// Date enforcement
 		wp_enqueue_script(
             'show-date-enforcement',
             get_stylesheet_directory_uri() . '/js/show-date-enforcement.js',
-            [ 'jquery' ],
+            [
+            	'jquery'
+            ],
             '3.1.0',
             true
         );
