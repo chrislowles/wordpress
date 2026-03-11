@@ -25,10 +25,10 @@ add_action('after_setup_theme', function () {
 	add_theme_support('title-tag');
 	add_theme_support('post-thumbnails');
 	add_theme_support('html5', array('search-form', 'gallery', 'caption'));
-	register_nav_menus(
-		array('logged-in-menu' => esc_html__('Main Menu (Logged In)', 'child'))
-		array('logged-out-menu' => esc_html__('Main Menu (Logged Out)', 'child'))
-	);
+	register_nav_menus( array(
+	   	'logged-in-menu' => __( 'Main Menu (Logged In)', 'child' ),
+	   	'logged-out-menu'  => __( 'Main Menu (Logged Out)', 'child' ),
+	) );
 });
 
 // 6. Admin Styles & Dark Mode
