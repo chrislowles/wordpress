@@ -1,13 +1,11 @@
 <!-- footer.php -->
-			</main>
-
-			<?php // get_sidebar(); ?>
-
-			<footer id="footer">&copy; <?php echo esc_html( date_i18n( __( 'Y', 'child' ) ) ); ?> <?php echo esc_html( get_bloginfo( 'name' ) ); ?></footer>
-
-		<?php wp_footer(); ?>
-
+		</main>
+	    <footer id="footer" class="border-top py-3 mt-4">
+        	<div class="container text-muted small">
+    	        &copy; <?php echo esc_html( date_i18n('Y') ); ?> <?php echo esc_html( get_bloginfo('name') ); ?>
+	        </div>
+	    </footer>
+	    <?php wp_footer(); ?>
 	</body>
-
 </html>
 <!-- /footer.php -->
