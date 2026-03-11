@@ -4,6 +4,7 @@
 		<h2>
 			<a href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>"><?php the_title(); ?></a>
 		</h2>
+		<?php // if (!is_search()): get_template_part( 'parts/entry', 'meta' ); endif; ?>
 		<?php if (!is_search()): get_template_part( 'parts/entry', 'meta' ); endif; ?>
 	</header>
 	<div class="entry">
