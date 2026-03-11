@@ -24,9 +24,10 @@
                             wp_nav_menu(
                                 array(
                                     'menu_class'     => 'navbar-nav justify-content-end flex-grow-1 pe-3',
-                                    'container'      => false, // Removes the extra <div> wrapper
-                                    'fallback_cb'    => false, // Prevents falling back to a page list
-                                    'theme_location' => 'main-menu',
+                                    'container'      => false,
+                                    'link_before'    => '<span>',
+                                    'link_after'     => '</span>',
+                                    'theme_location' => is_user_logged_in() ? 'logged-in-menu' : 'logged-out-menu',
                                 )
                             );
                         ?>
