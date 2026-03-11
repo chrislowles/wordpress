@@ -8,7 +8,7 @@
 
 		</h2>
 
-		<?php if (!is_search()): get_template_part('parts/entry-meta'); endif; ?>
+		<?php if (!is_search()): get_template_part('parts/entry', 'meta'); endif; ?>
 
 	</header>
 
