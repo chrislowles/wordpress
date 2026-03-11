@@ -11,9 +11,8 @@
         <?php wp_body_open(); ?>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container-fluid">
-                <a class="navbar-brand d-flex flex-column align-items-start" href="/" title="<?php echo esc_attr( get_bloginfo('name') ); ?>">
+                <a class="navbar-brand d-flex flex-column align-items-start" href="/" title="<?php echo esc_attr(get_bloginfo('name')); ?>">
                     <span><?php echo get_bloginfo('name'); ?></span>
-                    <small class="text-white-50 fw-normal" style="font-size: 0.75rem;"><?php bloginfo('description'); ?></small>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas-navbar" aria-controls="offcanvas-navbar">
                     <span class="navbar-toggler-icon"></span>
