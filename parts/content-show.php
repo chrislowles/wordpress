@@ -32,7 +32,7 @@
 
 				<h3>Tracklist / Timeline</h3>
 
-				<ul>
+				<ul class="list-group">
 
 					<?php foreach ( $tracklist as $track ):
 						$type = $track['type'] ?? 'track';
@@ -44,7 +44,7 @@
 
 						<?php if ( $type === 'spacer' ): ?>
 
-							<li class="track-item type-spacer">
+							<li class="list-group-item track-item type-spacer">
 
 								<?php if ( $link ): ?>
 
@@ -60,7 +60,7 @@
 
 						<?php else: ?>
 
-							<li class="track-item type-track">
+							<li class="list-group-item track-item type-track">
 
 								<span class="track-title">
 
