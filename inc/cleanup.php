@@ -152,7 +152,7 @@ class ChrisLowles_Cleanup {
             remove_submenu_page('themes.php', 'themes.php');
             remove_submenu_page('themes.php', 'theme-install.php');
             remove_submenu_page('themes.php', 'theme-editor.php');
-            remove_submenu_page('themes.php', 'nav-menus.php');
+            //remove_submenu_page('themes.php', 'nav-menus.php');
             remove_submenu_page('themes.php', 'widgets.php');
             remove_submenu_page('themes.php', 'custom-header');
             remove_submenu_page('themes.php', 'custom-background');
@@ -176,9 +176,9 @@ class ChrisLowles_Cleanup {
         });
 
         // Clean Customizer
-        add_action( 'customize_register', function ( $wp_customize ) {
-            $wp_customize->remove_section( 'nav' );
-        }, 999 );
+        //add_action( 'customize_register', function ( $wp_customize ) {
+        //    $wp_customize->remove_section( 'nav' );
+        //}, 999 );
 
         // Disable file editing constant
         if ( !defined( 'DISALLOW_FILE_EDIT' ) ) define( 'DISALLOW_FILE_EDIT', true );
