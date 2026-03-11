@@ -26,7 +26,7 @@
                                     'menu_class'     => 'navbar-nav justify-content-end flex-grow-1 pe-3',
                                     'container'      => false, // Removes the extra <div> wrapper
                                     'fallback_cb'    => false, // Prevents falling back to a page list
-                                    'theme_location' => 'main-menu',
+                                    'theme_location' => 'top-nav',
                                 )
                             );
                         ?>
