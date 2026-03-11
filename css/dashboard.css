@@ -325,7 +325,7 @@ html, body {
 	pointer-events: none; /* belt-and-suspenders alongside .prop('disabled') */
 }
 
-/* TITLE FIELD (NEW/EDIT SCREEN) TWEAK TO ACCOMADATE THE TEMPLATE SHORTCUT */
+/* TITLE FIELD (NEW/EDIT SCREEN) TWEAK TO ACCOMMODATE THE TEMPLATE SHORTCUT */
 
 #titlewrap {
   display: flex;
