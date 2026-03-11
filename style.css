@@ -40,11 +40,6 @@ html {
 	height: auto;
 }
 
-#header, #content, #footer {
-	max-width: 1080px;
-	margin: 0 auto;
-}
-
 .screen-reader-text {
 	border: 0;
 	clip: rect(1px, 1px, 1px, 1px);
