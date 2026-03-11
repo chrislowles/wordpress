@@ -42,7 +42,7 @@
 									<?php endif; ?>
 								</span>
 								<?php if (!empty($dur)): ?>
-									<small class="text-white-50 fw-normal"><?php echo esc_html($dur); ?></small>
+									<small><?php echo esc_html($dur); ?></small>
 								<?php endif; ?>
 							</li>
 						<?php endif; ?>
