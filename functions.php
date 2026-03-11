@@ -27,7 +27,7 @@ add_action('after_setup_theme', function () {
     add_theme_support('html5', array('search-form', 'gallery', 'caption'));
     register_nav_menus(
         array(
-            'main-menu'  => __( 'Main Menu', 'child' )
+            'main-menu' => __( 'Navigation', 'child' )
         )
     );
 });
