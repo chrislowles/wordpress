@@ -28,8 +28,8 @@ add_action('after_setup_theme', function () {
     unregister_nav_menu("main-menu");
     register_nav_menus(
         array(
-            'logged-in-menu' => __( 'Main Menu (Logged In)', 'child' ),
-            'logged-out-menu'  => __( 'Main Menu (Logged Out)', 'child' ),
+            'logged-in-menu'  => __( 'Main Menu (Logged In)', 'child' ),
+            'logged-out-menu' => __( 'Main Menu (Logged Out)', 'child' ),
         )
     );
 });
