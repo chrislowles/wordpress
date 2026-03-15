@@ -92,15 +92,8 @@ class ChrisLowles_Shows {
 		add_action( 'wp_ajax_copy_items_to_show',      [ $this, 'ajax_copy_items_to_show' ] );
 		add_action( 'wp_ajax_add_single_item_to_show', [ $this, 'ajax_add_single_item_to_show' ] );
 
-		// Release _edit_lock immediately on edit-screen unload via sendBeacon.
-		add_action( 'wp_ajax_release_show_edit_lock', [ $this, 'ajax_release_edit_lock' ] );
-
 		// Assets & Template Button
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ], 20 );
-
-		// Admin Columns
-		add_filter( 'manage_show_posts_columns',       [ $this, 'register_columns' ] );
-		add_action( 'manage_show_posts_custom_column', [ $this, 'render_column' ], 10, 2 );
 
 		// Frontend: Auto-add IDs to headings for in-page anchor links
 		add_filter( 'the_content', [ $this, 'auto_id_headings' ], 10 );
@@ -376,52 +369,6 @@ class ChrisLowles_Shows {
 
 	public function add_meta_boxes() {
 		add_meta_box( 'tracklist_meta_box', 'Show Tracklist', [ $this, 'render_tracklist_metabox' ], 'show', 'normal', 'high' );
-	}
-
-	// =========================================================================
-	// ADMIN COLUMNS
-	// =========================================================================
-
-	public function register_columns( $columns ) {
-		$new = [];
-		foreach ( $columns as $key => $label ) {
-			if ( $key === 'cb' ) {
-				$new['cb']             = $label;
-				$new['editing_status'] = '<span class="screen-reader-text">Editing Status</span>';
-			} else {
-				$new[ $key ] = $label;
-			}
-		}
-		return $new;
-	}
-
-	public function render_column( $column, $post_id ) {
-		if ( $column === 'editing_status' ) {
-			$this->render_editing_status( $post_id );
-		}
-	}
-
-	const EDIT_LOCK_STALE_SECONDS = 20;
-
-	private function render_editing_status( $post_id ) {
-		$lock       = get_post_meta( $post_id, '_edit_lock', true );
-		$is_editing = false;
-		$label      = 'No active editor';
-
-		if ( $lock ) {
-			$parts = explode( ':', $lock, 2 );
-			if ( count( $parts ) === 2 && ( time() - (int) $parts[0] ) < self::EDIT_LOCK_STALE_SECONDS ) {
-				$is_editing = true;
-				$user       = get_userdata( (int) $parts[1] );
-				$label      = $user ? esc_attr( $user->display_name ) . ' is editing' : 'Someone is editing';
-			}
-		}
-
-		printf(
-			'<span class="show-edit-dot %s" title="%s"></span>',
-			$is_editing ? 'is-editing' : 'is-free',
-			esc_attr( $label )
-		);
 	}
 
 	// =========================================================================
