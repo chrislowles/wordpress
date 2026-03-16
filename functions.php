@@ -51,8 +51,9 @@ add_action('admin_enqueue_scripts', function () {
     wp_enqueue_style('google-fonts', 'https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap', false);
 });
 
-// 9. Enable hard breaks in the parser for Markup Markdown
-add_filter('markup_markdown_extra_commonmark_config', function($config) {
-    $config['renderer']['soft_break'] = "<br />\n";
-    return $config;
-});
+// 9. Convert single Markdown newlines to hard breaks before parsing
+add_filter('the_content', function($content) {
+    // Two trailing spaces before a single newline = Markdown hard break.
+    // Only targets lines sandwiched between non-blank lines (not paragraph gaps).
+    return preg_replace('/([^\n])\n([^\n])/', "$1  \n$2", $content);
+}, 1);
