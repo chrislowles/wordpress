@@ -39,12 +39,20 @@ add_action('admin_head', function () {
     echo '<meta name="color-scheme" content="light dark" />';
 });
 
+// 7. Import Bootstrap for blog styles/functs
 add_action('wp_enqueue_scripts', function() {
     wp_enqueue_style('bootstrap-css', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css', array(), null);
     wp_enqueue_script('bootstrap-js', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js', array(), null, true);
 });
 
+// 8. Import styles for dashboard and fonts
 add_action('admin_enqueue_scripts', function () {
     wp_enqueue_style('dashboard-css', get_stylesheet_directory_uri() . '/css/dashboard.css', array(), null);
     wp_enqueue_style('google-fonts', 'https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap', false);
+});
+
+// 9. Enable hard breaks in the parser for Markup Markdown
+add_filter('markup_markdown_extra_commonmark_config', function($config) {
+    $config['renderer']['soft_break'] = "<br />\n";
+    return $config;
 });
