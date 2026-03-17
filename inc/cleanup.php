@@ -12,7 +12,6 @@ class ChrisLowles_Cleanup {
         // Feature Disabling
         $this->disable_categories();
         $this->disable_comments();
-        $this->disable_pages();
         $this->disable_widgets();
         $this->disable_appearance();
         $this->disable_embeds();
