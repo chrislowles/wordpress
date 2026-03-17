@@ -12,9 +12,9 @@ new ChrisLowles_Cleanup();
 require get_stylesheet_directory() . '/inc/shows.php';
 new ChrisLowles_Shows();
 
-// 3. Redirect Manager
+// 3. Page Redirect Manager
 require get_stylesheet_directory() . '/inc/redirects.php';
-new ChrisLowles_Redirects();
+new ChrisLowles_PageRedirects();
 
 // 4. Scratchpad
 require get_stylesheet_directory() . '/inc/scratchpad.php';
