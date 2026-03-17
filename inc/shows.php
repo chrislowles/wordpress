@@ -87,7 +87,7 @@ class ChrisLowles_Shows {
 		// ---------------------------------------------------------------------
 
 		// AJAX Handlers for cross-post transfer
-		add_action( 'wp_ajax_get_show_posts',         [ $this, 'ajax_get_show_posts' ] );
+		add_action( 'wp_ajax_get_show_posts',          [ $this, 'ajax_get_show_posts' ] );
 		add_action( 'wp_ajax_get_show_tracklist',      [ $this, 'ajax_get_show_tracklist' ] );
 		add_action( 'wp_ajax_copy_items_to_show',      [ $this, 'ajax_copy_items_to_show' ] );
 		add_action( 'wp_ajax_add_single_item_to_show', [ $this, 'ajax_add_single_item_to_show' ] );
@@ -100,49 +100,49 @@ class ChrisLowles_Shows {
 	}
 
 	public function register_post_type() {
-		register_post_type( 'show', [
-			'label'  => 'Shows',
-			'labels' => [
-				'menu_name'          => 'Shows',
-				'name_admin_bar'     => 'Show',
-				'add_new'            => 'Add Show',
-				'add_new_item'       => 'Add New Show',
-				'new_item'           => 'New Show',
-				'edit_item'          => 'Edit Show',
-				'view_item'          => 'View Show',
-				'update_item'        => 'Update Show',
-				'all_items'          => 'All Shows',
-				'search_items'       => 'Search Shows',
-				'parent_item_colon'  => 'Parent Show',
-				'not_found'          => 'No shows found.',
-				'not_found_in_trash' => 'No shows found in Trash',
-				'name'               => 'Shows',
-				'singular_name'      => 'Show',
-			],
-			'public'              => true,
-			'exclude_from_search' => true,
-			'publicly_queryable'  => true,
-			'show_ui'             => true,
-			'show_in_nav_menus'   => true,
-			'show_in_admin_bar'   => true,
-			'show_in_rest'        => true,
-			'capability_type'     => 'post',
-			'hierarchical'        => false,
-			'has_archive'         => true,
-			'query_var'           => true,
-			'can_export'          => true,
-			'rewrite_no_front'    => false,
-			'show_in_menu'        => true,
-			'menu_position'       => 10,
-			'menu_icon'           => 'dashicons-playlist-audio',
-			'supports'            => [ 'title', 'editor', 'markup_markdown', 'thumbnail' ],
-			'rewrite'             => true,
-		] );
+		register_post_type(
+			'show', [
+				'label'  => 'Shows',
+				'labels' => [
+					'menu_name'          => 'Shows',
+					'name_admin_bar'     => 'Show',
+					'add_new'            => 'Add Show',
+					'add_new_item'       => 'Add New Show',
+					'new_item'           => 'New Show',
+					'edit_item'          => 'Edit Show',
+					'view_item'          => 'View Show',
+					'update_item'        => 'Update Show',
+					'all_items'          => 'All Shows',
+					'search_items'       => 'Search Shows',
+					'parent_item_colon'  => 'Parent Show',
+					'not_found'          => 'No shows found.',
+					'not_found_in_trash' => 'No shows found in Trash',
+					'name'               => 'Shows',
+					'singular_name'      => 'Show',
+				],
+				'public'              => true,
+				'exclude_from_search' => true,
+				'publicly_queryable'  => true,
+				'show_ui'             => true,
+				'show_in_nav_menus'   => true,
+				'show_in_admin_bar'   => true,
+				'show_in_rest'        => true,
+				'capability_type'     => 'post',
+				'hierarchical'        => false,
+				'has_archive'         => true,
+				'query_var'           => true,
+				'can_export'          => true,
+				'rewrite_no_front'    => false,
+				'show_in_menu'        => true,
+				'menu_position'       => 10,
+				'menu_icon'           => 'dashicons-playlist-audio',
+				'supports'            => [ 'title', 'editor', 'markup_markdown', 'thumbnail' ],
+				'rewrite'             => true,
+			]
+		);
 	}
 
-	// =========================================================================
 	// DATE ENFORCEMENT
-	// =========================================================================
 
 	/**
 	 * Returns true when the date string is a real timestamp (not the WP sentinel).
@@ -317,37 +317,22 @@ class ChrisLowles_Shows {
 		if ( ! $is_show_edit ) return;
 
 		if ( ! empty( $_GET['show_date_error'] ) ) {
-			echo '<div class="notice notice-error is-dismissible nagging">';
-			echo '<p><strong>Show not saved.</strong> You need to explicitly set a publish date. ';
-			echo 'Open the <strong>Publish</strong> date picker, choose a date (past or future), ';
-			echo 'click <strong>OK</strong>, then save again.</p>';
-			echo '</div>';
+			echo '<div class="notice notice-error nagging"><p><strong>Show not saved.</strong> You need to explicitly set a publish date. Open the <strong>Publish</strong> date picker, choose a date (past or future), click <strong>OK</strong>, then save.</p></div>';
 			return;
 		}
 
 		if ( isset( $post->ID ) && $post->ID > 0 && ! $this->is_effectively_confirmed( $post->ID ) ) {
 			if ( $this->date_is_set( $post->post_date ) ) {
 				// "Publish immediately" post — has a date but it was never chosen.
-				echo '<div class="notice notice-warning nagging">';
-				echo '<p><strong>This show has no confirmed publish date.</strong> ';
-				echo 'It was previously saved with &ldquo;Publish immediately&rdquo; rather than an explicitly chosen date, ';
-				echo 'which means it may publish or has published at the wrong time. ';
-				echo 'Open the <strong>Publish</strong> date picker, pick a proper date, click <strong>OK</strong>, then save.</p>';
-				echo '</div>';
+				echo '<div class="notice notice-warning nagging"><p><strong>This show has no confirmed publish date.</strong> It was previously saved with &ldquo;Publish immediately&rdquo; rather than an explicitly chosen date, which means it may publish or has published at the wrong time. Open the <strong>Publish</strong> date picker, pick a proper date, click <strong>OK</strong>, then save.</p></div>';
 			} else {
 				// Genuine 0000-00-00 legacy draft.
-				echo '<div class="notice notice-warning nagging">';
-				echo '<p><strong>This show has no publish date.</strong> ';
-				echo 'Open the <strong>Publish</strong> date picker, choose a date, click <strong>OK</strong>, then save — ';
-				echo 'the save button will remain disabled until you do.</p>';
-				echo '</div>';
+				echo '<div class="notice notice-warning nagging"><p><strong>This show has no publish date.</strong> Open the <strong>Publish</strong> date picker, choose a date, click <strong>OK</strong>, then save — the save button will remain disabled until you do.</p></div>';
 			}
 		}
 	}
 
-	// =========================================================================
 	// DATA MIGRATION
-	// =========================================================================
 
 	private function migrate_tracklist_data( $items ) {
 		if ( ! is_array( $items ) ) return [];
@@ -363,17 +348,13 @@ class ChrisLowles_Shows {
 		}, $items );
 	}
 
-	// =========================================================================
 	// META BOXES
-	// =========================================================================
 
 	public function add_meta_boxes() {
 		add_meta_box( 'tracklist_meta_box', 'Show Tracklist', [ $this, 'render_tracklist_metabox' ], 'show', 'normal', 'high' );
 	}
 
-	// =========================================================================
 	// TRACKLIST METABOX
-	// =========================================================================
 
 	public function render_tracklist_metabox( $post ) {
 		$tracklist = get_post_meta( $post->ID, 'tracklist', true ) ?: [];
@@ -418,9 +399,7 @@ class ChrisLowles_Shows {
 		<?php
 	}
 
-	// =========================================================================
 	// SAVE HANDLERS
-	// =========================================================================
 
 	public function save_tracklist( $post_id ) {
 		if ( ! isset( $_POST['tracklist_meta_nonce'] ) || ! wp_verify_nonce( $_POST['tracklist_meta_nonce'], 'save_tracklist_meta' ) ) return;
@@ -513,9 +492,7 @@ class ChrisLowles_Shows {
 		return null;
 	}
 
-	// =========================================================================
 	// AJAX HANDLERS
-	// =========================================================================
 
 	public function ajax_get_show_posts() {
 		check_ajax_referer( 'tracklist_nonce', 'nonce' );
@@ -614,9 +591,7 @@ class ChrisLowles_Shows {
 		wp_send_json_success();
 	}
 
-	// =========================================================================
 	// SANITIZATION
-	// =========================================================================
 
 	private function sanitize_items( $items ) {
 		$clean = [];
@@ -637,19 +612,35 @@ class ChrisLowles_Shows {
 		return $clean;
 	}
 
-	// =========================================================================
 	// ASSETS
-	// =========================================================================
 
 	public function enqueue_assets( $hook ) {
 		$is_show_edit = ( $hook === 'post.php' || $hook === 'post-new.php' ) && get_post_type() === 'show';
 		if ( ! $is_show_edit ) return;
 
 		// Shared utilities
-		wp_enqueue_script( 'theme-utils', get_stylesheet_directory_uri() . '/js/utils.js', [ 'jquery' ], '1.0.0', true );
+		wp_enqueue_script(
+			'theme-utils',
+			get_stylesheet_directory_uri() . '/js/utils.js',
+			[
+				'jquery'
+			],
+			'1.0.0',
+			true
+		);
 
 		// Tracklist editor
-		wp_enqueue_script( 'tracklist-js', get_theme_file_uri() . '/js/tracklist.js', [ 'jquery', 'jquery-ui-sortable', 'theme-utils' ], '8.0.0', true );
+		wp_enqueue_script(
+			'tracklist-js',
+			get_theme_file_uri() . '/js/tracklist.js',
+			[
+				'jquery',
+				'jquery-ui-sortable',
+				'theme-utils'
+			],
+			'8.0.0',
+			true
+		);
 		wp_localize_script( 'tracklist-js', 'tracklistSettings', [
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
 			'nonce'    => wp_create_nonce( 'tracklist_nonce' ),
@@ -657,18 +648,24 @@ class ChrisLowles_Shows {
 		] );
 
 		// Release _edit_lock on navigate-away via sendBeacon.
-		wp_add_inline_script( 'tracklist-js', sprintf(
-			'window.addEventListener("beforeunload", function() {
-				var postId = document.getElementById("post_ID");
-				if (!postId || !postId.value) return;
-				var data = new FormData();
-				data.append("action", "release_show_edit_lock");
-				data.append("post_id", postId.value);
-				data.append("nonce", tracklistSettings.nonce);
-				navigator.sendBeacon(%s, data);
-			});',
-			wp_json_encode( admin_url( 'admin-ajax.php' ) )
-		) );
+		wp_add_inline_script(
+			'tracklist-js', sprintf(
+				'window.addEventListener("beforeunload", function() {
+					var postId = document.getElementById("post_ID");
+					if (!postId || !postId.value) return;
+					var data = new FormData();
+					data.append("action", "release_show_edit_lock");
+					data.append("post_id", postId.value);
+					data.append("nonce", tracklistSettings.nonce);
+					navigator.sendBeacon(%s, data);
+				});',
+				wp_json_encode(
+					admin_url(
+						'admin-ajax.php'
+					)
+				)
+			)
+		);
 
 		// Template loader button
 		wp_enqueue_script(
@@ -720,16 +717,16 @@ class ChrisLowles_Shows {
 		$post_id        = get_the_ID();
 		$date_confirmed = $post_id ? $this->is_effectively_confirmed( $post_id ) : false;
 
-		wp_localize_script( 'show-date-enforcement', 'showDateEnforcement', [
-			// True when _show_date_confirmed meta exists — JS starts with the
-			// button enabled and doesn't require the picker to be opened.
-			'dateConfirmed' => $date_confirmed,
-		] );
+		wp_localize_script(
+			'show-date-enforcement', 'showDateEnforcement', [
+				// True when _show_date_confirmed meta exists — JS starts with the
+				// button enabled and doesn't require the picker to be opened.
+				'dateConfirmed' => $date_confirmed,
+			]
+		);
 	}
 
-	// =========================================================================
 	// FRONTEND
-	// =========================================================================
 
 	public function auto_id_headings( $content ) {
 		if ( ! is_singular( 'show' ) || is_admin() ) return $content;
