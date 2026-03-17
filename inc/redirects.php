@@ -1,211 +1,100 @@
 <?php
 /**
- * Class: Redirect Manager
- * Handles the 'Redirect' Custom Post Type and frontend redirection logic.
+ * Class: Page Redirect Manager
+ * Adds optional automatic redirect functionality to the Page post type.
+ * The page title, slug, and content fields cover what the old Redirect CPT
+ * handled natively; this adds only the redirect-specific behaviour.
  */
-class ChrisLowles_Redirects {
+class ChrisLowles_PageRedirects {
 
     public function __construct() {
-        add_action( 'init', [ $this, 'register_post_type' ] );
-        add_action( 'add_meta_boxes', [ $this, 'add_meta_boxes' ] );
-        add_action( 'save_post_redirect', [ $this, 'save_meta' ] );
-
-        // Admin Columns
-        add_filter( 'manage_redirect_posts_columns', [ $this, 'custom_columns' ] );
-        add_action( 'manage_redirect_posts_custom_column', [ $this, 'custom_column_content' ], 10, 2 );
-        add_filter( 'manage_edit-redirect_sortable_columns', [ $this, 'sortable_columns' ]);
-        add_action( 'pre_get_posts', [ $this, 'orderby' ]);
-
-        // Search
-        add_filter( 'posts_join',     [ $this, 'search_join' ] );
-        add_filter( 'posts_where',    [ $this, 'search_where' ] );
-        add_filter( 'posts_distinct', [ $this, 'search_distinct' ] );
-
-        // Frontend Execution
-        add_action( 'template_redirect', [ $this, 'handle_redirects' ], 1 );
+        add_action( 'add_meta_boxes',              [ $this, 'add_meta_box' ] );
+        add_action( 'save_post_page',              [ $this, 'save_meta' ] );
+        add_action( 'template_redirect',           [ $this, 'handle_redirect' ], 1 );
+        add_filter( 'manage_page_posts_columns',   [ $this, 'add_column' ] );
+        add_action( 'manage_page_posts_custom_column', [ $this, 'render_column' ], 10, 2 );
     }
 
-    public function register_post_type() {
-        register_post_type( 'redirect', [
-            'label'  => 'Redirects',
-            'labels' => [
-                'menu_name'          => 'Redirects',
-                'name_admin_bar'     => 'Redirect',
-                'add_new'            => 'Add Redirect',
-                'add_new_item'       => 'Add New Redirect',
-                'new_item'           => 'New Redirect',
-                'edit_item'          => 'Edit Redirect',
-                'view_item'          => 'View Redirect',
-                'update_item'        => 'Update Redirect',
-                'all_items'          => 'All Redirects',
-                'search_items'       => 'Search Redirects',
-                'parent_item_colon'  => 'Parent Redirect',
-                'not_found'          => 'No redirects found.',
-                'not_found_in_trash' => 'No redirects found in Trash',
-                'name'               => 'Redirects',
-                'singular_name'      => 'Redirect',
-            ],
-            'public'              => false,
-            'exclude_from_search' => true,
-            'publicly_queryable'  => true,
-            'show_ui'             => true,
-            'show_in_nav_menus'   => true,
-            'show_in_admin_bar'   => true,
-            'show_in_rest'        => true,
-            'capability_type'     => 'post',
-            'hierarchical'        => false,
-            'has_archive'         => true,
-            'query_var'           => true,
-            'can_export'          => true,
-            'rewrite_no_front'    => false,
-            'show_in_menu'        => true,
-            'menu_position'       => 10,
-            'menu_icon'           => 'dashicons-admin-links',
-            'supports'            => [ 'title' ],
-            'rewrite'             => true,
-        ] );
+    public function add_meta_box() {
+        add_meta_box(
+            'page_redirect',
+            'Automatic Redirect',
+            [ $this, 'render_meta_box' ],
+            'page',
+            'side',
+            'high'
+        );
     }
 
-    public function add_meta_boxes () {
-        add_meta_box( 'redirect_details', 'Redirect Details', [ $this, 'render_meta_box' ], 'redirect', 'normal', 'high' );
-    }
-
-    public function render_meta_box ( $post ) {
-        wp_nonce_field( 'save_redirect_meta', 'redirect_meta_nonce' );
-        $path = get_post_meta( $post->ID, '_redirect_path', true );
-        $url  = get_post_meta( $post->ID, '_redirect_url', true );
-        $desc = get_post_meta( $post->ID, '_redirect_description', true );
+    public function render_meta_box( $post ) {
+        wp_nonce_field( 'save_page_redirect_meta', 'page_redirect_nonce' );
+        $enabled = get_post_meta( $post->ID, '_redirect_enabled', true );
+        $url     = get_post_meta( $post->ID, '_redirect_url',     true );
         ?>
-        <table class="form-table">
-            <tr>
-                <th><label>Path</label></th>
-                <td>
-                    <input type="text" name="redirect_path" value="<?php echo esc_attr( $path ); ?>" class="widefat" placeholder="example-path">
-                    <p class="description">Redirects from: <?php echo home_url( '/' ); ?><strong><?php echo esc_html( $path ); ?></strong></p>
-                </td>
-            </tr>
-            <tr>
-                <th><label>Target URL</label></th>
-                <td><input type="url" name="redirect_url" value="<?php echo esc_attr( $url ); ?>" class="widefat" required></td>
-            </tr>
-            <tr>
-                <th><label>Description</label></th>
-                <td><textarea name="redirect_description" rows="3" class="widefat"><?php echo esc_textarea( $desc ); ?></textarea></td>
-            </tr>
-        </table>
+        <p>
+            <label>
+                <input type="checkbox" name="redirect_enabled" value="1" <?php checked( $enabled, '1' ); ?> />
+                Enable automatic redirect
+            </label>
+        </p>
+        <p>
+            <label for="redirect_url"><strong>Redirect URL</strong></label><br>
+            <input type="url" name="redirect_url" id="redirect_url"
+                   value="<?php echo esc_attr( $url ); ?>"
+                   class="widefat" placeholder="https://..." />
+        </p>
         <?php
     }
 
-    public function save_meta ( $post_id ) {
-        if ( !isset( $_POST[ 'redirect_meta_nonce' ] ) || ! wp_verify_nonce( $_POST[ 'redirect_meta_nonce' ], 'save_redirect_meta' ) ) return;
+    public function save_meta( $post_id ) {
+        if ( ! isset( $_POST['page_redirect_nonce'] ) || ! wp_verify_nonce( $_POST['page_redirect_nonce'], 'save_page_redirect_meta' ) ) return;
         if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
+        if ( ! current_user_can( 'edit_post', $post_id ) ) return;
 
-        if ( isset( $_POST[ 'redirect_path' ] ) )        update_post_meta( $post_id, '_redirect_path',        ltrim( sanitize_text_field( $_POST[ 'redirect_path' ] ), '/' ) );
-        if ( isset( $_POST[ 'redirect_url' ] ) )         update_post_meta( $post_id, '_redirect_url',         esc_url_raw( $_POST[ 'redirect_url' ] ) );
-        if ( isset( $_POST[ 'redirect_description' ] ) ) update_post_meta( $post_id, '_redirect_description', sanitize_textarea_field( $_POST[ 'redirect_description' ] ) );
-    }
-
-    // =========================================================================
-    // ADMIN COLUMNS
-    // =========================================================================
-
-    public function custom_columns ( $columns ) {
-        return [
-            'cb'                   => $columns[ 'cb' ],
-            'title'                => 'Title',
-            'redirect_path'        => 'Path',
-            'redirect_url'         => 'Destination',
-            'redirect_description' => 'Description',
-        ];
-    }
-
-    public function custom_column_content ( $column, $post_id ) {
-        if ( $column === 'redirect_path' )        echo '<code>/' . esc_html( get_post_meta( $post_id, '_redirect_path', true ) ) . '</code>';
-        if ( $column === 'redirect_url' )         echo esc_html( get_post_meta( $post_id, '_redirect_url', true ) );
-        if ( $column === 'redirect_description' ) echo esc_html( get_post_meta( $post_id, '_redirect_description', true ) );
-    }
-
-    public function sortable_columns ( $c ) {
-        $c[ 'redirect_path' ] = 'redirect_path';
-        $c[ 'redirect_url' ]  = 'redirect_url';
-        return $c;
-    }
-
-    public function orderby ( $query ) {
-        if ( ! is_admin() || ! $query->is_main_query() ) return;
-        if ( $query->get( 'orderby' ) === 'redirect_path' ) { $query->set( 'meta_key', '_redirect_path' ); $query->set( 'orderby', 'meta_value' ); }
-        if ( $query->get( 'orderby' ) === 'redirect_url' )  { $query->set( 'meta_key', '_redirect_url' );  $query->set( 'orderby', 'meta_value' ); }
-    }
-
-    // =========================================================================
-    // SEARCH — meta field inclusion
-    // =========================================================================
-
-    /**
-     * True only when we are on the Redirects list screen with an active search.
-     * Replaces the identical four-condition guard that was duplicated across
-     * search_join(), search_where(), and search_distinct().
-     */
-    private function is_redirect_search_screen (): bool {
-        global $pagenow;
-        return is_admin()
-            && $pagenow === 'edit.php'
-            && isset($_GET['post_type'])
-            && $_GET['post_type'] === 'redirect'
-            && !empty($_GET['s']);
-    }
-
-    public function search_join ( $join ) {
-        if ( ! $this->is_redirect_search_screen() ) return $join;
-        global $wpdb;
-        return $join . " LEFT JOIN {$wpdb->postmeta} ON {$wpdb->posts}.ID = {$wpdb->postmeta}.post_id ";
-    }
-
-    public function search_where ( $where ) {
-        if (!$this->is_redirect_search_screen()) return $where;
-        global $wpdb;
-        $s = esc_sql( $wpdb->esc_like( $_GET['s'] ) );
-        return preg_replace(
-            "/\(\s*{$wpdb->posts}.post_title\s+LIKE\s*(\'[^\']+\')\s*\)/",
-            "({$wpdb->posts}.post_title LIKE $1) OR ({$wpdb->postmeta}.meta_key IN ('_redirect_path','_redirect_url','_redirect_description') AND {$wpdb->postmeta}.meta_value LIKE '%{$s}%')",
-            $where
-        );
-    }
-
-    public function search_distinct ( $distinct ) {
-        return $this->is_redirect_search_screen() ? 'DISTINCT' : $distinct;
-    }
-
-    // =========================================================================
-    // FRONTEND REDIRECT EXECUTION
-    // =========================================================================
-
-    public function handle_redirects () {
-        if ( is_admin() ) return;
-        $path = trim( parse_url( $_SERVER[ 'REQUEST_URI' ], PHP_URL_PATH ), '/');
-        if ( empty( $path ) ) return;
-
-        $query = new WP_Query(
-            [
-                'post_type'      => 'redirect',
-                'post_status'    => 'publish',
-                'posts_per_page' => 1,
-                'no_found_rows'  => true,
-                'meta_query'     => [
-                    [
-                        'key' => '_redirect_path',
-                        'value' => $path,
-                        'compare' => '='
-                    ]
-                ],
-            ]
+        update_post_meta( $post_id, '_redirect_enabled',
+            ( isset( $_POST['redirect_enabled'] ) && $_POST['redirect_enabled'] === '1' ) ? '1' : ''
         );
 
-        if ( $query->have_posts() ) {
-            $query->the_post();
-            $url = get_post_meta( get_the_ID(), '_redirect_url', true );
-            if ($url) { wp_redirect( $url, 301 ); exit; }
+        if ( isset( $_POST['redirect_url'] ) ) {
+            update_post_meta( $post_id, '_redirect_url', esc_url_raw( $_POST['redirect_url'] ) );
         }
-        wp_reset_postdata();
+    }
+
+    public function handle_redirect() {
+        if ( ! is_page() ) return;
+
+        global $post;
+        if ( ! $post ) return;
+
+        if ( ! get_post_meta( $post->ID, '_redirect_enabled', true ) ) return;
+
+        $url = get_post_meta( $post->ID, '_redirect_url', true );
+        if ( ! $url ) return;
+
+        wp_redirect( $url, 301 );
+        exit;
+    }
+
+    // =========================================================================
+    // ADMIN COLUMN — shows redirect destination on the Pages list table
+    // =========================================================================
+
+    public function add_column( $columns ) {
+        $columns['redirect'] = 'Redirect';
+        return $columns;
+    }
+
+    public function render_column( $column, $post_id ) {
+        if ( $column !== 'redirect' ) return;
+
+        $enabled = get_post_meta( $post_id, '_redirect_enabled', true );
+        $url     = get_post_meta( $post_id, '_redirect_url',     true );
+
+        if ( $enabled && $url ) {
+            $display = wp_parse_url( $url, PHP_URL_HOST ) . wp_parse_url( $url, PHP_URL_PATH );
+            echo '<code title="' . esc_attr( $url ) . '">→ ' . esc_html( $display ) . '</code>';
+        } elseif ( $enabled ) {
+            echo '<span style="color:#d63638;">Enabled — no URL set</span>';
+        }
     }
 }
