@@ -11,7 +11,15 @@
 		<div class="thumbnail">
 			<?php if ( has_post_thumbnail() && !is_search() ): ?>
 				<a class="thumbnail-link" href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>">
-					<?php the_post_thumbnail(); ?>
+					<?php
+						the_post_thumbnail(
+							'full',
+							[
+								'class' => 'img-fluid',
+								'title' => 'Thumbnail'
+							]
+						);
+					?>
 				</a>
 			<?php endif; ?>
 		</div>
