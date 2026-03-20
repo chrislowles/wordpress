@@ -7,10 +7,10 @@
 		<?php // if (!is_search()): get_template_part( 'parts/entry', 'meta' ); endif; ?>
 		<?php get_template_part( 'parts/entry', 'meta' ); ?>
 	</header>
-	<div class="entry">
-		<div class="thumbnail">
+	<div>
+		<div>
 			<?php if ( has_post_thumbnail() && !is_search() ): ?>
-				<a class="thumbnail-link" href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>">
+				<a href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>">
 					<?php
 						the_post_thumbnail(
 							'full',
@@ -23,11 +23,13 @@
 				</a>
 			<?php endif; ?>
 		</div>
-		<div class="excerpt">
+		<div>
 			<?php the_excerpt(); ?>
 		</div>
 		<?php if ( is_search() ): ?>
-			<div class="links"><?php wp_link_pages(); ?></div>
+			<div>
+				<?php wp_link_pages(); ?>
+			</div>
 		<?php endif; ?>
 	</div>
 </article>
