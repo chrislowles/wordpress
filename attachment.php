@@ -13,7 +13,7 @@
 					<?php printf( esc_attr__( '%s Return to ', 'child' ), '<span>&larr;</span>' ); ?>
 					<?php echo wp_kses_post( get_the_title( $post->post_parent ) ); ?>
 				</a>
-				<nav id="above">
+				<nav>
 					<div><?php previous_image_link( false, '&lsaquo;' ); ?></div>
 					<div><?php next_image_link( false, '&rsaquo;' ); ?></div>
 				</nav>
