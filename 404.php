@@ -4,7 +4,7 @@
 		<header>
 			<h1>Not Found</h1>
 		</header>
-		<div class="content">
+		<div>
 			<p>Nothing found for the requested page. Try a search instead?</p>
 		</div>
 	</article>
