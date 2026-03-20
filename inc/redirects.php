@@ -26,6 +26,22 @@ class ChrisLowles_PageRedirects {
         );
     }
 
+    public function render_column( $column, $post_id ) {
+        if ( $column !== 'redirect' ) return;
+
+        $enabled = get_post_meta( $post_id, '_redirect_enabled', true );
+        $url     = get_post_meta( $post_id, '_redirect_url',     true );
+
+        if ( $enabled && $url ) {
+            $host    = wp_parse_url( $url, PHP_URL_HOST ) ?? '';
+            $path    = wp_parse_url( $url, PHP_URL_PATH ) ?? '';
+            $display = $host . $path ?: $url;
+            echo '<code title="' . esc_attr( $url ) . '">→ ' . esc_html( $display ) . '</code>';
+        } elseif ( $enabled ) {
+            echo '<span style="color:#d63638;">Enabled — no URL set</span>';
+        }
+    }
+
     public function render_meta_box( $post ) {
         wp_nonce_field( 'save_page_redirect_meta', 'page_redirect_nonce' );
         $enabled = get_post_meta( $post->ID, '_redirect_enabled', true );
