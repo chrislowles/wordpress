@@ -33,12 +33,10 @@ class ChrisLowles_PageRedirects {
         $url     = get_post_meta( $post_id, '_redirect_url',     true );
 
         if ( $enabled && $url ) {
-            $host    = wp_parse_url( $url, PHP_URL_HOST ) ?? '';
-            $path    = wp_parse_url( $url, PHP_URL_PATH ) ?? '';
-            $display = $host . $path ?: $url;
-            echo '<code title="' . esc_attr( $url ) . '">→ ' . esc_html( $display ) . '</code>';
+            $display = wp_parse_url( $url, PHP_URL_HOST ) . wp_parse_url( $url, PHP_URL_PATH );
+            echo '<code title="' . esc_attr( $url ) . '">' . esc_html( $display ) . '</code>';
         } elseif ( $enabled ) {
-            echo '<span style="color:#d63638;">Enabled — no URL set</span>';
+            echo '<span style="color:#d63638;">Enabled - no URL set</span>';
         }
     }
 
@@ -50,7 +48,7 @@ class ChrisLowles_PageRedirects {
         <p>
             <label>
                 <input type="checkbox" name="redirect_enabled" value="1" <?php checked( $enabled, '1' ); ?> />
-                Enable automatic redirect
+                Automatically redirect to this URL
             </label>
         </p>
         <p>
@@ -98,19 +96,5 @@ class ChrisLowles_PageRedirects {
     public function add_column( $columns ) {
         $columns['redirect'] = 'Redirect';
         return $columns;
-    }
-
-    public function render_column( $column, $post_id ) {
-        if ( $column !== 'redirect' ) return;
-
-        $enabled = get_post_meta( $post_id, '_redirect_enabled', true );
-        $url     = get_post_meta( $post_id, '_redirect_url',     true );
-
-        if ( $enabled && $url ) {
-            $display = wp_parse_url( $url, PHP_URL_HOST ) . wp_parse_url( $url, PHP_URL_PATH );
-            echo '<code title="' . esc_attr( $url ) . '">→ ' . esc_html( $display ) . '</code>';
-        } elseif ( $enabled ) {
-            echo '<span style="color:#d63638;">Enabled — no URL set</span>';
-        }
     }
 }
