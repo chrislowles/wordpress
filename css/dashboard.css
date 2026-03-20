@@ -1,10 +1,10 @@
 html, body {
-	font-family: "Lexend", sans-serif;
-	font-optical-sizing: auto;
+   font-family: "Lexend", sans-serif;
+   font-optical-sizing: auto;
 }
 
 #wp-content-editor-container {
-	padding-top: 0;
+   padding-top: 0;
 }
 
 /* ==========================================================================
@@ -13,77 +13,77 @@ html, body {
 
 #tracklist-container,
 .tracklist-wrapper {
-	position: relative;
+   position: relative;
 }
 
 .tracklist-items {
-	container-type: inline-size;
-	container-name: tracklist;
-	width: 100%;
+   container-type: inline-size;
+   container-name: tracklist;
+   width: 100%;
 }
 
 .tracklist-row {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 10px;
-	align-items: center;
-	margin-bottom: 8px;
-	background: #FFF;
-	padding: 10px;
-	border: 1px solid #DDD;
-	border-radius: 4px;
+   display: flex;
+   flex-wrap: wrap;
+   gap: 10px;
+   align-items: center;
+   margin-bottom: 8px;
+   background: #FFF;
+   padding: 10px;
+   border: 1px solid #DDD;
+   border-radius: 4px;
 }
 
 /* Style specifically for Spacer rows */
 .tracklist-row.is-spacer {
-	background: #F0F0F1;
-	border: 2px solid #72AEE6;
+   background: #F0F0F1;
+   border: 2px solid #72AEE6;
 }
 
 .tracklist-row.is-spacer .item-title-input {
-	font-weight: bold;
+   font-weight: bold;
 }
 
 .tracklist-row .item-title-input {
-	flex: 1 1 250px;
-	min-width: 150px;
+   flex: 1 1 250px;
+   min-width: 150px;
 }
 
 .tracklist-row .item-duration-input {
-	width: 60px;
-	text-align: center;
-	font-family: monospace;
-	flex-shrink: 0;
+   width: 60px;
+   text-align: center;
+   font-family: monospace;
+   flex-shrink: 0;
 }
 
 .tracklist-row .item-url-input {
-	flex: 1 1 250px;
-	min-width: 150px;
+   flex: 1 1 250px;
+   min-width: 150px;
 }
 
 .drag-handle {
-	cursor: move;
-	font-size: 20px;
-	padding: 0 10px;
-	color: #CCC;
-	line-height: 1;
-	flex-shrink: 0;
+   cursor: move;
+   font-size: 20px;
+   padding: 0 10px;
+   color: #CCC;
+   line-height: 1;
+   flex-shrink: 0;
 }
 .drag-handle:hover {
-	color: #333;
+   color: #333;
 }
 
 /* Buttons */
 .tracklist-row .button {
-	flex-shrink: 0;
-	white-space: nowrap;
+   flex-shrink: 0;
+   white-space: nowrap;
 }
 
 /* Copy to Show button styling */
 .copy-to-show-btn {
-	background: #2271B1;
-	color: #FFF;
-	border-color: #2271B1;
+   background: #2271B1;
+   color: #FFF;
+   border-color: #2271B1;
 }
 .copy-to-show-btn:hover  { background: #135E96; border-color: #135E96; }
 .copy-to-show-btn:active { background: #0A4B78; border-color: #0A4B78; }
@@ -98,50 +98,50 @@ html, body {
 /* Track-only fields: hidden inside spacer rows */
 .tracklist-row.is-spacer .item-url-input,
 .tracklist-row.is-spacer .item-duration-input {
-	display: none;
+   display: none;
 }
 
 /* Spacer-only fields: hidden inside track rows */
 .tracklist-row .link-checkbox-label {
-	display: none;
+   display: none;
 }
 .tracklist-row.is-spacer .link-checkbox-label {
-	display: flex;
+   display: flex;
 }
 
 /* Link Checkbox label */
 .link-checkbox-label {
-	align-items: center;
-	gap: 4px;
-	font-size: 12px;
-	flex-shrink: 0;
-	cursor: pointer;
-	user-select: none;
-	padding: 4px 8px;
-	border-radius: 3px;
-	transition: background-color 0.2s;
+   align-items: center;
+   gap: 4px;
+   font-size: 12px;
+   flex-shrink: 0;
+   cursor: pointer;
+   user-select: none;
+   padding: 4px 8px;
+   border-radius: 3px;
+   transition: background-color 0.2s;
 }
 
 .link-checkbox-label input[type="checkbox"] {
-	margin: 0;
-	cursor: pointer;
+   margin: 0;
+   cursor: pointer;
 }
 
 /* The grey dotted placeholder shown when dragging an item */
 .placeholder-highlight {
-	border: 2px dashed #CCC;
-	height: 45px;
-	margin-bottom: 8px;
-	background: #F9F9F9;
+   border: 2px dashed #CCC;
+   height: 45px;
+   margin-bottom: 8px;
+   background: #F9F9F9;
 }
 
 /* Total duration display */
 #total-duration,
 .total-duration-display {
-	font-size: 16px;
-	font-weight: 600;
-	color: #2271B1;
-	font-family: monospace;
+   font-size: 16px;
+   font-weight: 600;
+   color: #2271B1;
+   font-family: monospace;
 }
 
 /* ==========================================================================
@@ -149,54 +149,54 @@ html, body {
    ========================================================================== */
 
 .tracklist-controls {
-	position: sticky;
-	bottom: 0;
-	z-index: 50;
-	background: #F6F7F7;
-	border-top: 1px solid #DCDCDE;
-	padding: 10px;
-	margin: 10px -12px -12px -12px;
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	flex-wrap: nowrap;
-	overflow-x: auto;
-	-webkit-overflow-scrolling: touch;
-	width: auto;
-	max-width: 100%;
+   position: sticky;
+   bottom: 0;
+   z-index: 50;
+   background: #F6F7F7;
+   border-top: 1px solid #DCDCDE;
+   padding: 10px;
+   margin: 10px -12px -12px -12px;
+   display: flex;
+   align-items: center;
+   gap: 8px;
+   flex-wrap: nowrap;
+   overflow-x: auto;
+   -webkit-overflow-scrolling: touch;
+   width: auto;
+   max-width: 100%;
 }
 
 .tracklist-controls > * {
-	flex-shrink: 0;
+   flex-shrink: 0;
 }
 
 /* Mobile responsive adjustments */
 @container tracklist (max-width: 1024px) {
-	.tracklist-row {
-		gap: 8px;
-		padding: 8px;
-	}
+   .tracklist-row {
+      gap: 8px;
+      padding: 8px;
+   }
 
-	.tracklist-row .drag-handle {
-		order: 1;
-		font-size: 24px;
-		padding: 0 8px;
-		touch-action: none;
-	}
+   .tracklist-row .drag-handle {
+      order: 1;
+      font-size: 24px;
+      padding: 0 8px;
+      touch-action: none;
+   }
 
-	.tracklist-row .item-title-input    { order: 2; flex-basis: calc(100% - 50px); }
-	.tracklist-row .item-url-input      { order: 3; flex-basis: 100%; }
-	.tracklist-row .item-duration-input { order: 4; flex-basis: 100%; }
-	.tracklist-row .link-checkbox-label { order: 5; flex-basis: 100%; }
-	.tracklist-row .add-to-show-btn     { order: 6; flex-basis: 100%; }
-	.tracklist-row .remove-item         { order: 7; flex-basis: 100%; }
+   .tracklist-row .item-title-input    { order: 2; flex-basis: calc(100% - 50px); }
+   .tracklist-row .item-url-input      { order: 3; flex-basis: 100%; }
+   .tracklist-row .item-duration-input { order: 4; flex-basis: 100%; }
+   .tracklist-row .link-checkbox-label { order: 5; flex-basis: 100%; }
+   .tracklist-row .add-to-show-btn     { order: 6; flex-basis: 100%; }
+   .tracklist-row .remove-item         { order: 7; flex-basis: 100%; }
 
-	.tracklist-row .button {
-		font-size: 12px;
-		padding: 8px;
-		height: auto;
-		line-height: 1.1;
-	}
+   .tracklist-row .button {
+      font-size: 12px;
+      padding: 8px;
+      height: auto;
+      line-height: 1.1;
+   }
 }
 
 /* ==========================================================================
@@ -204,95 +204,95 @@ html, body {
    ========================================================================== */
 
 #scratchpad-wrapper {
-	position: relative;
-	border: 1px solid #ccc;
+   position: relative;
+   border: 1px solid #ccc;
 }
 
 #scratchpad-content {
-	width: 100%;
-	display: block;
-	border: none;
-	box-shadow: none;
-	resize: vertical;
-	padding: 10px;
+   width: 100%;
+   display: block;
+   border: none;
+   box-shadow: none;
+   resize: vertical;
+   padding: 10px;
 }
 
 .scratchpad-controls {
-	padding: 10px;
-	background: #f0f0f1;
-	border-top: 1px solid #ccc;
-	display: flex;
-	align-items: center;
-	gap: 10px;
+   padding: 10px;
+   background: #f0f0f1;
+   border-top: 1px solid #ccc;
+   display: flex;
+   align-items: center;
+   gap: 10px;
 }
 
 /* Scratchpad Locking Overlay */
 #scratchpad-lock-overlay {
-	position: absolute;
-	top: 0; left: 0; right: 0; bottom: 0;
-	background: rgba(255, 255, 255, 0.85);
-	z-index: 10;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	backdrop-filter: blur(1px);
+   position: absolute;
+   top: 0; left: 0; right: 0; bottom: 0;
+   background: rgba(255, 255, 255, 0.85);
+   z-index: 10;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   backdrop-filter: blur(1px);
 }
 
 #scratchpad-lock-overlay.hidden {
-	display: none;
+   display: none;
 }
 
 .lock-message {
-	background: #fff;
-	padding: 15px 20px;
-	border-radius: 4px;
-	box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-	border: 1px solid #dcdcde;
-	font-weight: 500;
-	color: #d63638;
-	display: flex;
-	align-items: center;
-	gap: 8px;
+   background: #fff;
+   padding: 15px 20px;
+   border-radius: 4px;
+   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+   border: 1px solid #dcdcde;
+   font-weight: 500;
+   color: #d63638;
+   display: flex;
+   align-items: center;
+   gap: 8px;
 }
 
 .notice.nagging {
-	font-size: 16px;
-	line-height: 1.41 !important;
-	border: 2px solid red;
+   font-size: 16px;
+   line-height: 1.41 !important;
+   border: 2px solid red;
 }
 
 .notice.nagging p {
-	font-size: 18px;
-	line-height: 1.3 !important;
+   font-size: 18px;
+   line-height: 1.3 !important;
 }
 
 .notice.nagging details summary {
-	font-weight: bold;
+   font-weight: bold;
 }
 
 .notice.nagging details:not([open]) summary { padding: 8px 0; }
 .notice.nagging details[open] summary        { padding: 8px 0 0; }
 
 .notice.nagging details[open] ul {
-	list-style: disc;
-	margin: 15px 15px;
+   list-style: disc;
+   margin: 15px 15px;
 }
 
 /* Highlight the date picker wrapper when a date is required */
 .show-date-picker-required {
-	outline: 2px solid #FBBF24;
-	outline-offset: 3px;
-	border-radius: 3px;
-	background-color: #FFFBEB !important;
+   outline: 2px solid #FBBF24;
+   outline-offset: 3px;
+   border-radius: 3px;
+   background-color: #FFFBEB !important;
 }
 
 /* Locked publish button — keep it visually present but clearly unavailable */
 #publish.show-date-btn-locked,
 #publish.show-date-btn-locked:hover,
 #publish.show-date-btn-locked:focus {
-	opacity: 0.45;
-	cursor: not-allowed;
-	pointer-events: none; /* belt-and-suspenders alongside .prop('disabled') */
+   opacity: 0.45;
+   cursor: not-allowed;
+   pointer-events: none; /* belt-and-suspenders alongside .prop('disabled') */
 }
 
 /* TITLE FIELD (NEW/EDIT SCREEN) TWEAK TO ACCOMMODATE THE TEMPLATE SHORTCUT */

@@ -1,69 +1,69 @@
 <!-- content-show.php -->
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
-	<header>
-		<h2>
-			<a href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>"><?php the_title(); ?></a>
-		</h2>
-	</header>
-	<div>
-		<div>
-			<?php if ( has_post_thumbnail() ): ?>
-				<a href="<?php the_post_thumbnail_url( 'full' ); ?>">
-					<?php
-						the_post_thumbnail(
-							'full',
-							[
-								'class' => 'img-fluid',
-								'title' => 'Thumbnail'
-							]
-						);
-					?>
-				</a>
-			<?php endif; ?>
-		</div>
-		<?php $tracklist = get_post_meta($post->ID, 'tracklist', true); if (is_array($tracklist) && !empty($tracklist)): ?>
-			<div class="mt-4">
-				<h3>Tracklist / Timeline</h3>
-				<ul class="list-group mb-4">
-					<?php foreach ($tracklist as $track):
-						$type = $track['type'] ?? 'track';
-						$title = $track['title'] ?? $track['track_title'] ?? '';
-						$dur = $track['duration'] ?? '';
-						$url = $track['url'] ?? $track['track_url'] ?? '';
-						$link = $track['link_to_section'] ?? false;
-					?>
-						<?php if ($type === 'spacer'): ?>
-							<li class="list-group-item">
-								<?php if ($link): ?>
-									<a href="#<?php echo esc_attr(sanitize_title($title)); ?>"><?php echo esc_html($title); ?></a>
-								<?php else: ?>
-									<?php echo esc_html($title); ?>
-								<?php endif; ?>
-							</li>
-						<?php else: ?>
-							<li class="list-group-item">
-								<span>
-									<?php if (!empty($url)): ?>
-										<a href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html($title); ?></a>
-									<?php else: ?>
-										<?php echo esc_html($title); ?>
-									<?php endif; ?>
-								</span>
-								<?php if (!empty($dur)): ?>
-									<small><?php echo esc_html($dur); ?></small>
-								<?php endif; ?>
-							</li>
-						<?php endif; ?>
-					<?php endforeach; ?>
-				</ul>
-			</div>
-		<?php endif; ?>
-		<div>
-			<?php the_content(); ?>
-		</div>
-		<div>
-			<?php wp_link_pages(); ?>
-		</div>
-	</div>
+    <header>
+        <h2>
+            <a href="<?php the_permalink(); ?>" title="<?php the_title_attribute(); ?>"><?php the_title(); ?></a>
+        </h2>
+    </header>
+    <div>
+        <div>
+            <?php if ( has_post_thumbnail() ): ?>
+                <a href="<?php the_post_thumbnail_url( 'full' ); ?>">
+                    <?php
+                        the_post_thumbnail(
+                            'full',
+                            [
+                                'class' => 'img-fluid',
+                                'title' => 'Thumbnail'
+                            ]
+                        );
+                    ?>
+                </a>
+            <?php endif; ?>
+        </div>
+        <?php $tracklist = get_post_meta($post->ID, 'tracklist', true); if (is_array($tracklist) && !empty($tracklist)): ?>
+            <div class="mt-4">
+                <h3>Tracklist / Timeline</h3>
+                <ul class="list-group mb-4">
+                    <?php foreach ($tracklist as $track):
+                        $type = $track['type'] ?? 'track';
+                        $title = $track['title'] ?? $track['track_title'] ?? '';
+                        $dur = $track['duration'] ?? '';
+                        $url = $track['url'] ?? $track['track_url'] ?? '';
+                        $link = $track['link_to_section'] ?? false;
+                    ?>
+                        <?php if ($type === 'spacer'): ?>
+                            <li class="list-group-item">
+                                <?php if ($link): ?>
+                                    <a href="#<?php echo esc_attr(sanitize_title($title)); ?>"><?php echo esc_html($title); ?></a>
+                                <?php else: ?>
+                                    <?php echo esc_html($title); ?>
+                                <?php endif; ?>
+                            </li>
+                        <?php else: ?>
+                            <li class="list-group-item">
+                                <span>
+                                    <?php if (!empty($url)): ?>
+                                        <a href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html($title); ?></a>
+                                    <?php else: ?>
+                                        <?php echo esc_html($title); ?>
+                                    <?php endif; ?>
+                                </span>
+                                <?php if (!empty($dur)): ?>
+                                    <small><?php echo esc_html($dur); ?></small>
+                                <?php endif; ?>
+                            </li>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
+        <div>
+            <?php the_content(); ?>
+        </div>
+        <div>
+            <?php wp_link_pages(); ?>
+        </div>
+    </div>
 </article>
 <!-- /content-show.php -->
