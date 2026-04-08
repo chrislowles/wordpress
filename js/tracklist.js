@@ -11,12 +11,28 @@ jQuery(document).ready($ => {
     initTracklist($wrapper);
 
     function initTracklist($wrapper) {
-        var postId          = $wrapper.data('post-id');
-        var $list           = $wrapper.find('.tracklist-items');
+        var postId           = $wrapper.data('post-id');
+        var $list            = $wrapper.find('.tracklist-items');
         var $durationDisplay = $wrapper.find('.total-duration-display');
 
         // =====================================================================
-        // 1. SORTABLE
+        // 1. DIRTY TRACKING
+        // =====================================================================
+
+        var isDirty = false;
+        function markDirty() { isDirty = true; }
+        function markClean() { isDirty = false; }
+
+        $('#post').on('submit', markClean);
+
+        window.addEventListener('beforeunload', function (e) {
+            if (!isDirty) return;
+            e.preventDefault();
+            e.returnValue = '';
+        });
+
+        // =====================================================================
+        // 2. SORTABLE
         // =====================================================================
 
         $list.sortable({
@@ -26,11 +42,12 @@ jQuery(document).ready($ => {
             update: () => {
                 calculateTotalDuration();
                 refreshInputNames();
+                markDirty();
             }
         });
 
         // =====================================================================
-        // 2. DURATION HELPERS
+        // 3. DURATION HELPERS
         // =====================================================================
 
         function calculateTotalDuration() {
@@ -58,7 +75,7 @@ jQuery(document).ready($ => {
         };
 
         // =====================================================================
-        // 3. ADD / REMOVE ROWS
+        // 4. ADD / REMOVE ROWS
         // CSS in dashboard.css handles visibility of track-only and spacer-only
         // elements via the .is-spacer class; no inline styles needed here.
         // =====================================================================
@@ -83,6 +100,7 @@ jQuery(document).ready($ => {
             $list.append(html);
             refreshInputNames();
             $list.children().last().find('.item-title-input').focus();
+            markDirty();
         }
 
         $wrapper.find('.add-track').on('click', () => { addRow('track'); });
@@ -92,14 +110,16 @@ jQuery(document).ready($ => {
             $(this).closest('.tracklist-row').remove();
             calculateTotalDuration();
             refreshInputNames();
+            markDirty();
         });
 
         $wrapper.on('input change', 'input', () => {
             calculateTotalDuration();
+            markDirty();
         });
 
         // =====================================================================
-        // 4. MODAL
+        // 5. MODAL
         // =====================================================================
 
         var $modal              = null;
@@ -275,7 +295,6 @@ jQuery(document).ready($ => {
             $modal.find('#show-search-input').val('');
             $modal.find('#show-search-results').hide();
 
-            // FIX: Re-enable the button when opening the modal
             if (mode === 'single') {
                 $modal.find('#modal-title').text('Add Item to Show');
                 $modal.find('#confirm-add-btn').text('Add Item').prop('disabled', false);
@@ -394,14 +413,14 @@ jQuery(document).ready($ => {
         }
 
         // =====================================================================
-        // 5. BUTTON HANDLERS
+        // 6. BUTTON HANDLERS
         // =====================================================================
 
-        $wrapper.on('click', '.add-to-show-btn',    e => { e.preventDefault(); openModal('single', $(e.currentTarget).closest('.tracklist-row')); });
+        $wrapper.on('click', '.add-to-show-btn',      e => { e.preventDefault(); openModal('single', $(e.currentTarget).closest('.tracklist-row')); });
         $wrapper.on('click', '.copy-all-to-show-btn', e => { e.preventDefault(); openModal('all'); });
 
         // =====================================================================
-        // 6. INIT
+        // 7. INIT
         // =====================================================================
 
         calculateTotalDuration();
