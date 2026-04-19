@@ -8,15 +8,12 @@
     <div>
         <div>
             <?php if ( has_post_thumbnail() ): ?>
-                <a href="<?php the_post_thumbnail_url( 'full' ); ?>">
+                <a href="<?php the_post_thumbnail_url('full'); ?>">
                     <?php
-                        the_post_thumbnail(
-                            'full',
-                            [
-                                'class' => 'img-fluid',
-                                'title' => 'Thumbnail'
-                            ]
-                        );
+                        the_post_thumbnail('full', [
+                            'class' => 'img-fluid',
+                            'title' => 'Thumbnail'
+                        ]);
                     ?>
                 </a>
             <?php endif; ?>
