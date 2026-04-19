@@ -689,7 +689,7 @@ class ChrisLowles_Shows {
             'showTemplate',
             [
                 'title'   => "Chris & Jesse: " . date( 'F j Y' ),
-                'body'    => "### In The Cinema\n[*WHAT'S ON AT HUSKI PICS?*](https://huskipics.com.au/movies/now-showing/)\n[*GLOBAL BOX OFFICE TOP 10 (REPLACE THIS W. LATEST LINK, THEN REMOVE THIS)*](https://www.screendaily.com/box-office/box-office-reports/international)\n\n### The Pin Drop\n[*YT GLOBAL TOP 10*](https://charts.youtube.com/charts/TopSongs/global/weekly)\n*Chris' personal picks last week*\n\n### Walking On Thin Ice\n\n### One Up\n\n### One Up (More)",
+                'body'    => "### In The Cinema\n[*WHAT'S ON AT HUSKI PICS?*](https://huskipics.com.au/movies/now-showing/)\n[*GLOBAL BOX OFFICE TOP 10: REPLACE THIS W. LATEST HEADLINE AND LINK)*](https://www.screendaily.com/box-office/box-office-reports/international)\n#### News\n#### Trailers\n\n### The Pin Drop\n[*YT GLOBAL TOP 10*](https://charts.youtube.com/charts/TopSongs/global/weekly)\n*Chris' personal picks this last week*\n#### News\n#### Releases\n\n### Walking On Thin Ice\n\n### One Up\n\n### One Up (More)",
                 'spacers' => [
                     'In The Cinema',
                     'The Pin Drop',
