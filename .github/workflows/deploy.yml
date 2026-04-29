@@ -13,7 +13,6 @@ jobs:
     steps:
     - name: Get latest code
       uses: actions/checkout@v6.0.2
-
     - name: Sync files with retry
       uses: nick-fields/retry@v3.0.2
       with:
