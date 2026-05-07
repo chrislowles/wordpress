@@ -326,7 +326,7 @@ class ChrisLowles_Shows {
         if ( ! $is_show_edit ) return;
 
         if ( ! empty( $_GET['show_date_error'] ) ) {
-            echo '<div class="notice notice-error nagging"><p><strong>Show not saved.</strong> You need to explicitly set a publish date. Open the <strong>Publish</strong> date picker, choose a date (past or future), click <strong>OK</strong>, then save.</p></div>';
+            echo '<div class="notice notice-error nagging"><p>You need to explicitly set a publish date. Open the <strong>Publish</strong> date picker, choose a date (past or future), click <strong>OK</strong>, then save.</p></div>';
             return;
         }
 
