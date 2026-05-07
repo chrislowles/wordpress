@@ -688,14 +688,37 @@ class ChrisLowles_Shows {
             'show-template-button',
             'showTemplate',
             [
-                'title'   => "Chris & Jesse: " . date( 'F j Y' ),
-                'body'    => "### In The Cinema\n[*WHAT'S ON AT HUSKI PICS?*](https://huskipics.com.au/movies/now-showing/)\n[*GLOBAL BOX OFFICE TOP 10*](https://www.screendaily.com/box-office/box-office-reports/international)\n#### News\n#### Trailers\n\n### The Pin Drop\n[*YT GLOBAL TOP 10*](https://charts.youtube.com/charts/TopSongs/global/weekly)\n*Chris' personal picks this last week*\n#### News\n#### Releases\n\n### Walking On Thin Ice\n\n### One Up\n\n### One Up (More)",
+                'title' => "Chris & Jesse: " . date( 'F j Y' ),
+                'body' => "### In The Cinema\n[*WHAT'S ON AT HUSKI PICS?*](https://huskipics.com.au/movies/now-showing/)\n[*GLOBAL BOX OFFICE TOP 10*](https://www.screendaily.com/box-office/box-office-reports/international)\n#### News\n#### Trailers\n\n### The Pin Drop\n[*YT GLOBAL TOP 10*](https://charts.youtube.com/charts/TopSongs/global/weekly)\n*Chris' personal picks this last week*\n#### News\n#### Releases\n\n### Walking On Thin Ice\n\n### One Up\n\n### One Up (More)",
                 'spacers' => [
-                    'In The Cinema',
-                    'The Pin Drop',
-                    'Walking On Thin Ice',
-                    'One Up',
-                    'One Up (More)'
+                    [
+                        "text" => "Intro",
+                        "enabled" => false
+                    ],
+                    [
+                        "text" => "In The Cinema",
+                        "enabled" => true
+                    ],
+                    [
+                        "text" => "The Pin Drop",
+                        "enabled" => true
+                    ],
+                    [
+                        "text" => "Walking On Thin Ice",
+                        "enabled" => true
+                    ],
+                    [
+                        "text" => "One Up",
+                        "enabled" => true
+                    ],
+                    [
+                        "text" => "One Up (More)",
+                        "enabled" => true
+                    ],
+                    [
+                        "text" => "Outro",
+                        "enabled" => false
+                    ]
                 ]
             ]
         );
