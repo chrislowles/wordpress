@@ -128,43 +128,36 @@ jQuery(document).ready($ => {
         var selectedShowTitle   = null;
 
         // ---------------------------------------------------------------------
-        // Modal HTML builder — separated from wiring so createModal() is readable
+        // Modal HTML builder (Using HTML5 <dialog>)
         // ---------------------------------------------------------------------
 
         function buildModalHtml() {
             return `
-                <div id="add-to-show-modal" style="display:none; position:fixed; z-index:100000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5);">
-                    <div style="background:#fff; margin:10% auto; padding:20px; border-radius:8px; width:80%; max-width:600px; max-height:70vh; overflow-y:auto; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
-
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #ddd; padding-bottom:10px;">
-                            <h2 id="modal-title" style="margin:0;">Add to Show</h2>
-                            <button type="button" class="modal-close" style="background:none; border:none; font-size:24px; cursor:pointer; color:#666;">&times;</button>
-                        </div>
-
-                        <div style="margin-bottom:20px; position:relative;">
-                            <label style="display:block; margin-bottom:5px; font-weight:600;">Search Shows:</label>
-                            <input type="text" id="show-search-input" class="widefat" placeholder="Type to search..." autocomplete="off"
-                                style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
-                            <ul id="show-search-results"
-                                style="display:none; position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid #ddd; border-top:none; border-radius:0 0 4px 4px; margin:0; padding:0; list-style:none; max-height:220px; overflow-y:auto; z-index:10; box-shadow:0 4px 6px rgba(0,0,0,0.08);">
-                            </ul>
-                        </div>
-
-                        <div id="show-selected-display"
-                            style="display:none; margin-bottom:16px; padding:8px 12px; background:#f0f6fc; border:1px solid #72aee6; border-radius:4px; font-size:13px; align-items:center; justify-content:space-between;">
-                            <span id="show-selected-label" style="font-weight:600; color:#2271b1;"></span>
-                            <button type="button" id="show-selected-clear" style="background:none; border:none; cursor:pointer; color:#999; font-size:16px; padding:0 0 0 8px;" title="Clear selection">&times;</button>
-                        </div>
-
-                        <div style="display:flex; gap:10px; justify-content:flex-end;">
-                            <a class="button modal-close">Cancel</a>
-                            <a class="button button-primary" id="confirm-add-btn" style="pointer-events:none; opacity:0.5;">Add</a>
-                            <a class="button button-primary" href="/wp-admin/post-new.php?post_type=show" target="_blank">Create New Show</a>
-                        </div>
-
-                        <div id="add-status" style="margin-top:15px; padding:10px; border-radius:4px; display:none;"></div>
+                <dialog id="add-to-show-modal" class="tracklist-modal">
+                    <div class="tracklist-modal-header">
+                        <h2 id="modal-title">Add to Show</h2>
+                        <button type="button" class="tracklist-modal-close modal-close" title="Close">&times;</button>
                     </div>
-                </div>
+
+                    <div class="tracklist-modal-search">
+                        <label for="show-search-input">Search Shows:</label>
+                        <input type="text" id="show-search-input" class="widefat" placeholder="Type to search..." autocomplete="off" />
+                        <ul id="show-search-results"></ul>
+                    </div>
+
+                    <div id="show-selected-display">
+                        <span id="show-selected-label"></span>
+                        <button type="button" id="show-selected-clear" title="Clear selection">&times;</button>
+                    </div>
+
+                    <div class="tracklist-modal-actions">
+                        <a class="button modal-close">Cancel</a>
+                        <a class="button button-primary disabled-btn" id="confirm-add-btn">Add</a>
+                        <a class="button button-primary" href="/wp-admin/post-new.php?post_type=show" target="_blank">Create New Show</a>
+                    </div>
+
+                    <div id="add-status"></div>
+                </dialog>
             `;
         }
 
@@ -180,8 +173,10 @@ jQuery(document).ready($ => {
                 e.preventDefault();
                 hideModal();
             });
+            
+            // Native dialog click-away handler (clicking the backdrop targets the dialog itself)
             $modal.on('click', e => {
-                if (e.target.id === 'add-to-show-modal') {
+                if (e.target === $modal[0]) {
                     hideModal();
                 }
             });
@@ -228,28 +223,15 @@ jQuery(document).ready($ => {
             });
 
             if (filtered.length === 0) {
-                $results.append(
-                    $('<li>').text('No shows found').css({
-                        padding: '8px 12px',
-                        color: '#999',
-                        fontStyle: 'italic',
-                        fontSize: '13px'
-                    })
-                );
+                $results.append($('<li>').text('No shows found').addClass('show-search-no-results'));
             } else {
                 filtered.forEach(show => {
                     var badge = show.status === 'draft' ? ' — Draft' : '';
-                    $('<li>').css({
-                        padding: '8px 12px',
-                        cursor: 'pointer',
-                        fontSize: '13px',
-                        borderBottom: '1px solid #F0F0F0'
-                    })
-                    .html('<strong>' + escapeHtml(show.title) + '</strong><span style="color:#999; margin-left:6px;">' + escapeHtml(show.date + badge) + '</span>')
-                    .on('mouseenter', function() { $(this).css('background', '#f0f6fc'); })
-                    .on('mouseleave', function() { $(this).css('background', ''); })
-                    .on('click',      function() { selectShow(show.id, show.title); })
-                    .appendTo($results);
+                    $('<li>')
+                        .addClass('show-search-result-item')
+                        .html('<strong>' + escapeHtml(show.title) + '</strong><span>' + escapeHtml(show.date + badge) + '</span>')
+                        .on('click', function() { selectShow(show.id, show.title); })
+                        .appendTo($results);
                 });
             }
             $results.show();
@@ -262,25 +244,19 @@ jQuery(document).ready($ => {
             $modal.find('#show-search-results').hide();
             $modal.find('#show-selected-label').text(title);
             $modal.find('#show-selected-display').css('display', 'flex');
-            $modal.find('#confirm-add-btn').css({
-                'pointer-events': '',
-                opacity: ''
-            });
+            $modal.find('#confirm-add-btn').removeClass('disabled-btn');
         }
 
         function clearSelection() {
             selectedShowId = selectedShowTitle = null;
             $modal.find('#show-selected-display').hide();
-            $modal.find('#confirm-add-btn').css({
-                'pointer-events': 'none',
-                opacity: '0.5'
-            });
+            $modal.find('#confirm-add-btn').addClass('disabled-btn');
         }
 
         function hideModal() {
             if (!$modal) return;
-            $modal.hide();
-            $modal.find('#add-status').hide();
+            $modal[0].close();
+            $modal.find('#add-status').hide().removeClass('status-success status-error');
             $modal.find('#show-search-input').val('');
             $modal.find('#show-search-results').hide();
             $modal.removeData('row').removeData('mode');
@@ -290,7 +266,7 @@ jQuery(document).ready($ => {
         function openModal(mode, $row) {
             if (!$modal) createModal();
 
-            $modal.find('#add-status').hide();
+            $modal.find('#add-status').hide().removeClass('status-success status-error');
             clearSelection();
             $modal.find('#show-search-input').val('');
             $modal.find('#show-search-results').hide();
@@ -307,7 +283,7 @@ jQuery(document).ready($ => {
             $modal.data('mode', mode);
 
             loadShowsList(() => {
-                $modal.show();
+                $modal[0].showModal();
                 setTimeout(() => { $modal.find('#show-search-input').focus(); }, 50);
             });
         }
@@ -404,11 +380,11 @@ jQuery(document).ready($ => {
 
         function showModalStatus(message, type) {
             var isSuccess = type === 'success';
-            $modal.find('#add-status').css({
-                'background-color': isSuccess ? '#D4EDDA' : '#F8D7DA',
-                'color':            isSuccess ? '#155724' : '#721C24',
-                'border':           '1px solid ' + (isSuccess ? '#C3E6CB' : '#F5C6CB')
-            }).html(message).show();
+            $modal.find('#add-status')
+                .removeClass('status-success status-error')
+                .addClass(isSuccess ? 'status-success' : 'status-error')
+                .html(message)
+                .show();
             if (isSuccess) setTimeout(() => $modal.find('#add-status').fadeOut(), 1100);
         }
 
