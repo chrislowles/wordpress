@@ -2,9 +2,6 @@ jQuery(document).ready(function ($) {
 
     if (typeof showTemplate === 'undefined') return;
 
-    // Utilities provided by utils.js / tracklist.js
-    var escapeHtml = ThemeUtils.escapeHtml;
-
     var $templateButton = $('<button>', {
         type:  'button',
         class: 'button button-secondary',
@@ -85,12 +82,19 @@ jQuery(document).ready(function ($) {
      * no inline styles needed here.
      */
     function buildSpacerRowHtml(spacer) {
-        var checkedAttr = spacer.enabled ? 'checked' : '';
+        // Bypass ThemeUtils.escapeHtml to avoid returning jQuery objects
+        // that cause "[object Object]" when concatenated into strings.
+        var textValue = spacer && spacer.text ? spacer.text.toString().replace(/"/g, '&quot;') : '';
+
+        // Strictly check boolean/string values to prevent string `"false"` evaluating as truthy
+        var isChecked = spacer && (spacer.enabled === true || spacer.enabled === '1' || spacer.enabled === 'true');
+        var checkedAttr = isChecked ? 'checked="checked"' : '';
+
         return `
             <div class="tracklist-row is-spacer">
                 <span class="drag-handle" title="Drag">|||</span>
                 <input type="hidden" name="tracklist[0][type]" value="spacer" class="item-type" />
-                <input type="text" name="tracklist[0][title]" class="item-title-input" placeholder="Segment Title..." value="${escapeHtml(spacer.text)}" />
+                <input type="text" name="tracklist[0][title]" class="item-title-input" placeholder="Segment Title..." value="${textValue}" />
                 <input type="url" name="tracklist[0][url]" class="item-url-input" placeholder="https://..." />
                 <input type="text" name="tracklist[0][duration]" class="item-duration-input" placeholder="3:45" />
                 <label class="link-checkbox-label" title="Link this spacer to a section in the body content">
