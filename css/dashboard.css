@@ -199,49 +199,6 @@ html, body {
    }
 }
 
-/* ==========================================================================
-   SCRATCHPAD STYLES
-   ========================================================================== */
-
-#scratchpad-wrapper {
-   position: relative;
-   border: 1px solid #ccc;
-}
-
-#scratchpad-content {
-   width: 100%;
-   display: block;
-   border: none;
-   box-shadow: none;
-   resize: vertical;
-   padding: 10px;
-}
-
-.scratchpad-controls {
-   padding: 10px;
-   background: #f0f0f1;
-   border-top: 1px solid #ccc;
-   display: flex;
-   align-items: center;
-   gap: 10px;
-}
-
-/* Scratchpad Locking Overlay */
-#scratchpad-lock-overlay {
-   position: absolute;
-   top: 0; left: 0; right: 0; bottom: 0;
-   background: rgba(255, 255, 255, 0.85);
-   z-index: 10;
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   backdrop-filter: blur(1px);
-}
-
-#scratchpad-lock-overlay.hidden {
-   display: none;
-}
-
 .lock-message {
    background: #fff;
    padding: 15px 20px;
