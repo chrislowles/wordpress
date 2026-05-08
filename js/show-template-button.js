@@ -84,16 +84,17 @@ jQuery(document).ready(function ($) {
      * CSS in dashboard.css controls which fields are visible for spacers;
      * no inline styles needed here.
      */
-    function buildSpacerRowHtml(title) {
+    function buildSpacerRowHtml(spacer) {
+        var checkedAttr = spacer.enabled ? 'checked' : '';
         return `
             <div class="tracklist-row is-spacer">
                 <span class="drag-handle" title="Drag">|||</span>
                 <input type="hidden" name="tracklist[0][type]" value="spacer" class="item-type" />
-                <input type="text" name="tracklist[0][title]" class="item-title-input" placeholder="Segment Title..." value="${escapeHtml(title)}" />
+                <input type="text" name="tracklist[0][title]" class="item-title-input" placeholder="Segment Title..." value="${escapeHtml(spacer.text)}" />
                 <input type="url" name="tracklist[0][url]" class="item-url-input" placeholder="https://..." />
                 <input type="text" name="tracklist[0][duration]" class="item-duration-input" placeholder="3:45" />
                 <label class="link-checkbox-label" title="Link this spacer to a section in the body content">
-                    <input type="checkbox" name="tracklist[0][link_to_section]" class="link-to-section-checkbox" value="1" checked />
+                    <input type="checkbox" name="tracklist[0][link_to_section]" class="link-to-section-checkbox" value="1" ${checkedAttr} />
                     Link
                 </label>
                 <button type="button" class="add-to-show-btn button">Add to Show</button>
