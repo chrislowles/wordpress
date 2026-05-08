@@ -262,3 +262,160 @@ html, body {
 #titlewrap #title {
   flex: 1;
 }
+
+/* ==========================================================================
+   ADD TO SHOW MODAL (HTML5 DIALOG)
+   ========================================================================== */
+
+.tracklist-modal {
+   background: #fff;
+   padding: 20px;
+   border: none;
+   border-radius: 8px;
+   width: 80%;
+   max-width: 600px;
+   max-height: 70vh;
+   overflow-y: auto;
+   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.tracklist-modal::backdrop {
+   background-color: rgba(0,0,0,0.5);
+}
+
+.tracklist-modal-header {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   margin-bottom: 20px;
+   border-bottom: 1px solid #ddd;
+   padding-bottom: 10px;
+}
+
+.tracklist-modal-header h2 {
+   margin: 0;
+}
+
+.tracklist-modal-close {
+   background: none;
+   border: none;
+   font-size: 24px;
+   cursor: pointer;
+   color: #666;
+}
+
+.tracklist-modal-search {
+   margin-bottom: 20px;
+   position: relative;
+}
+
+.tracklist-modal-search label {
+   display: block;
+   margin-bottom: 5px;
+   font-weight: 600;
+}
+
+.tracklist-modal-search input {
+   width: 100%;
+   padding: 8px;
+   border: 1px solid #ddd;
+   border-radius: 4px;
+}
+
+#show-search-results {
+   display: none;
+   position: absolute;
+   top: 100%;
+   left: 0;
+   right: 0;
+   background: #fff;
+   border: 1px solid #ddd;
+   border-top: none;
+   border-radius: 0 0 4px 4px;
+   margin: 0;
+   padding: 0;
+   list-style: none;
+   max-height: 220px;
+   overflow-y: auto;
+   z-index: 10;
+   box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+}
+
+.show-search-result-item {
+   padding: 8px 12px;
+   cursor: pointer;
+   font-size: 13px;
+   border-bottom: 1px solid #F0F0F0;
+}
+
+.show-search-result-item:hover {
+   background: #f0f6fc;
+}
+
+.show-search-result-item span {
+   color: #999;
+   margin-left: 6px;
+}
+
+.show-search-no-results {
+   padding: 8px 12px;
+   color: #999;
+   font-style: italic;
+   font-size: 13px;
+}
+
+#show-selected-display {
+   display: none;
+   margin-bottom: 16px;
+   padding: 8px 12px;
+   background: #f0f6fc;
+   border: 1px solid #72aee6;
+   border-radius: 4px;
+   font-size: 13px;
+   align-items: center;
+   justify-content: space-between;
+}
+
+#show-selected-label {
+   font-weight: 600;
+   color: #2271b1;
+}
+
+#show-selected-clear {
+   background: none;
+   border: none;
+   cursor: pointer;
+   color: #999;
+   font-size: 16px;
+   padding: 0 0 0 8px;
+}
+
+.tracklist-modal-actions {
+   display: flex;
+   gap: 10px;
+   justify-content: flex-end;
+}
+
+.disabled-btn {
+   pointer-events: none;
+   opacity: 0.5;
+}
+
+#add-status {
+   margin-top: 15px;
+   padding: 10px;
+   border-radius: 4px;
+   display: none;
+}
+
+#add-status.status-success {
+   background-color: #D4EDDA;
+   color: #155724;
+   border: 1px solid #C3E6CB;
+}
+
+#add-status.status-error {
+   background-color: #F8D7DA;
+   color: #721C24;
+   border: 1px solid #F5C6CB;
+}
