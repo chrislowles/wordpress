@@ -140,8 +140,7 @@ jQuery(document).ready($ => {
                     </div>
 
                     <div class="tracklist-modal-search">
-                        <label for="show-search-input">Search Shows:</label>
-                        <input type="text" id="show-search-input" class="widefat" placeholder="Type to search..." autocomplete="off" />
+                        <input type="text" id="show-search-input" class="widefat" placeholder="Search shows..." autocomplete="off" />
                         <ul id="show-search-results"></ul>
                     </div>
 
