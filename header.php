@@ -9,19 +9,15 @@
     </head>
     <body <?php body_class(); ?>>
         <?php wp_body_open(); ?>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
             <div class="container-fluid">
-                <a class="navbar-brand d-flex flex-column align-items-start" href="/" title="<?php echo esc_attr(get_bloginfo('name')); ?>">
-                    <span><?php echo get_bloginfo('name'); ?></span>
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas-navbar" aria-controls="offcanvas-navbar">
+                <a class="navbar-brand" href="/" title="<?php echo esc_attr(get_bloginfo('name')); ?>"><?php echo get_bloginfo('name'); ?></a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-content" aria-controls="navbar-content" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvas-navbar">
-                    <div class="offcanvas-header">
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                    </div>
-                    <div class="offcanvas-body">
+                <div class="collapse navbar-collapse" id="navbar-content">
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="collapse" aria-label="Close"></button>
+                    <div class="collapse-body">
                         <?php
                             wp_nav_menu(
                                 array(
@@ -33,8 +29,8 @@
                                 )
                             );
                         ?>
-                        <form class="d-flex mt-3 mt-lg-0" action="/" method="get" role="search">
-                            <input type="text" name="s" id="search" aria-label="Search" placeholder="Search" value="<?php the_search_query(); ?>" class="form-control me-2" />
+                        <form class="d-flex" action="/" method="get" role="search">
+                            <input class="form-control me-2" type="text" name="s" id="search" aria-label="Search" placeholder="Search" value="<?php the_search_query(); ?>" />
                             <button class="btn btn-outline-success" type="submit">Search</button>
                         </form>
                     </div>
