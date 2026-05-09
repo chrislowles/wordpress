@@ -42,6 +42,20 @@
  *  6. 'pending' (Pending Review) is permanently blocked for show posts.
  *     Scheduling a future date is the intended pre-publish holding state.
  *
+ * Autosave & Revisions
+ * --------------------
+ * Both are disabled for show posts. Autosave is unhelpful here — the tracklist
+ * metabox is excluded from autosave by design, so an autosave would only ever
+ * capture partial state. The dirty-tracking beforeunload warning in tracklist.js
+ * already covers the accidental-close/crash case. Revisions are similarly
+ * unnecessary given the structured nature of show post content.
+ *
+ * Quick Edit
+ * ----------
+ * Disabled for show posts. Quick Edit submits via AJAX and cannot satisfy the
+ * date enforcement requirements (no show_date_explicitly_set field, no
+ * individual date form fields). Removing it prevents silent save failures.
+ *
  * Note: the old '_show_airing_date' post meta is no longer written. Any
  * existing rows can be left in place (harmless) or cleaned up with:
  *   DELETE FROM wp_postmeta WHERE meta_key = '_show_airing_date';
@@ -91,6 +105,14 @@ class ChrisLowles_Shows {
 
         // Admin notices: blocked-save error + unconfirmed-post warning.
         add_action( 'admin_notices', [ $this, 'date_enforcement_notices' ] );
+        // ---------------------------------------------------------------------
+
+        // ---- Autosave, Revisions & Quick Edit -------------------------------
+        // Autosave is dequeued per-screen inside enqueue_assets() since we
+        // already have the $is_show_edit check there.
+        // Revisions and Quick Edit are handled globally for the post type.
+        add_filter( 'wp_revisions_to_keep',  [ $this, 'disable_revisions' ],  10, 2 );
+        add_filter( 'post_row_actions',      [ $this, 'disable_quick_edit' ], 10, 2 );
         // ---------------------------------------------------------------------
 
         // AJAX Handlers for cross-post transfer
@@ -149,6 +171,30 @@ class ChrisLowles_Shows {
                 'rewrite'             => true,
             ]
         );
+    }
+
+    // AUTOSAVE, REVISIONS & QUICK EDIT
+
+    /**
+     * Disable revisions for show posts.
+     * Autosave is handled separately by dequeuing the autosave script in
+     * enqueue_assets() when on a show edit screen.
+     */
+    public function disable_revisions( int $num, \WP_Post $post ): int {
+        return $post->post_type === 'show' ? 0 : $num;
+    }
+
+    /**
+     * Remove the Quick Edit action from the show list table.
+     * Quick Edit submits via AJAX and cannot satisfy date enforcement
+     * (no show_date_explicitly_set field, no individual date form fields),
+     * so it would silently fail on any save attempt.
+     */
+    public function disable_quick_edit( array $actions, \WP_Post $post ): array {
+        if ( $post->post_type === 'show' ) {
+            unset( $actions['inline hide-if-no-js'] );
+        }
+        return $actions;
     }
 
     // DATE ENFORCEMENT
@@ -626,6 +672,12 @@ class ChrisLowles_Shows {
     public function enqueue_assets( $hook ) {
         $is_show_edit = ( $hook === 'post.php' || $hook === 'post-new.php' ) && get_post_type() === 'show';
         if ( ! $is_show_edit ) return;
+
+        // Autosave is unhelpful for show posts: the tracklist metabox is excluded
+        // from autosave by design, so an autosave only ever captures partial state.
+        // The dirty-tracking beforeunload warning in tracklist.js covers the
+        // accidental-close/crash case without needing autosave.
+        wp_dequeue_script( 'autosave' );
 
         // Shared utilities
         wp_enqueue_script(
