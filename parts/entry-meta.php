@@ -12,9 +12,7 @@
     <div class="vr"></div>
     <?php $post_tags = get_the_tags(); if ( $post_tags ): ?>
         <?php foreach ( $post_tags as $tag ) : ?>
-            <span>
-                <a href="<?php esc_url( get_tag_link( $tag->term_id ) ) ?>" class="badge text-bg-secondary text-decoration-none me-1"><?php esc_html( $tag->name ) ?></a>
-            </span>
+            <a href="<?php esc_url( get_tag_link( $tag->term_id ) ) ?>" class="badge text-bg-secondary text-decoration-none me-1"><?php esc_html( $tag->name ) ?></a>
         <?php endforeach; ?>
     <?php endif; ?>
 </div>
