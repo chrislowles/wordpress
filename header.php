@@ -2,8 +2,8 @@
 <html <?php language_attributes(); ?>>
     <head>
         <meta charset="<?php bloginfo( 'charset' ); ?>">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title><?php wp_title( '|', true, 'right' ); ?></title>
+        <meta name="color-scheme" content="light dark" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <?php wp_head(); ?>
     </head>
     <body <?php body_class(); ?>>
@@ -22,7 +22,6 @@
 
                 <div class="collapse navbar-collapse" id="mainNavbar">
                     <?php
-                    // Display the WordPress menu
                     wp_nav_menu(
                         array(
                             'theme_location' => is_user_logged_in() ? 'logged-in-menu' : 'logged-out-menu', // Make sure this matches your registered menu location
