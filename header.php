@@ -33,7 +33,12 @@
                         )
                     );
                     ?>
+                    <form class="d-flex ml-2" action="/" method="get" role="search">
+                        <input type="text" name="s" id="search" aria-label="Search" placeholder="Search" value="<?php the_search_query(); ?>" class="form-control me-2" />
+                        <button class="btn btn-outline-success" type="submit">Search</button>
+                    </form>
                 </div>
+
             </div>
         </nav>
     </header>
