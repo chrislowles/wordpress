@@ -25,9 +25,9 @@
                     wp_nav_menu(
                         array(
                             'theme_location' => is_user_logged_in() ? 'logged-in-menu' : 'logged-out-menu', // Make sure this matches your registered menu location
-                            'container'       => false,     // Prevents WordPress from wrapping the <ul> in a <div>
-                            'menu_class'      => 'navbar-nav ms-auto mb-2 mb-lg-0', // Bootstrap classes for the <ul>
-                            'fallback_cb'     => '__return_false', // Hides the menu if nothing is assigned
+                            'container'       => false,                                                     // Prevents WordPress from wrapping the <ul> in a <div>
+                            'menu_class'      => 'navbar-nav me-auto mb-lg-0',                              // Bootstrap classes for the <ul>
+                            'fallback_cb'     => '__return_false',                                          // Hides the menu if nothing is assigned
                             'items_wrap'      => '<ul id="%1$s" class="%2$s">%3$s</ul>',
                             'depth'           => 2,
                         )
